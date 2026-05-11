@@ -1,20 +1,36 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import HomeView from '../views/HomeView.vue'
+import DashUiView from '../views/DashUiView.vue'
+import PeiAllView from '../views/Admin/Mantenimiento/Op_Pei/PeiAllView.vue'
+import PlandneAllView from '../views/Admin/Mantenimiento/Op_PLANDE/PlandneAllView.vue'
+import ProyectosView from '../views/Admin/Proyectos/Lista_Proyectos/ProyectosView.vue'
+import LoginView from '../views/LoginView.vue'
 
 const routes = [
   {
-    path: '/',
-    name: 'home',
-    component: HomeView
+    path: '/site-login',
+    name: 'login',
+    component: LoginView
   },
   {
-    path: '/about',
-    name: 'about',
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "about" */ '../views/AboutView.vue')
-  }
+    path: '/site-admin',
+    name: 'site-admin',
+    component: DashUiView
+  },
+  {
+    path: '/site-admin/pei',
+    name: 'site-admin-pei',
+    component: PeiAllView
+  },
+  {
+    path: '/site-admin/plandne',
+    name: 'site-admin-plandne',
+    component: PlandneAllView
+  },
+  {
+    path: '/site-admin/proyectos',
+    name: 'site-admin-proyectos',
+    component: ProyectosView
+  },
 ]
 
 const router = createRouter({

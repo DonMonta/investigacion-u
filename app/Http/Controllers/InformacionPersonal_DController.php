@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\InformacionPersonald;
+use App\Models\InformacionPersonalD;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Response;
@@ -26,7 +26,7 @@ class InformacionPersonal_DController extends Controller
     public function show(string $id)
     {
         // Aplica paginación al resultado del filtro
-        $data = InformacionPersonald::select('informacionpersonal_d.*')
+        $data = InformacionPersonalD::select('informacionpersonal_d.*')
             ->where('informacionpersonal_d.CIInfPer', $id)
             ->paginate(20);
         if ($data->isEmpty()) {
@@ -79,7 +79,7 @@ class InformacionPersonal_DController extends Controller
     {
         try {
             // 1. Obtener SÓLO la columna 'fotografia' para el CI específico
-            $persona = InformacionPersonald::where('CIInfPer', $ci)
+            $persona = InformacionPersonalD::where('CIInfPer', $ci)
                 ->select('fotografia')
                 ->first();
 

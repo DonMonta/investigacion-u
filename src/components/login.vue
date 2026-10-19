@@ -14,6 +14,9 @@
                 <p class="text-sm text-gray-500 dark:text-gray-400 text-center">
                   ¡Ingresa tu usuario y contraseña para iniciar sesión!
                 </p>
+                <p class="text-sm text-gray-500 dark:text-gray-400 text-center">
+                  Si eres estudiante de la UTLVTE, ingresa tu usuario y contraseña del SIAD para iniciar sesión.
+                </p>
               </div>
               <div>
                 <form @submit.prevent="handleSubmit">

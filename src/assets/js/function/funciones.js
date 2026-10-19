@@ -99,7 +99,7 @@ export function qrconfimar(metodo, url, parametros, titulo, mensaje, actualizarT
         }
     });
 }
-export function eliminacion(urlconslash, id, titulo, mensaje, actualizarTabla) {
+export function eliminacion(urlconslash, id, titulo, mensaje, actualizarTabla, idDepartamento = null) {
     var url = urlconslash + id;   // 👈 Se construye la URL con el ID
 
     const swalwithboostrapbutton = Swal.mixin({
@@ -118,7 +118,8 @@ export function eliminacion(urlconslash, id, titulo, mensaje, actualizarTabla) {
         cancelButtonText: '<i class="fa-solid fa-ban"></i> Cancelar'
     }).then((res) => {
         if (res.isConfirmed) {
-            return API.delete(url)   // 👈 Ya NO mandamos { data: { id } }
+            const axiosOptions = idDepartamento ? { data: { id_departamento: idDepartamento } } : {};
+            return API.delete(url, axiosOptions)   // 👈 Ya NO mandamos { data: { id } }
                 .then((response) => {
                     mostraralertas(response.data.mensaje ?? 'Eliminado con éxito', 'success');
                     if (typeof actualizarTabla === "function") {
@@ -136,7 +137,7 @@ export function eliminacion(urlconslash, id, titulo, mensaje, actualizarTabla) {
         }
     });
 }
-export function confimarhabi(urlconslash, id, titulo, mensaje, actualizarTabla) {
+export function confimarhabi(urlconslash, id, titulo, mensaje, actualizarTabla, idDepartamento = null) {
     var url = urlconslash + id;
 
     const swalwithboostrapbutton = Swal.mixin({
@@ -156,8 +157,11 @@ export function confimarhabi(urlconslash, id, titulo, mensaje, actualizarTabla) 
         cancelButtonText: '<i class="fa-solid fa-ban"></i> Cancelar'
     }).then((res) => {
         if (res.isConfirmed) {
-            // Usamos API.delete porque así lo tienes en tu Route::delete
-            return API.delete(url)
+            
+            // 👈 Construimos la opción de axios dinámicamente
+            const axiosOptions = idDepartamento ? { data: { id_departamento: idDepartamento } } : {};
+
+            return API.delete(url, axiosOptions)
                 .then((response) => {
                     mostraralertas(response.data.mensaje ?? 'Habilitado con éxito', 'success');
                     if (typeof actualizarTabla === "function") {
@@ -166,20 +170,16 @@ export function confimarhabi(urlconslash, id, titulo, mensaje, actualizarTabla) 
                     return response.data;
                 })
                 .catch((error) => {
-                    // --- CAPTURA DEL ERROR DE VALIDACIÓN (PEI YA ACTIVO) ---
                     let mensajeError = 'Error al habilitar';
 
                     if (error.response && error.response.data && error.response.data.mensaje) {
-                        // Si el backend envió un mensaje específico (como el del activo existente)
                         mensajeError = error.response.data.mensaje;
                     }
 
                     mostraralertas(mensajeError, 'error');
                     console.error("Error en habilitar:", error);
-                    // No es estrictamente necesario lanzar el error aquí si ya lo manejas con la alerta
                 });
         } else {
-            // Opcional: puedes quitar esta alerta si crees que molesta al usuario
             mostraralertas('Operación cancelada', 'info');
             return null;
         }

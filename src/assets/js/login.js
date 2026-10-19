@@ -20,8 +20,9 @@ export default {
           LoginUsu: this.email.trim(),
           ClaveUsu: this.password.trim(),
         };
-
+        console.log('Enviando solicitud de login con parámetros:', parametros);
         const response = await enviarsolilogin('POST', parametros, this.url2, 'Logueado');
+        console.log('Respuesta del login:', response);
         if (response.error) {
           mostraralertas(response.mensaje, 'warning');
           this.isLoggingIn = false;
@@ -32,6 +33,14 @@ export default {
             mostraralertas('LE DAMOS LA BIENVENIDA ADMIN ' + (response.name || ''), 'success');
             this.$router.push('/site-admin');
           } 
+          else if (role === 'D' || role === 'A' || role === 'TDO' || role === 'T') {
+            mostraralertas('LE DAMOS LA BIENVENIDA ' + (response.name || ''), 'success');
+            this.$router.push('/site-admin/docperfil');
+          }
+          else if (role === 'est'){
+            mostraralertas('LE DAMOS LA BIENVENIDA ESTUDIANTE ' + (response.name || ''), 'success');
+            this.$router.push('/site-admin/perfil');
+          }
         }
       } catch (error) {
         this.isLoggingIn = false;

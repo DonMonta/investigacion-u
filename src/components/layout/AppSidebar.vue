@@ -193,6 +193,12 @@ const menuData = [
         subItems: [
           { name: "PEI", path: "/site-admin/pei", pro: false },
           { name: "PLANDNE", path: "/site-admin/plandne", pro: false },
+          { name: "Agenda ODS", path: "/site-admin/agenda_ods", pro: false },
+          { name: "DOMINIOS ACADEMICOS", path: "/site-admin/dominio_academico", pro: false },
+          { name: "LÍNEAS DE INVESTIGACIÓN", path: "/site-admin/linea_investigacion", pro: false },
+          { name: "ÁREAS UNESCO", path: "/site-admin/subarea_unesco", pro: false },
+          { name: "ZONAS DE PLANIFICACIÓN", path: "/site-admin/zona_planificacion", pro: false },
+          { name: "Empresas Registradas", path: "/site-admin/empresa", pro: false },
         ],
       },
       {

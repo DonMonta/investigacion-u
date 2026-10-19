@@ -27,7 +27,7 @@
 
         <button @click="isProfileAddressModal = true"
           class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200">
-          Añadir PEI
+          Añadir PLANDNE
         </button>
       </div>
     </div>
@@ -90,13 +90,33 @@
               </div>
             </td>
             <td class="py-5 px-4 whitespace-nowrap">
-              <span :class="{
-                'rounded-lg px-3 py-1 text-xs font-bold uppercase tracking-wider': true,
-                'bg-green-100 text-green-700 dark:bg-success-500/15 dark:text-success-500': post.estado_plandne === 1,
-                'bg-orange-100 text-orange-700 dark:bg-warning-500/15 dark:text-orange-400': post.estado_plandne === 0
-              }">
-                {{ post.estado_plandne === 1 ? 'Activo' : 'Inactivo' }}
-              </span>
+              <div class="flex flex-col gap-3">
+                <!-- Estado General -->
+                <div>
+                  <p class="text-[10px] text-gray-400 uppercase tracking-wider mb-1">General</p>
+                  <span :class="{
+                    'rounded-lg px-2 py-1 text-xs font-bold uppercase tracking-wider': true,
+                    'bg-green-100 text-green-700 dark:bg-success-500/15 dark:text-success-500': post.estado_plandne === 1,
+                    'bg-orange-100 text-orange-700 dark:bg-warning-500/15 dark:text-orange-400': post.estado_plandne === 0
+                  }">
+                    {{ post.estado_plandne === 1 ? 'Activo' : 'Inactivo' }}
+                  </span>
+                </div>
+
+                <!-- Estado del Departamento (Solo si se filtró por departamento) -->
+                <div v-if="post.estado_departamento !== undefined">
+                  <p class="text-[10px] text-gray-400 uppercase tracking-wider mb-1 max-w-[150px] truncate" :title="post.nombre_departamento">
+                    En: {{ post.nombre_departamento }}
+                  </p>
+                  <span :class="{
+                    'rounded-lg px-2 py-1 text-xs font-bold uppercase tracking-wider': true,
+                    'bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-400': post.estado_departamento === 1,
+                    'bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-400': post.estado_departamento === 0
+                  }">
+                    {{ post.estado_departamento === 1 ? 'Habilitado' : 'Inhabilitado' }}
+                  </span>
+                </div>
+              </div>
             </td>
 
             <td class="py-5 px-4">
@@ -119,37 +139,59 @@
             <!-- Acciones de Edición y Eliminación -->
             <td class="py-3 text-right whitespace-nowrap">
               <div class="flex justify-end gap-2">
-                <button @click="abrirModalEdicion(post)"
+                <button @click="abrirModalEdicion(post)" :disabled="botonCargando === 'editar_' + post.id_pladne"
                   class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <svg v-if="botonCargando === 'editar_' + post.id_pladne" class="animate-spin h-5 w-5 text-amber-600"
+                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                    </path>
+                  </svg>
+                  <svg v-else width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2">
                     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
                     <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
                   </svg>
                 </button>
-                <button v-if="post.estado_plandne === 1 && post.objetivos_plandne_count > 0"
-                  @click="abrirModalPoliticas(post)"
-                  class="p-2 text-cyan-600 hover:bg-cyan-50 rounded-lg transition-colors" title="Gestionar Objetivos">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <button v-if="post.estado_departamento === 1 && post.objetivos_plandne_count > 0"
+                  @click="abrirModalPoliticas(post)" :disabled="botonCargando === 'politicas_' + post.id_pladne"
+                  class="p-2 text-cyan-600 hover:bg-cyan-50 rounded-lg transition-colors" title="Gestionar Políticas">
+                  <svg v-if="botonCargando === 'politicas_' + post.id_pladne" class="animate-spin h-5 w-5 text-cyan-600"
+                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                    </path>
+                  </svg>
+                  <svg v-else width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <circle cx="12" cy="12" r="10" />
                     <path d="M12 8l4 4-4 4M8 12h7" />
                   </svg>
                 </button>
-                <button v-if="post.estado_plandne === 1" @click="abrirModalObjPol(post)"
+                <button v-if="post.estado_departamento === 1" @click="abrirModalObjPol(post)" :disabled="botonCargando === 'objetivos_' + post.id_pladne"
                   class="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
                   title="Gestionar Objetivos">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <svg v-if="botonCargando === 'objetivos_' + post.id_pladne" class="animate-spin h-5 w-5 text-purple-600"
+                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                    </path>
+                  </svg>
+                  <svg v-else width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M12 3v18m9-9H3" />
                     <rect x="3" y="3" width="18" height="18" rx="2" />
                   </svg>
                 </button>
-                <button @click="eliminar(post.id_plandne, post.nombre_plandne)" v-if="post.estado_plandne === 1"
+                <button @click="eliminar(post.id_pladne, post.nombre_plandne)" v-if="(post.estado_departamento !== undefined ? post.estado_departamento : post.estado_pei) === 1"
                   class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polyline points="3 6 5 6 21 6" />
                     <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
                   </svg>
                 </button>
-                <button @click="habilitar(post.id_plandne, post.nombre_plandne)" v-if="post.estado_plandne === 0"
+                <button @click="habilitar(post.id_pladne, post.nombre_plandne)"v-if="(post.estado_departamento !== undefined ? post.estado_departamento : post.estado_pei) === 0"
                   class="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors dark:text-gray-400 dark:hover:bg-white/10"
                   title="Refrescar lista">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -273,7 +315,8 @@
           </div>
 
           <div class="md:col-span-8 flex flex-col min-h-0">
-            <div class="overflow-y-auto border rounded-xl dark:border-gray-800 custom-scrollbar" style="max-height: 400px;">
+            <div class="overflow-y-auto border rounded-xl dark:border-gray-800 custom-scrollbar"
+              style="max-height: 400px;">
               <table class="min-w-full divide-y divide-gray-100 dark:divide-gray-800">
                 <thead class="bg-gray-50 dark:bg-gray-800/50">
                   <tr>
@@ -501,9 +544,25 @@
                 class="flex w-full justify-center rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 sm:w-auto">
                 Cerrar
               </button>
-              <button v-if="formIsValid" @click="registrar" type="button"
-                class="flex w-full justify-center rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600 sm:w-auto shadow-lg transition-all">
-                Guardar PLANDNE
+              <button v-if="formIsValid" @click="registrar" :disabled="uploading" type="button"
+                class="flex items-center gap-2 w-full justify-center rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600 sm:w-auto shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+
+                <!-- Span para el estado de carga (Spinner + Texto) -->
+                <span v-if="uploading" class="inline-flex items-center gap-2">
+                  <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none"
+                    viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                    </path>
+                  </svg>
+                  <span>Guardando...</span>
+                </span>
+
+                <!-- Span estado normal -->
+                <span v-else>
+                  Guardar
+                </span>
               </button>
             </div>
           </form>
@@ -534,7 +593,7 @@
             </p>
           </div>
           <form class="flex flex-col">
-            <div class="px-2 overflow-y-auto custom-scrollbar">
+            <div class="px-2 overflow-y-auto custom-scrollbar max-h-[60vh]">
               <div class="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
                 <div>
                   <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
@@ -559,9 +618,21 @@
                   </p>
                 </div>
               </div>
+              <div v-if="objetoeditar.link_plandne" class="mt-4 col-span-1 lg:col-span-2">
+                <label class="block text-xs font-bold mb-2 text-gray-700 dark:text-gray-300">Documento PLANDNE
+                  Actual:</label>
+                <div
+                  class="w-full h-[400px] border border-gray-300 dark:border-gray-700 rounded-xl overflow-hidden bg-gray-50">
+                  <iframe :src="objetoeditar.link_plandne" class="w-full h-full border-0"></iframe>
+                </div>
+                <div class="mt-2 text-right">
+                  <a :href="objetoeditar.link_plandne" target="_blank"
+                    class="text-sm text-brand-600 hover:underline">Abrir en nueva pestaña</a>
+                </div>
+              </div>
               <div class="mt-5">
                 <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
-                  Link del Plan de Desarrollo
+                  Editar link del Plan de Desarrollo
                 </label>
                 <input type="text" v-model="objetoeditar.link_plandne" placeholder="Ej: https://www.google.com"
                   class="dark:bg-dark-900 h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:text-white/90" />
@@ -588,9 +659,25 @@
                 class="flex w-full justify-center rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 sm:w-auto">
                 Cerrar
               </button>
-              <button v-if="formIsValidEdit" @click="Update" type="button"
-                class="flex w-full justify-center rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600 sm:w-auto shadow-lg transition-all">
-                Guardar cambios
+              <button v-if="formIsValidEdit" @click="Update" :disabled="uploading" type="button"
+                class="flex items-center gap-2 w-full justify-center rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600 sm:w-auto shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+
+                <!-- Span para el estado de carga (Spinner + Texto) -->
+                <span v-if="uploading" class="inline-flex items-center gap-2">
+                  <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none"
+                    viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                    </path>
+                  </svg>
+                  <span>Actualizando...</span>
+                </span>
+
+                <!-- Span estado normal -->
+                <span v-else>
+                  Guardar cambios
+                </span>
               </button>
             </div>
           </form>
@@ -621,6 +708,7 @@ defineExpose({
 <script>
 import API from "@/assets/js/services/axios";
 import { useRoute } from "vue-router";
+import { useUsuario } from "@/composables/useUsuario";
 import debounce from 'lodash.debounce';
 import Modal from '@/components/Modal/Modal.vue'
 import { mostraralertas2, enviarsolig, eliminacion, confimarhabi, elimnarpermanente } from '@/assets/js/function/funciones';
@@ -629,8 +717,9 @@ export default {
   data() {
     return {
       idus: 0,
-      baseUrl: "/vin",
-
+      baseUrl: "/inves",
+      botonCargando: null,
+      UsuarioInfo: {},
       usersarray: [],
       objetoguardar: {
         nombre_plandne: "",
@@ -687,7 +776,7 @@ export default {
     }, 900);
   },
   async mounted() {
-    const ruta = useRoute();
+    this.UsuarioInfo = useUsuario();
     this.GetData(1, this.searchQuery);
 
   },
@@ -719,16 +808,24 @@ export default {
   },
   methods: {
     async abrirModalPoliticas(pei) {
+      this.botonCargando = 'politicas_' + pei.id_pladne;
       this.selectedPLANDNE = pei;
-      this.cancelarEdicionPoliticas();
+      try{
+        this.cancelarEdicionPoliticas();
+  
+        // 1. Cargar subsistemas del PEI seleccionado para el Select
+        const respSub = await API.get(`${this.baseUrl}/obj_pol_plandne/${pei.id_pladne}`);
+        this.ListaObjetivosPol = respSub.data.data || [];
+  
+        // 2. Cargar objetivos (Tu backend debería filtrar objetivos por PEI a través de los subsistemas)
+        await this.getPoliticas();
+        this.isPoliticasModalOpen = true;
 
-      // 1. Cargar subsistemas del PEI seleccionado para el Select
-      const respSub = await API.get(`${this.baseUrl}/obj_pol_plandne/${pei.id_pladne}`);
-      this.ListaObjetivosPol = respSub.data.data || [];
-
-      // 2. Cargar objetivos (Tu backend debería filtrar objetivos por PEI a través de los subsistemas)
-      await this.getPoliticas();
-      this.isPoliticasModalOpen = true;
+      }catch(e){
+        console.error("❌ Error:", error.e?.data || e);
+      }finally{
+        this.botonCargando = null;
+      }
     },
 
     async guardarPoliticas() {
@@ -762,7 +859,7 @@ export default {
       this.PoliticasForm.id_obj_pol_pladne = obj.id_obj_pol_pladne;
       this.PoliticasForm.detalle_pol = obj.detalle_pol;
       // Extraer solo el número del código (quita las letras OE)
-      this.codNumero = obj.cod_pol.replace('POLÍTICAS', '');
+      this.codNumero = obj.cod_pol.replace('POLÍTICA', '');
     },
 
     cancelarEdicionPoliticas() {
@@ -778,11 +875,19 @@ export default {
       }
     },
     async abrirModalObjPol(obj) {
-      this.selectedPLANDNE = obj;
-      this.ObjetivosPolForm.id_pladne = obj.id_pladne;
-      this.cancelarEdicionObjetivosPol(); // Limpia el form
-      await this.getObjPol();
-      this.isObjetivosPolModalOpen = true;
+      this.botonCargando = 'objetivos_' + obj.id_pladne;
+      try{
+        this.selectedPLANDNE = obj;
+        this.ObjetivosPolForm.id_pladne = obj.id_pladne;
+        this.cancelarEdicionObjetivosPol(); // Limpia el form
+        await this.getObjPol();
+        this.isObjetivosPolModalOpen = true;
+      }catch(e){
+        console.error("❌ Error:", error.e?.data || e);
+      }finally{
+        this.botonCargando = null;
+      }
+     
     },
     async getPoliticas() {
       try {
@@ -862,14 +967,21 @@ export default {
     },
     abrirModalEdicion(user) {
       // Clonamos el objeto para no modificar la tabla directamente antes de guardar
-      this.objetoeditar = {
-        id_pladne: user.id_pladne,
-        nombre_plandne: user.nombre_plandne,
-        anio_plandne: user.anio_plandne,
-        estado_plandne: user.estado_plandne,
-        link_plandne: user.link_plandne
-      };
-      this.$.setupState.isEditModalOpen = true;
+      this.botonCargando = 'editar_' + user.id_pei;
+      try {
+        this.objetoeditar = {
+          id_pladne: user.id_pladne,
+          nombre_plandne: user.nombre_plandne,
+          anio_plandne: user.anio_plandne,
+          estado_plandne: user.estado_plandne,
+          link_plandne: user.link_plandne
+        };
+        this.$.setupState.isEditModalOpen = true;
+      } catch (e) {
+        console.error("❌ Error:", error.e?.data || e);
+      } finally {
+        this.botonCargando = null;
+      }
     },
     async GetData(page = 1, searchQuery = "") {
       this.cargando = true;
@@ -877,10 +989,10 @@ export default {
       try {
         const params = {
           page: page,
-          search_query: searchQuery // Parámetro para búsqueda
+          search_query: searchQuery, // Parámetro para búsqueda
+          id_departamento: this.UsuarioInfo.departamentoUsuario
         };
         const response = await API.get(`${this.baseUrl}/plandne`, { params });
-
         const data = response.data?.data || [];
         this.filteredarray = data;
         const pagination = response.data?.pagination || {};
@@ -919,13 +1031,15 @@ export default {
     },
 
     async registrar() {
-
+      if (this.uploading) return;
       try {
+        this.uploading = true;
         const params = {
           nombre_plandne: this.objetoguardar.nombre_plandne,
           anio_plandne: this.objetoguardar.anio_plandne,
           estado_plandne: this.objetoguardar.estado_plandne,
-          link_plandne: this.objetoguardar.link_plandne
+          link_plandne: this.objetoguardar.link_plandne,
+          id_departamento: this.UsuarioInfo.departamentoUsuario
         };
         const exito = await enviarsolig('POST', params, `${this.baseUrl}/plandne`, 'PLANDNE registrado con éxito');
         if (exito) {
@@ -938,15 +1052,20 @@ export default {
         }
       } catch (error) {
         console.error("❌ Error al registrar PLANDNE:", error.response?.data || error);
+      } finally {
+        this.uploading = false; // Desactiva el loader al terminar
       }
     },
     async Update() {
+      if (this.uploading) return;
       try {
+        this.uploading = true;
         const params = {
           nombre_plandne: this.objetoeditar.nombre_plandne,
           anio_plandne: this.objetoeditar.anio_plandne,
           estado_plandne: this.objetoeditar.estado_plandne,
-          link_plandne: this.objetoeditar.link_plandne
+          link_plandne: this.objetoeditar.link_plandne,
+          id_departamento: this.UsuarioInfo.departamentoUsuario
         };
         const exito = await enviarsolig('PUT', params, `${this.baseUrl}/plandne/${this.objetoeditar.id_pladne}`, 'PLANDNE actualizado con éxito');
         if (exito) {
@@ -960,6 +1079,8 @@ export default {
         }
       } catch (error) {
         console.error("❌ Error al registrar plandne:", error.response?.data || error);
+      } finally {
+        this.uploading = false; // Desactiva el loader al terminar
       }
     },
     limpiarFormulario() {
@@ -984,7 +1105,7 @@ export default {
           id,
           'Deshabilitar registro',
           '¿Realmente desea deshabilitar el PLANDNE  ' + nombre + '?',
-          this.actualizar   // 👈 callback para refrescar la tabla al confirmar
+          this.actualizar, this.UsuarioInfo.departamentoUsuario   // 👈 callback para refrescar la tabla al confirmar
         );
       } catch (error) {
         console.error("Error al eliminar el PLANDNE:", error);
@@ -1000,7 +1121,7 @@ export default {
           id,
           'Habilitar registro',
           `¿Desea habilitar el PLANDNE "${nombre}"?`,
-          this.actualizar
+          this.actualizar, this.UsuarioInfo.departamentoUsuario
         );
       } catch (error) {
         // Este catch capturaría errores si confimarhabi hace un 'throw'

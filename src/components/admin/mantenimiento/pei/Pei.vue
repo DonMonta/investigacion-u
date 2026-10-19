@@ -90,13 +90,33 @@
               </div>
             </td>
             <td class="py-5 px-4 whitespace-nowrap">
-              <span :class="{
-                'rounded-lg px-3 py-1 text-xs font-bold uppercase tracking-wider': true,
-                'bg-green-100 text-green-700 dark:bg-success-500/15 dark:text-success-500': post.estado_pei === 1,
-                'bg-orange-100 text-orange-700 dark:bg-warning-500/15 dark:text-orange-400': post.estado_pei === 0
-              }">
-                {{ post.estado_pei === 1 ? 'Activo' : 'Inactivo' }}
-              </span>
+              <div class="flex flex-col gap-3">
+                <!-- Estado General -->
+                <div>
+                  <p class="text-[10px] text-gray-400 uppercase tracking-wider mb-1">General</p>
+                  <span :class="{
+                    'rounded-lg px-2 py-1 text-xs font-bold uppercase tracking-wider': true,
+                    'bg-green-100 text-green-700 dark:bg-success-500/15 dark:text-success-500': post.estado_pei === 1,
+                    'bg-orange-100 text-orange-700 dark:bg-warning-500/15 dark:text-orange-400': post.estado_pei === 0
+                  }">
+                    {{ post.estado_pei === 1 ? 'Activo' : 'Inactivo' }}
+                  </span>
+                </div>
+
+                <!-- Estado del Departamento (Solo si se filtró por departamento) -->
+                <div v-if="post.estado_departamento !== undefined">
+                  <p class="text-[10px] text-gray-400 uppercase tracking-wider mb-1 max-w-[150px] truncate" :title="post.nombre_departamento">
+                    En: {{ post.nombre_departamento }}
+                  </p>
+                  <span :class="{
+                    'rounded-lg px-2 py-1 text-xs font-bold uppercase tracking-wider': true,
+                    'bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-400': post.estado_departamento === 1,
+                    'bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-400': post.estado_departamento === 0
+                  }">
+                    {{ post.estado_departamento === 1 ? 'Habilitado' : 'Inhabilitado' }}
+                  </span>
+                </div>
+              </div>
             </td>
 
             <td class="py-5 px-4">
@@ -119,36 +139,59 @@
             <!-- Acciones de Edición y Eliminación -->
             <td class="py-3 text-right whitespace-nowrap">
               <div class="flex justify-end gap-2">
-                <button @click="abrirModalEdicion(post)"
+                <button @click="abrirModalEdicion(post)" :disabled="botonCargando === 'editar_' + post.id_pei"
                   class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <svg v-if="botonCargando === 'editar_' + post.id_pei" class="animate-spin h-5 w-5 text-blue-600"
+                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                    </path>
+                  </svg>
+                  <svg v-else width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2">
                     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
                     <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
                   </svg>
                 </button>
-                <button v-if="post.estado_pei === 1 && post.subsistemas_pei_count > 0" @click="abrirModalObjetivos(post)"
+                <button v-if="post.estado_departamento === 1 && post.subsistemas_pei_count > 0"
+                  @click="abrirModalObjetivos(post)" :disabled="botonCargando === 'objetivos_' + post.id_pei"
                   class="p-2 text-cyan-600 hover:bg-cyan-50 rounded-lg transition-colors" title="Gestionar Objetivos">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <svg v-if="botonCargando === 'objetivos_' + post.id_pei" class="animate-spin h-5 w-5 text-cyan-600"
+                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                    </path>
+                  </svg>
+                  <svg v-else width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <circle cx="12" cy="12" r="10" />
                     <path d="M12 8l4 4-4 4M8 12h7" />
                   </svg>
                 </button>
-                <button v-if="post.estado_pei === 1" @click="abrirModalSubsistemas(post)"
+                <button v-if="post.estado_departamento === 1" @click="abrirModalSubsistemas(post)" :disabled="botonCargando === 'subsistemas_' + post.id_pei"
                   class="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
                   title="Gestionar Subsistemas">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <svg v-if="botonCargando === 'subsistemas_' + post.id_pei" class="animate-spin h-5 w-5 text-purple-600"
+                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                    </path>
+                  </svg>
+                  <svg v-else width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M12 3v18m9-9H3" />
                     <rect x="3" y="3" width="18" height="18" rx="2" />
                   </svg>
                 </button>
-                <button @click="eliminar(post.id_pei, post.nombre_pei)" v-if="post.estado_pei === 1"
+                <button @click="eliminar(post.id_pei, post.nombre_pei)" v-if="(post.estado_departamento !== undefined ? post.estado_departamento : post.estado_pei) === 1"
                   class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <polyline points="3 6 5 6 21 6" />
                     <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
                   </svg>
                 </button>
-                <button @click="habilitar(post.id_pei, post.nombre_pei)" v-if="post.estado_pei === 0"
+                <button @click="habilitar(post.id_pei, post.nombre_pei)" v-if="(post.estado_departamento !== undefined ? post.estado_departamento : post.estado_pei) === 0"
                   class="p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors dark:text-gray-400 dark:hover:bg-white/10"
                   title="Refrescar lista">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -196,11 +239,15 @@
         </div>
         <div class="mb-6 p-4 rounded-xl bg-blue-50 border border-blue-100 dark:bg-blue-500/10 dark:border-blue-500/20">
           <div class="flex gap-3">
-            <svg class="text-blue-600 dark:text-blue-400 shrink-0" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
+            <svg class="text-blue-600 dark:text-blue-400 shrink-0" width="20" height="20" viewBox="0 0 24 24"
+              fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="16" x2="12" y2="12" />
+              <line x1="12" y1="8" x2="12.01" y2="8" />
             </svg>
             <p class="text-xs text-blue-800 dark:text-blue-300 leading-relaxed">
-              <strong>Nota importante:</strong> Los objetivos que añada aquí deben ser únicamente los que se encuentran registrados en el documento oficial del <strong>PEI</strong> seleccionado.
+              <strong>Nota importante:</strong> Los objetivos que añada aquí deben ser únicamente los que se encuentran
+              registrados en el documento oficial del <strong>PEI</strong> seleccionado.
             </p>
           </div>
         </div>
@@ -238,8 +285,25 @@
                   placeholder="Escriba el objetivo estratégico..."></textarea>
               </div>
 
-              <button @click="guardarObjetivo" class="w-full btn-primary text-white font-bold py-2 rounded-lg">
-                {{ isEditingObjetivo ? 'Actualizar Objetivo' : 'Guardar Objetivo' }}
+              <button @click="guardarObjetivo" :disabled="uploading"
+                class="w-full btn-primary text-white font-bold py-2 rounded-lg">
+
+                <!-- Span para el estado de carga (Spinner + Texto) -->
+                <span v-if="uploading" class="inline-flex items-center gap-2">
+                  <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none"
+                    viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                    </path>
+                  </svg>
+                  <span>{{ isEditingObjetivo ? 'Actualizando.....' : 'Guardando....' }}</span>
+                </span>
+
+                <!-- Span estado normal -->
+                <span v-else>
+                  {{ isEditingObjetivo ? 'Actualizar Objetivo' : 'Guardar Objetivo' }}
+                </span>
               </button>
               <button v-if="isEditingObjetivo" @click="cancelarEdicionObj"
                 class="w-full text-danger-500 text-sm">Cancelar</button>
@@ -247,7 +311,8 @@
           </div>
 
           <div class="md:col-span-8 flex flex-col min-h-0">
-            <div class="overflow-x-auto border rounded-xl dark:border-gray-800 custom-scrollbar" style="max-height: 400px;">
+            <div class="overflow-x-auto border rounded-xl dark:border-gray-800 custom-scrollbar"
+              style="max-height: 400px;">
               <table class="min-w-full divide-y divide-gray-100 dark:divide-gray-800">
                 <thead class="bg-gray-50 dark:bg-gray-800/50 sticky top-0 z-10">
                   <tr>
@@ -255,7 +320,7 @@
                     <th class="px-4 py-3 text-left text-xs font-bold text-gray-500">Subsistema / Detalle</th>
                     <th class="px-4 py-3 text-right text-xs font-bold text-gray-500">Acciones</th>
                   </tr>
-                </thead> 
+                </thead>
                 <tbody class="divide-y divide-gray-100 dark:divide-gray-800 bg-white dark:bg-transparent">
                   <tr v-for="obj in listaObjetivos" :key="obj.id_obj_pei">
                     <td class="px-4 py-3 text-sm font-bold text-cyan-600">{{ obj.cod_obj }}</td>
@@ -293,7 +358,7 @@
             <h3 class="text-xl font-bold text-gray-800 dark:text-white">Subsistemas del</h3>
             <p class="text-sm text-success-600 font-medium">{{ selectedPei?.nombre_pei }}</p>
           </div>
-          
+
           <button @click="isSubsistemaModalOpen = false"
             class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -303,11 +368,15 @@
         </div>
         <div class="mb-6 p-4 rounded-xl bg-blue-50 border border-blue-100 dark:bg-blue-500/10 dark:border-blue-500/20">
           <div class="flex gap-3">
-            <svg class="text-blue-600 dark:text-blue-400 shrink-0" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
+            <svg class="text-blue-600 dark:text-blue-400 shrink-0" width="20" height="20" viewBox="0 0 24 24"
+              fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="16" x2="12" y2="12" />
+              <line x1="12" y1="8" x2="12.01" y2="8" />
             </svg>
             <p class="text-xs text-blue-800 dark:text-blue-300 leading-relaxed">
-              <strong>Nota importante:</strong> Los subsistemas que añada aquí deben ser únicamente los que se encuentran registrados en el documento oficial del <strong>PEI</strong> seleccionado.
+              <strong>Nota importante:</strong> Los subsistemas que añada aquí deben ser únicamente los que se
+              encuentran registrados en el documento oficial del <strong>PEI</strong> seleccionado.
             </p>
           </div>
         </div>
@@ -315,7 +384,7 @@
         <div class="flex-1 overflow-y-auto p-6 grid grid-cols-1 md:grid-cols-12 gap-8">
 
           <div class="md:col-span-4 border-r border-gray-100 dark:border-gray-800 pr-0 md:pr-8">
-            
+
             <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4 uppercase tracking-wider">
               {{ isEditingSubsistema ? 'Editar Subsistema' : 'Nuevo Subsistema' }}
             </h4>
@@ -327,9 +396,25 @@
                   placeholder="Ej: Subsistema Académico">
               </div>
               <div class="flex gap-2">
-                <button @click="guardarSubsistema"
+                <button @click="guardarSubsistema" :disabled="uploading"
                   class="flex-1 btn-primary text-white font-bold py-2 rounded-lg transition-colors">
-                  {{ isEditingSubsistema ? 'Actualizar' : 'Guardar' }}
+                  <!-- Span para el estado de carga (Spinner + Texto) -->
+                  <span v-if="uploading" class="inline-flex items-center gap-2">
+                    <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none"
+                      viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path class="opacity-75" fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                      </path>
+                    </svg>
+                    <span>{{ isEditingSubsistema ? 'Actualizando.....' : 'Guardando....' }}</span>
+                  </span>
+
+                  <!-- Span estado normal -->
+                  <span v-else>
+                    {{ isEditingSubsistema ? 'Actualizar Subsistema' : 'Guardar Subsistema' }}
+                  </span>
+
                 </button>
                 <button v-if="isEditingSubsistema" @click="cancelarEdicionSubsistema"
                   class="px-3 py-2 bg-gray-200 text-gray-700 rounded-lg">
@@ -342,7 +427,8 @@
           <div class="md:col-span-8 flex flex-col min-h-0">
             <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4 uppercase tracking-wider">Registrados
             </h4>
-            <div class="overflow-y-auto border rounded-xl dark:border-gray-800 custom-scrollbar" style="max-height: 400px;">
+            <div class="overflow-y-auto border rounded-xl dark:border-gray-800 custom-scrollbar"
+              style="max-height: 400px;">
               <table class="min-w-full divide-y divide-gray-100 dark:divide-gray-800">
                 <thead class="bg-gray-50 dark:bg-gray-800/50 sticky top-0 z-10">
                   <tr>
@@ -397,7 +483,7 @@
             </p>
           </div>
           <form class="flex flex-col">
-            <div class="px-2 overflow-y-auto custom-scrollbar">
+            <div class="px-2 overflow-y-auto custom-scrollbar max-h-[60vh]">
               <div class="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
                 <div>
                   <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
@@ -437,7 +523,7 @@
                   Documento PEI (PDF)
                 </label>
 
-                <div @click="$refs.fileFoto.click()"
+                <div @click="$refs.filePDF.click()"
                   class="relative flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-xl cursor-pointer transition-all"
                   :class="archivoPreviewName ? 'border-brand-500 bg-brand-50/20' : 'border-gray-300 hover:border-brand-400 bg-gray-50 dark:bg-gray-800/50'">
                   <div class="flex flex-col items-center justify-center pt-5 pb-6">
@@ -459,8 +545,7 @@
                     <p class="text-xs text-gray-400" v-if="!archivoPreviewName">PDF (Máx. 10MB)</p>
                   </div>
 
-                  <input type="file" ref="fileFoto" class="hidden" accept="application/pdf"
-                    @change="handleFileChange" />
+                  <input type="file" ref="filePDF" class="hidden" accept="application/pdf" @change="handleFileChange" />
                 </div>
               </div>
             </div>
@@ -470,9 +555,25 @@
                 class="flex w-full justify-center rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 sm:w-auto">
                 Cerrar
               </button>
-              <button v-if="formIsValid" @click="registrar" type="button"
-                class="flex w-full justify-center rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600 sm:w-auto shadow-lg transition-all">
-                Guardar PEI
+              <button v-if="formIsValid" @click="registrar" :disabled="uploading" type="button"
+                class="flex items-center gap-2 w-full justify-center rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600 sm:w-auto shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+
+                <!-- Span para el estado de carga (Spinner + Texto) -->
+                <span v-if="uploading" class="inline-flex items-center gap-2">
+                  <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none"
+                    viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                    </path>
+                  </svg>
+                  <span>Guardando...</span>
+                </span>
+
+                <!-- Span estado normal -->
+                <span v-else>
+                  Guardar
+                </span>
               </button>
             </div>
           </form>
@@ -503,7 +604,7 @@
             </p>
           </div>
           <form class="flex flex-col">
-            <div class="px-2 overflow-y-auto custom-scrollbar">
+            <div class="px-2 overflow-y-auto custom-scrollbar max-h-[60vh]">
               <div class="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
                 <div>
                   <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
@@ -538,12 +639,27 @@
                 </select>
               </div>
 
-              <div class="mt-5">
+              <div v-if="objetoeditar.ad_archivo_url && !archivoSeleccionado" class="mt-4 col-span-1 lg:col-span-2">
+                <label class="block text-xs font-bold mb-2 text-gray-700 dark:text-gray-300">Documento PEI
+                  Actual:</label>
+                <div
+                  class="w-full h-[400px] border border-gray-300 dark:border-gray-700 rounded-xl overflow-hidden bg-gray-50">
+                  <iframe :src="objetoeditar.ad_archivo_url" class="w-full h-full border-0"></iframe>
+                </div>
+                <div class="mt-2 text-right">
+                  <a :href="objetoeditar.ad_archivo_url" target="_blank"
+                    class="text-sm text-brand-600 hover:underline">Abrir en nueva pestaña</a>
+                </div>
+              </div>
+
+              <!-- ZONA PARA SUBIR/REEMPLAZAR PDF -->
+              <div class="mt-5 col-span-1 lg:col-span-2">
                 <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
-                  Documento PEI (PDF)
+                  {{ objetoeditar.ad_archivo_url ? 'Subir un nuevo documento para reemplazar el actual (PDF)' :
+                    'Documento PEI (PDF)' }}
                 </label>
 
-                <div @click="$refs.fileFoto.click()"
+                <div @click="$refs.filePDF.click()"
                   class="relative flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-xl cursor-pointer transition-all"
                   :class="archivoPreviewName ? 'border-brand-500 bg-brand-50/20' : 'border-gray-300 hover:border-brand-400 bg-gray-50 dark:bg-gray-800/50'">
                   <div class="flex flex-col items-center justify-center pt-5 pb-6">
@@ -559,14 +675,23 @@
                     </svg>
 
                     <p class="mb-1 text-sm text-gray-500 dark:text-gray-400">
-                      <span class="font-semibold" v-if="!archivoPreviewName">Haga clic para cargar</span>
+                      <span class="font-semibold" v-if="!archivoPreviewName">
+                        {{ objetoeditar.ad_archivo_url ? 'Haga clic para reemplazar' : 'Haga clic para cargar' }}
+                      </span>
                       <span class="font-semibold text-brand-600" v-else>{{ archivoPreviewName }}</span>
                     </p>
                     <p class="text-xs text-gray-400" v-if="!archivoPreviewName">PDF (Máx. 10MB)</p>
                   </div>
 
-                  <input type="file" ref="fileFoto" class="hidden" accept="application/pdf"
-                    @change="handleFileChange" />
+                  <!-- NOTA: Cambié ref="filePDF" por ref="filePDF" para ser coherentes -->
+                  <input type="file" ref="filePDF" class="hidden" accept="application/pdf" @change="handleFileChange" />
+                </div>
+
+                <!-- Botón para cancelar el archivo recién seleccionado -->
+                <div class="mt-2 text-right" v-if="archivoPreviewName && objetoeditar.ad_archivo_url">
+                  <button @click.prevent="cancelarNuevoPDF" class="text-sm text-red-500 hover:underline">
+                    Cancelar nuevo archivo y mantener el actual
+                  </button>
                 </div>
               </div>
             </div>
@@ -576,9 +701,25 @@
                 class="flex w-full justify-center rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 sm:w-auto">
                 Cerrar
               </button>
-              <button v-if="formIsValidEdit" @click="Update" type="button"
-                class="flex w-full justify-center rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600 sm:w-auto shadow-lg transition-all">
-                Guardar cambios
+              <button v-if="formIsValidEdit" @click="Update" :disabled="uploading" type="button"
+                class="flex items-center gap-2 w-full justify-center rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600 sm:w-auto shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+
+                <!-- Span para el estado de carga (Spinner + Texto) -->
+                <span v-if="uploading" class="inline-flex items-center gap-2">
+                  <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none"
+                    viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                    </path>
+                  </svg>
+                  <span>Actualizando...</span>
+                </span>
+
+                <!-- Span estado normal -->
+                <span v-else>
+                  Guardar cambios
+                </span>
               </button>
             </div>
           </form>
@@ -611,6 +752,8 @@ defineExpose({
 import API from "@/assets/js/services/axios";
 import { useRoute } from "vue-router";
 import debounce from 'lodash.debounce';
+import { getMe } from '@/store/auth';
+import { useUsuario } from "@/composables/useUsuario";
 import Modal from '@/components/Modal/Modal.vue'
 import { mostraralertas2, enviarsolig, eliminacion, confimarhabi, elimnarpermanente } from '@/assets/js/function/funciones';
 
@@ -619,19 +762,22 @@ export default {
     return {
       idus: 0,
       baseUrl: "/inves",
-
+      botonCargando: null,
+      UsuarioInfo: {},
       usersarray: [],
       objetoguardar: {
         nombre_pei: "",
         anios_pei: "",
         estado_pei: 0,
-
+        archivo_pei: "",
       },
       objetoeditar: {
         id_pei: 0,
         nombre_pei: "",
         anios_pei: "",
         estado_pei: 0,
+        archivo_pei: "",       // El nombre del archivo en la BD
+        ad_archivo_url: null
       },
       filteredarray: [],
       searchQuery: "",
@@ -675,7 +821,7 @@ export default {
     }, 900);
   },
   async mounted() {
-    const ruta = useRoute();
+    this.UsuarioInfo = useUsuario();
     this.GetData(1, this.searchQuery);
 
   },
@@ -706,16 +852,24 @@ export default {
   },
   methods: {
     async abrirModalObjetivos(pei) {
-      this.selectedPei = pei;
-      this.cancelarEdicionObj();
+      this.botonCargando = 'objetivos_' + pei.id_pei;
+      try{  
+        this.selectedPei = pei;
+        this.cancelarEdicionObj();
 
-      // 1. Cargar subsistemas del PEI seleccionado para el Select
-      const respSub = await API.get(`${this.baseUrl}/subsistemas_pei/${pei.id_pei}`);
-      this.listaSubsistemas = respSub.data.data || [];
+        // 1. Cargar subsistemas del PEI seleccionado para el Select
+        const respSub = await API.get(`${this.baseUrl}/subsistemas_pei/${pei.id_pei}`);
+        this.listaSubsistemas = respSub.data.data || [];
 
-      // 2. Cargar objetivos (Tu backend debería filtrar objetivos por PEI a través de los subsistemas)
-      await this.getObjetivos();
-      this.isObjetivoModalOpen = true;
+        // 2. Cargar objetivos (Tu backend debería filtrar objetivos por PEI a través de los subsistemas)
+        await this.getObjetivos();
+        this.isObjetivoModalOpen = true;
+      }catch(e){
+        console.error("❌ Error:", error.e?.data || e);
+      }finally{
+        this.botonCargando = null;
+      }
+      
     },
 
     async guardarObjetivo() {
@@ -724,23 +878,32 @@ export default {
         mostraralertas2("Todos los campos son obligatorios", "warning");
         return;
       }
-
+      if (this.uploading) return;
       // Armar el código final: OE + numero
-      this.objetivoForm.cod_obj = 'OE' + this.codNumero;
+      try {
+        this.uploading = true;
+        this.objetivoForm.cod_obj = 'OE' + this.codNumero;
 
-      const metodo = this.isEditingObjetivo ? 'PUT' : 'POST';
-      const url = this.isEditingObjetivo
-        ? `${this.baseUrl}/objetivos_pei/${this.objetivoForm.id_obj_pei}`
-        : `${this.baseUrl}/objetivos_pei`;
+        const metodo = this.isEditingObjetivo ? 'PUT' : 'POST';
+        const url = this.isEditingObjetivo
+          ? `${this.baseUrl}/objetivos_pei/${this.objetivoForm.id_obj_pei}`
+          : `${this.baseUrl}/objetivos_pei`;
 
-      // 2. Llamada al servidor
-      const exito = await enviarsolig(metodo, this.objetivoForm, url, 'Objetivo guardado con éxito');
+        // 2. Llamada al servidor
+        const exito = await enviarsolig(metodo, this.objetivoForm, url, 'Objetivo guardado con éxito');
 
-      // 3. Solo si fue exitoso (status 200), limpiamos y refrescamos
-      if (exito) {
-        this.cancelarEdicionObj();
-        this.getObjetivos();
+        // 3. Solo si fue exitoso (status 200), limpiamos y refrescamos
+        if (exito) {
+          this.cancelarEdicionObj();
+          this.getObjetivos();
+        }
+
+      } catch (error) {
+        console.error("❌ Error al guardar Objetivo estratégico:", error.response?.data || error);
+      } finally {
+        this.uploading = false; // Desactiva el loader al terminar
       }
+
     },
 
     prepararEdicionObj(obj) {
@@ -765,11 +928,19 @@ export default {
       }
     },
     async abrirModalSubsistemas(pei) {
-      this.selectedPei = pei;
-      this.subsistemaForm.id_pei = pei.id_pei;
-      this.cancelarEdicionSubsistema(); // Limpia el form
-      await this.getSubsistemas();
-      this.isSubsistemaModalOpen = true;
+      this.botonCargando = 'subsistemas_' + pei.id_pei;
+      try{
+        this.selectedPei = pei;
+        this.subsistemaForm.id_pei = pei.id_pei;
+        this.cancelarEdicionSubsistema(); // Limpia el form
+        await this.getSubsistemas();
+        this.isSubsistemaModalOpen = true;
+      }catch(e){
+        console.error("❌ Error:", error.e?.data || e);
+      }finally{
+        this.botonCargando = null;
+      }
+      
     },
     async getObjetivos() {
       try {
@@ -799,12 +970,14 @@ export default {
     },
 
     async guardarSubsistema() {
+
       if (!this.subsistemaForm.nombre_subsistema.trim()) {
         mostraralertas2("El nombre es obligatorio", "warning");
         return;
       }
-
+      if (this.uploading) return;
       try {
+        this.uploading = true;
         const metodo = this.isEditingSubsistema ? 'PUT' : 'POST';
         const url = this.isEditingSubsistema
           ? `${this.baseUrl}/subsistemas_pei/${this.subsistemaForm.id_sub_sistema_pei}`
@@ -817,6 +990,8 @@ export default {
         }
       } catch (error) {
         console.error("Error al guardar subsistema:", error);
+      } finally {
+        this.uploading = false; // Desactiva el loader al terminar
       }
     },
 
@@ -853,7 +1028,7 @@ export default {
         //Mostrar una alerta de advertencia si el archivo seleccionado no es un archivo PDF, se usa la función mostraralertas2 para mostrar un mensaje de advertencia
         mostraralertas2('Solo se permiten archivos PDF', 'warning');
         //Limpiar el archivo seleccionado
-        this.$refs.fileFoto.value = null;
+        this.$refs.filePDF.value = null;
         //Devolver sin hacer nada más
         return;
       }
@@ -864,7 +1039,7 @@ export default {
         //Mostrar una alerta de advertencia si el tamaño del archivo es mayor que el límite de 10 MB, se usa la función mostraralertas2 para mostrar un mensaje de advertencia
         mostraralertas2(`Archivo muy grande. Máx ${maxMB} MB`, 'warning');
         //Limpiar el archivo seleccionado
-        this.$refs.fileFoto.value = null;
+        this.$refs.filePDF.value = null;
         //Devolver sin hacer nada más
         return;
       }
@@ -875,13 +1050,32 @@ export default {
     },
     abrirModalEdicion(user) {
       // Clonamos el objeto para no modificar la tabla directamente antes de guardar
-      this.objetoeditar = {
-        id_pei: user.id_pei,
-        nombre_pei: user.nombre_pei,
-        anios_pei: user.anios_pei,
-        estado_pei: user.estado_pei
-      };
-      this.$.setupState.isEditModalOpen = true;
+      this.botonCargando = 'editar_' + user.id_pei;
+      try {
+        this.cancelarNuevoPDF();
+        this.objetoeditar = {
+          id_pei: user.id_pei,
+          nombre_pei: user.nombre_pei,
+          anios_pei: user.anios_pei,
+          estado_pei: user.estado_pei,
+          archivo_pei: user.archivo_pei,       // Nombre del archivo base
+          ad_archivo_url: user.ad_archivo_url
+        };
+        
+        this.$.setupState.isEditModalOpen = true;
+      } catch (e) {
+        console.error("❌ Error:", error.response?.data || e);
+      } finally {
+        this.botonCargando = null;
+      }
+
+    },
+    cancelarNuevoPDF() {
+      this.archivoSeleccionado = null;
+      this.archivoPreviewName = '';
+      if (this.$refs.filePDF) {
+        this.$refs.filePDF.value = null;
+      }
     },
     async uploadArchivo(anio_pei, oldFilename = null, oldAnio = null) {
       if (!this.archivoSeleccionado) return null; // nada que subir
@@ -898,13 +1092,13 @@ export default {
         }
 
         // Si tu backend exige otros campos (ej: tipo), añade aquí
-        const resp = await API.post(`${this.baseUrl}/subir_archivo`, form, {
+        const resp = await API.post(`${this.baseUrl}/subir_archivo_pei`, form, {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
         if (resp && resp.data && resp.data.filename) {
           this.archivoSeleccionado = null;
           this.archivoPreviewName = '';
-          this.$refs.fileFoto.value = null;
+          this.$refs.filePDF.value = null;
           return resp.data; // { filename, url }
         } else {
           mostraralertas2('Error subiendo archivo', 'danger');
@@ -919,22 +1113,24 @@ export default {
     },
     async GetData(page = 1, searchQuery = "") {
       this.cargando = true;
-
       try {
         const params = {
           page: page,
-          search_query: searchQuery // Parámetro para búsqueda
+          search_query: searchQuery, // Parámetro para búsqueda
+          id_departamento: this.UsuarioInfo.departamentoUsuario
         };
         const response = await API.get(`${this.baseUrl}/pei`, { params });
-
+        console.log(response);
+        console.log(this.UsuarioInfo.departamentoUsuario);
         const data = response.data?.data || [];
+        const rootURL = (API.defaults.baseURL || '').replace(/\/api\/?$/, '');
         this.filteredarray = data.map(item => {
           // Limpiamos el año igual que en el backend para la URL
           const folderName = item.anios_pei.replace(/[/\\ ]/g, '_');
           return {
             ...item,
             ad_archivo_url: item.archivo_pei
-              ? `http://vinculacion.test/Documentos/Pei/${folderName}/${item.archivo_pei}`
+              ? `${rootURL}/Documentos/Pei/${folderName}/${item.archivo_pei}`
               : null
           };
         });
@@ -974,74 +1170,98 @@ export default {
     },
 
     async registrar() {
-
+      if (this.uploading) return;
       try {
+        this.uploading = true;
+
         const params = {
           nombre_pei: this.objetoguardar.nombre_pei,
           anios_pei: this.objetoguardar.anios_pei,
-          estado_pei: this.objetoguardar.estado_pei
+          estado_pei: this.objetoguardar.estado_pei,
+          id_departamento: this.UsuarioInfo.departamentoUsuario
         };
-        let uploadResp = null;
-        if (this.archivoSeleccionado) {
-          uploadResp = await this.uploadArchivo(this.objetoguardar.anios_pei);
+
+        // 1. Guardar primero el registro en BD para validar duplicados
+        const res = await API.post(`${this.baseUrl}/pei`, params);
+
+        // 2. Si el registro se creó exitosamente, recién subimos el archivo si existe
+        if (res.data && res.data.data && this.archivoSeleccionado) {
+          const peiId = res.data.data.id_pei;
+          const uploadResp = await this.uploadArchivo(this.objetoguardar.anios_pei);
+
           if (uploadResp && uploadResp.filename) {
-            params.archivo_pei = uploadResp.filename; // Guardar archivo nuevo
+            // 3. Actualizamos el PEI con el nombre del archivo
+            await API.put(`${this.baseUrl}/pei/${peiId}`, {
+              ...params,
+              archivo_pei: uploadResp.filename
+            });
           }
         }
-        const exito = await enviarsolig('POST', params, `${this.baseUrl}/pei`, 'PEI registrado con éxito');
-        if (exito) {
-          this.$.setupState.isProfileAddressModal = false;
 
-          this.limpiarFormulario();
-          this.actualizar();
-        } else {
-          mostraralertas2("No se pudo registrar el PEI", "error");
-        }
+        mostraralertas2(res.data.mensaje || 'PEI registrado con éxito', 'success');
+        this.$.setupState.isProfileAddressModal = false;
+        this.limpiarFormulario();
+        this.actualizar();
+
       } catch (error) {
+        const msg = error.response?.data?.mensaje || "No se pudo registrar el PEI";
+        mostraralertas2(msg, "error");
         console.error("❌ Error al registrar PEI:", error.response?.data || error);
+      } finally {
+        this.uploading = false;
       }
     },
     async Update() {
+      if (this.uploading) return;
       try {
+        this.uploading = true;
+
+        // 1. Preparamos los parámetros base SIN subir el archivo aún
         const params = {
           nombre_pei: this.objetoeditar.nombre_pei,
           anios_pei: this.objetoeditar.anios_pei,
-          estado_pei: this.objetoeditar.estado_pei
+          estado_pei: this.objetoeditar.estado_pei,
+          id_departamento: this.UsuarioInfo.departamentoUsuario.value, // Extraemos .value
+          archivo_pei: this.objetoeditar.archivo_pei // Mantenemos el actual por defecto
         };
-        if (this.archivoSeleccionado) {
-          // 1. Obtenemos el nombre del archivo y el año QUE YA ESTÁN en la DB (antes del cambio)
-          // Buscamos el registro original en el array para obtener el año previo real
+
+        // 2. Ejecutamos primero la actualización en el Backend para validar (duplicados, etc.)
+        const response = await API.put(`${this.baseUrl}/pei/${this.objetoeditar.id_pei}`, params);
+
+        // 3. Si la base de datos actualizó correctamente Y el usuario seleccionó un archivo nuevo
+        if (response.data && this.archivoSeleccionado) {
           const original = this.filteredarray.find(i => i.id_pei === this.objetoeditar.id_pei);
           const anioAnterior = original ? original.anios_pei : this.objetoeditar.anios_pei;
           const nombreArchivoAnterior = original ? original.archivo_pei : null;
 
-          // 2. Enviamos el año nuevo para la carpeta nueva, 
-          // y el nombre/año viejo para que el backend limpie la carpeta vieja
+          // Subimos el archivo físico y limpiamos el anterior
           const uploadResp = await this.uploadArchivo(
             this.objetoeditar.anios_pei,
             nombreArchivoAnterior,
-            anioAnterior // <-- Nuevo parámetro
+            anioAnterior
           );
 
           if (uploadResp && uploadResp.filename) {
-            params.archivo_pei = uploadResp.filename;
+            // Guardamos el nuevo nombre del archivo en la base de datos
+            await API.put(`${this.baseUrl}/pei/${this.objetoeditar.id_pei}`, {
+              ...params,
+              archivo_pei: uploadResp.filename
+            });
           }
-        } else {
-          // Si no subió archivo nuevo, mantenemos el nombre del archivo actual
-          params.archivo_pei = this.objetoeditar.archivo_pei;
         }
-        const exito = await enviarsolig('PUT', params, `${this.baseUrl}/pei/${this.objetoeditar.id_pei}`, 'PEI actualizado con éxito');
-        if (exito) {
-          this.$.setupState.isEditModalOpen = false;
 
-          this.limpiarFormulario();
-          this.actualizar();
-        } else {
-          this.$.setupState.isEditModalOpen = false;
-          mostraralertas2("No se pudo editar el PEI", "error");
-        }
+        // 4. Notificamos éxito y cerramos el modal
+        mostraralertas2(response.data.mensaje || 'PEI actualizado con éxito', 'success');
+        this.$.setupState.isEditModalOpen = false;
+        this.limpiarFormulario();
+        this.actualizar();
+
       } catch (error) {
-        console.error("❌ Error al registrar pei:", error.response?.data || error);
+        const msg = error.response?.data?.mensaje || "No se pudo editar el PEI";
+        mostraralertas2(msg, "error");
+        console.error("❌ Error al actualizar PEI:", error.response?.data || error);
+      } finally {
+        this.uploading = false; // Desactiva el loader al terminar
       }
     },
     limpiarFormulario() {
@@ -1054,8 +1274,12 @@ export default {
         id_pei: 0,
         nombre_pei: "",
         anios_pei: "",
-        estado_pei: 0
+        estado_pei: 0,
+        ad_archivo_url: null
       };
+      this.archivoSeleccionado = null;
+      this.archivoPreviewName = '';
+      this.archivoActualNombre = '';
     },
     eliminar(id, nombre) {
       try {
@@ -1064,7 +1288,7 @@ export default {
           id,
           'Deshabilitar registro',
           '¿Realmente desea deshabilitar el pei  ' + nombre + '?',
-          this.actualizar   // 👈 callback para refrescar la tabla al confirmar
+          this.actualizar, this.UsuarioInfo.departamentoUsuario   //  callback para refrescar la tabla al confirmar
         );
       } catch (error) {
         console.error("Error al eliminar el pei:", error);
@@ -1080,17 +1304,13 @@ export default {
           id,
           'Habilitar registro',
           `¿Desea habilitar el PEI "${nombre}"?`,
-          this.actualizar
+          this.actualizar, this.UsuarioInfo.departamentoUsuario
         );
       } catch (error) {
         // Este catch capturaría errores si confimarhabi hace un 'throw'
         console.error("Error en el componente habilitar:", error);
       }
     },
-    generarUrl(aniopei, filename) {
-      const cacheBuster = new Date().getTime();
-      return `http://vinculacion.test/Documentos/Pei/${aniopei}/${filename}?t=${cacheBuster}`;
-    }
 
   },
 };

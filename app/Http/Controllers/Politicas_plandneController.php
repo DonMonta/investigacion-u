@@ -6,6 +6,11 @@ use App\Models\Politicas_plandne;
 use App\Models\Obj_pol_plandne;
 use Illuminate\Support\Facades\File;
 use Illuminate\Http\Request;
+use App\Models\Bitacora;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class Politicas_plandneController extends Controller
 {
@@ -56,10 +61,12 @@ class Politicas_plandneController extends Controller
             });
             return response()->json([
                 'data' => $data->items(),
-                'current_page' => $data->currentPage(),
-                'per_page' => $data->perPage(),
-                'total' => $data->total(),
-                'last_page' => $data->lastPage(),
+                'pagination' => [
+                    'current_page' => $data->currentPage(),
+                    'per_page' => $data->perPage(),
+                    'total' => $data->total(),
+                    'last_page' => $data->lastPage(),
+                ],
             ]);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Error al codificar los datos a JSON: ' . $e->getMessage()], 500);
@@ -71,33 +78,53 @@ class Politicas_plandneController extends Controller
      */
     public function store(Request $request)
     {
-        $objetivopolplandne = Obj_pol_plandne::find($request->id_obj_pol_pladne);
+        DB::beginTransaction();
+        try{
 
-        if (!$objetivopolplandne) {
-            return response()->json(['error' => true, 'mensaje' => 'Política no válida'], 404);
-        }
-
-        $id_pladne = $objetivopolplandne->id_pladne;
-
-        // 2. Verificar si el código ya existe en objetivos que pertenecen al MISMO PEI
-        $existe = Politicas_plandne::where('cod_pol', $request->cod_pol)
-            ->whereHas('objetivos_plandne', function ($query) use ($id_pladne) {
-                $query->where('id_pladne', $id_pladne);
-            })->exists();
-
-        if ($existe) {
+            $objetivopolplandne = Obj_pol_plandne::find($request->id_obj_pol_pladne);
+    
+            if (!$objetivopolplandne) {
+                return response()->json(['error' => true, 'mensaje' => 'Política no válida'], 404);
+            }
+    
+            $id_pladne = $objetivopolplandne->id_pladne;
+    
+            // 2. Verificar si el código ya existe en objetivos que pertenecen al MISMO PEI
+            $existe = Politicas_plandne::where('cod_pol', $request->cod_pol)
+                ->whereHas('objetivos_plandne', function ($query) use ($id_pladne) {
+                    $query->where('id_pladne', $id_pladne);
+                })->exists();
+    
+            if ($existe) {
+                return response()->json([
+                    'error' => true,
+                    'mensaje' => "El código {$request->cod_pol} ya está registrado en este PLANDE."
+                ], 409);
+            }
+    
+            $res = Politicas_plandne::create($request->all());
+            DB::commit();
+                // --- REGISTRO EN BITÁCORA (Post-Commit) ---
+            try {
+                $user = Auth::user(); // Obtenemos el usuario autenticado
+                Bitacora::create([
+                    'bt_usuario' => $user->NombUsu,
+                    'bt_fechahora' => Carbon::now(),
+                    'bt_accion' => 'Creación de un Politica para el departamento - INVESTIGACIÓN',
+                    'bt_ippc' => $request->ip(),
+                    'bt_observacion' => "USUARIO: {$user->NombUsu} REALIZÓ: Creación de un Politica con ID: {$res->id_obj_pol_pladne} y cod_pol: {$res->cod_pol}",
+                ]);
+            } catch (\Exception $ex) {
+                Log::error('Error bitácora en Guardar: ' . $ex->getMessage());
+            }
             return response()->json([
-                'error' => true,
-                'mensaje' => "El código {$request->cod_pol} ya está registrado en este PLANDE."
-            ], 409);
+                'data' => $res,
+                'mensaje' => 'Agregado con Éxito!!',
+            ]);
+        }catch(\Exception $e){
+            Log::error('Error al procesar los datos: ' . $e->getMessage());
+            return response()->json(['error' => 'Error al procesar los datos: ' . $e->getMessage()], 500);
         }
-
-        $res = Politicas_plandne::create($request->all());
-
-        return response()->json([
-            'data' => $res,
-            'mensaje' => 'Agregado con Éxito!!',
-        ]);
     }
 
     /**
@@ -106,15 +133,30 @@ class Politicas_plandneController extends Controller
     public function show(string $id) {}
     public function listarPorPlandne($id_pladne)
     {
-        // Buscamos los objetivos cuyo subsistema pertenezca al PEI enviado
-        $objetivos = Politicas_plandne::whereHas('objetivos_plandne', function ($query) use ($id_pladne) {
+        // 1. Ejecutamos la consulta y obtenemos los datos (usamos get() al final)
+        $politicas = Politicas_plandne::whereHas('objetivos_plandne', function ($query) use ($id_pladne) {
             $query->where('id_pladne', $id_pladne);
         })
-            ->with('objetivos_plandne') // Cargamos el nombre del subsistema para mostrarlo en la tabla
-            ->orderBy('cod_pol', 'asc')
+            ->with('objetivos_plandne')
             ->get();
 
-        return response()->json($objetivos);
+        // 2. Ordenamos la colección resultante usando PHP
+        $politicasOrdenadas = $politicas->sort(function ($a, $b) {
+
+            // Primero: Ordenamos por el Objetivo. 
+            // Si quieres ordenar alfabéticamente por el nombre del objetivo, cambia 
+            // 'id_obj_pol_pladne' por 'objetivos_plandne->nombre_objetivo' (o el campo que uses).
+            if ($a->id_obj_pol_pladne !== $b->id_obj_pol_pladne) {
+                return $a->id_obj_pol_pladne <=> $b->id_obj_pol_pladne;
+            }
+
+            // Segundo: Si pertenecen al mismo objetivo, aplicamos el "Natural Sort" al código.
+            // strnatcmp es una función nativa de PHP que entiende que "1.10" es mayor que "1.2"
+            return strnatcmp($a->cod_pol, $b->cod_pol);
+        })->values(); // values() es crucial para resetear los índices numéricos del array resultante
+
+        // 3. Retornamos la respuesta
+        return response()->json($politicasOrdenadas);
     }
 
     /**
@@ -122,71 +164,113 @@ class Politicas_plandneController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $res = Politicas_plandne::find($id);
+        DB::beginTransaction();
+        try{
 
-        if (isset($res)) {
-            // 1. Obtener el PEI a través del subsistema (por si cambiaron de subsistema en el edit)
-            $objetivopolplandne = Obj_pol_plandne::find($request->id_obj_pol_pladne);
-            $id_pladne = $objetivopolplandne->id_pladne;
-
-            // 2. Validar código duplicado en el mismo PEI, excluyendo el registro actual
-            $existe = Politicas_plandne::where('cod_pol', $request->cod_pol)
-                ->where('id_pol_pladne', '!=', $id) // Excluir el actual
-                ->whereHas('objetivos_plandne', function ($query) use ($id_pladne) {
-                    $query->where('id_pladne', $id_pladne);
-                })->exists();
-
-            if ($existe) {
-                return response()->json([
-                    'error' => true,
-                    'mensaje' => "El código {$request->cod_pol} ya pertenece a otra política de este PLANDE."
-                ], 409);
+            $res = Politicas_plandne::find($id);
+    
+            if (isset($res)) {
+                // 1. Obtener el PEI a través del subsistema (por si cambiaron de subsistema en el edit)
+                $objetivopolplandne = Obj_pol_plandne::find($request->id_obj_pol_pladne);
+                $id_pladne = $objetivopolplandne->id_pladne;
+    
+                // 2. Validar código duplicado en el mismo PEI, excluyendo el registro actual
+                $existe = Politicas_plandne::where('cod_pol', $request->cod_pol)
+                    ->where('id_pol_pladne', '!=', $id) // Excluir el actual
+                    ->whereHas('objetivos_plandne', function ($query) use ($id_pladne) {
+                        $query->where('id_pladne', $id_pladne);
+                    })->exists();
+    
+                if ($existe) {
+                    return response()->json([
+                        'error' => true,
+                        'mensaje' => "El código {$request->cod_pol} ya pertenece a otra política de este PLANDE."
+                    ], 409);
+                }
+    
+                $res->id_obj_pol_pladne = $request->id_obj_pol_pladne;
+                $res->cod_pol = $request->cod_pol;
+                $res->detalle_pol = $request->detalle_pol;
+    
+                if ($res->save()) {
+                    DB::commit();
+                        // --- REGISTRO EN BITÁCORA (Post-Commit) ---
+                    try {
+                        $user = Auth::user(); // Obtenemos el usuario autenticado
+                        Bitacora::create([
+                            'bt_usuario' => $user->NombUsu,
+                            'bt_fechahora' => Carbon::now(),
+                            'bt_accion' => 'Actualización de un Politica para el departamento - INVESTIGACIÓN',
+                            'bt_ippc' => $request->ip(),
+                            'bt_observacion' => "USUARIO: {$user->NombUsu} REALIZÓ: Actualización de un Politica con ID: {$res->id_obj_pol_pladne} y cod_pol: {$res->cod_pol}",
+                        ]);
+                    } catch (\Exception $ex) {
+                        Log::error('Error bitácora en Actualizar: ' . $ex->getMessage());
+                    }
+                    return response()->json([
+                        'data' => $res,
+                        'mensaje' => "Actualizado con Éxito!!",
+                    ]);
+                }
+    
+                return response()->json(['error' => true, 'mensaje' => 'Error al Actualizar'], 500);
             }
+    
+            return response()->json(['error' => true, 'mensaje' => "La politica con id: $id no Existe"], 404);
 
-            $res->id_obj_pol_pladne = $request->id_obj_pol_pladne;
-            $res->cod_pol = $request->cod_pol;
-            $res->detalle_pol = $request->detalle_pol;
-
-            if ($res->save()) {
-                return response()->json([
-                    'data' => $res,
-                    'mensaje' => "Actualizado con Éxito!!",
-                ]);
-            }
-
-            return response()->json(['error' => true, 'mensaje' => 'Error al Actualizar'], 500);
+        }catch(\Exception $e){
+            Log::error('Error al procesar los datos: ' . $e->getMessage());
+            return response()->json(['error' => 'Error al procesar los datos: ' . $e->getMessage()], 500);
         }
-
-        return response()->json(['error' => true, 'mensaje' => "La politica con id: $id no Existe"], 404);
     }
 
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Request $request, string $id)
     {
-        $res = Politicas_plandne::find($id);
-        if (isset($res)) {
-            $res->delete();
-            $data = $res->toArray();
-            if ($data) {
+        DB::beginTransaction();
+        try{
 
-                return response()->json([
-                    'data' => $data,
-                    'mensaje' => "Eliminado con Éxito!!",
-                ]);
+            $res = Politicas_plandne::find($id);
+            if (isset($res)) {
+                $res->delete();
+                $data = $res->toArray();
+                if ($data) {
+                    DB::commit();
+                        // --- REGISTRO EN BITÁCORA (Post-Commit) ---
+                    try {
+                        $user = Auth::user(); // Obtenemos el usuario autenticado
+                        Bitacora::create([
+                            'bt_usuario' => $user->NombUsu,
+                            'bt_fechahora' => Carbon::now(),
+                            'bt_accion' => 'Eliminación de un Politica para el departamento - INVESTIGACIÓN',
+                            'bt_ippc' => $request->ip(),
+                            'bt_observacion' => "USUARIO: {$user->NombUsu} REALIZÓ: Eliminación de un Politica con ID: {$res->id_obj_pol_pladne} y cod_pol: {$res->cod_pol}",
+                        ]);
+                    } catch (\Exception $ex) {
+                        Log::error('Error bitácora en Eliminar: ' . $ex->getMessage());
+                    }
+                    return response()->json([
+                        'data' => $data,
+                        'mensaje' => "Eliminado con Éxito!!",
+                    ]);
+                } else {
+                    return response()->json([
+                        'data' => $data,
+                        'mensaje' => "La politica no existe (puede que ya la haya eliminado)",
+                    ]);
+                }
             } else {
                 return response()->json([
-                    'data' => $data,
-                    'mensaje' => "La politica no existe (puede que ya la haya eliminado)",
+                    'error' => true,
+                    'mensaje' => "La politica con id: $id no Existe",
                 ]);
             }
-        } else {
-            return response()->json([
-                'error' => true,
-                'mensaje' => "La politica con id: $id no Existe",
-            ]);
+        }catch(\Exception $e){
+            Log::error('Error al procesar los datos: ' . $e->getMessage());
+            return response()->json(['error' => 'Error al procesar los datos: ' . $e->getMessage()], 500);
         }
     }
 }

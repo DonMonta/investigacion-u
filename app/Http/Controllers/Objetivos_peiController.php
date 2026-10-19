@@ -6,6 +6,11 @@ use App\Models\Objetivos_pei;
 use App\Models\Subsistemas_pei;
 use Illuminate\Support\Facades\File;
 use Illuminate\Http\Request;
+use App\Models\Bitacora;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class Objetivos_peiController extends Controller
 {
@@ -56,10 +61,12 @@ class Objetivos_peiController extends Controller
             });
             return response()->json([
                 'data' => $data->items(),
-                'current_page' => $data->currentPage(),
-                'per_page' => $data->perPage(),
-                'total' => $data->total(),
-                'last_page' => $data->lastPage(),
+                'pagination' => [
+                    'current_page' => $data->currentPage(),
+                    'per_page' => $data->perPage(),
+                    'total' => $data->total(),
+                    'last_page' => $data->lastPage(),
+                ],
             ]);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Error al codificar los datos a JSON: ' . $e->getMessage()], 500);
@@ -71,34 +78,54 @@ class Objetivos_peiController extends Controller
      */
     public function store(Request $request)
     {
-        // 1. Obtener el id_pei al que pertenece el subsistema seleccionado
-        $subsistema = Subsistemas_pei::find($request->id_sub_sistema_pei);
+        DB::beginTransaction();
+        try{
 
-        if (!$subsistema) {
-            return response()->json(['error' => true, 'mensaje' => 'Subsistema no válido'], 404);
-        }
-
-        $id_pei = $subsistema->id_pei;
-
-        // 2. Verificar si el código ya existe en objetivos que pertenecen al MISMO PEI
-        $existe = Objetivos_pei::where('cod_obj', $request->cod_obj)
-            ->whereHas('subsistemas_pei', function ($query) use ($id_pei) {
-                $query->where('id_pei', $id_pei);
-            })->exists();
-
-        if ($existe) {
+            // 1. Obtener el id_pei al que pertenece el subsistema seleccionado
+            $subsistema = Subsistemas_pei::find($request->id_sub_sistema_pei);
+    
+            if (!$subsistema) {
+                return response()->json(['error' => true, 'mensaje' => 'Subsistema no válido'], 404);
+            }
+    
+            $id_pei = $subsistema->id_pei;
+    
+            // 2. Verificar si el código ya existe en objetivos que pertenecen al MISMO PEI
+            $existe = Objetivos_pei::where('cod_obj', $request->cod_obj)
+                ->whereHas('subsistemas_pei', function ($query) use ($id_pei) {
+                    $query->where('id_pei', $id_pei);
+                })->exists();
+    
+            if ($existe) {
+                return response()->json([
+                    'error' => true,
+                    'mensaje' => "El código {$request->cod_obj} ya está registrado en este PEI."
+                ], 409);
+            }
+    
+            $res = Objetivos_pei::create($request->all());
+            DB::commit();
+                // --- REGISTRO EN BITÁCORA (Post-Commit) ---
+            try {
+                $user = Auth::user(); // Obtenemos el usuario autenticado
+                Bitacora::create([
+                    'bt_usuario' => $user->NombUsu,
+                    'bt_fechahora' => Carbon::now(),
+                    'bt_accion' => 'Creación de un Objetivo para el departamento - INVESTIGACIÓN',
+                    'bt_ippc' => $request->ip(),
+                    'bt_observacion' => "USUARIO: {$user->NombUsu} REALIZÓ: Creación de un Objetivo con ID: {$res->id_obj_pei} y cod_obj: {$res->cod_obj}",
+                ]);
+            } catch (\Exception $ex) {
+                Log::error('Error bitácora en Guardar: ' . $ex->getMessage());
+            }
             return response()->json([
-                'error' => true,
-                'mensaje' => "El código {$request->cod_obj} ya está registrado en este PEI."
-            ], 409);
+                'data' => $res,
+                'mensaje' => 'Agregado con Éxito!!',
+            ]);
+        }catch(\Exception $e){
+            Log::error('Error al procesar los datos: ' . $e->getMessage());
+            return response()->json(['error' => 'Error al procesar los datos: ' . $e->getMessage()], 500);
         }
-
-        $res = Objetivos_pei::create($request->all());
-
-        return response()->json([
-            'data' => $res,
-            'mensaje' => 'Agregado con Éxito!!',
-        ]);
     }
 
     /**
@@ -123,71 +150,112 @@ class Objetivos_peiController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $res = Objetivos_pei::find($id);
+        DB::beginTransaction();
+        try{
 
-        if (isset($res)) {
-            // 1. Obtener el PEI a través del subsistema (por si cambiaron de subsistema en el edit)
-            $subsistema = Subsistemas_pei::find($request->id_sub_sistema_pei);
-            $id_pei = $subsistema->id_pei;
-
-            // 2. Validar código duplicado en el mismo PEI, excluyendo el registro actual
-            $existe = Objetivos_pei::where('cod_obj', $request->cod_obj)
-                ->where('id_obj_pei', '!=', $id) // Excluir el actual
-                ->whereHas('subsistemas_pei', function ($query) use ($id_pei) {
-                    $query->where('id_pei', $id_pei);
-                })->exists();
-
-            if ($existe) {
-                return response()->json([
-                    'error' => true,
-                    'mensaje' => "El código {$request->cod_obj} ya pertenece a otro objetivo de este PEI."
-                ], 409);
+            $res = Objetivos_pei::find($id);
+    
+            if (isset($res)) {
+                // 1. Obtener el PEI a través del subsistema (por si cambiaron de subsistema en el edit)
+                $subsistema = Subsistemas_pei::find($request->id_sub_sistema_pei);
+                $id_pei = $subsistema->id_pei;
+    
+                // 2. Validar código duplicado en el mismo PEI, excluyendo el registro actual
+                $existe = Objetivos_pei::where('cod_obj', $request->cod_obj)
+                    ->where('id_obj_pei', '!=', $id) // Excluir el actual
+                    ->whereHas('subsistemas_pei', function ($query) use ($id_pei) {
+                        $query->where('id_pei', $id_pei);
+                    })->exists();
+    
+                if ($existe) {
+                    return response()->json([
+                        'error' => true,
+                        'mensaje' => "El código {$request->cod_obj} ya pertenece a otro objetivo de este PEI."
+                    ], 409);
+                }
+    
+                $res->id_sub_sistema_pei = $request->id_sub_sistema_pei;
+                $res->cod_obj = $request->cod_obj;
+                $res->detalle_obj = $request->detalle_obj;
+    
+                if ($res->save()) {
+                    DB::commit();
+                        // --- REGISTRO EN BITÁCORA (Post-Commit) ---
+                    try {
+                        $user = Auth::user(); // Obtenemos el usuario autenticado
+                        Bitacora::create([
+                            'bt_usuario' => $user->NombUsu,
+                            'bt_fechahora' => Carbon::now(),
+                            'bt_accion' => 'Actualización de un Objetivo para el departamento - INVESTIGACIÓN',
+                            'bt_ippc' => $request->ip(),
+                            'bt_observacion' => "USUARIO: {$user->NombUsu} REALIZÓ: Actualización de un Objetivo con ID: {$res->id_obj_pei} y cod_obj: {$res->cod_obj}",
+                        ]);
+                    } catch (\Exception $ex) {
+                        Log::error('Error bitácora en Actualizar: ' . $ex->getMessage());
+                    }
+                    return response()->json([
+                        'data' => $res,
+                        'mensaje' => "Actualizado con Éxito!!",
+                    ]);
+                }
+    
+                return response()->json(['error' => true, 'mensaje' => 'Error al Actualizar'], 500);
             }
-
-            $res->id_sub_sistema_pei = $request->id_sub_sistema_pei;
-            $res->cod_obj = $request->cod_obj;
-            $res->detalle_obj = $request->detalle_obj;
-
-            if ($res->save()) {
-                return response()->json([
-                    'data' => $res,
-                    'mensaje' => "Actualizado con Éxito!!",
-                ]);
-            }
-
-            return response()->json(['error' => true, 'mensaje' => 'Error al Actualizar'], 500);
+    
+            return response()->json(['error' => true, 'mensaje' => "El objetivo con id: $id no Existe"], 404);
+        }catch(\Exception $e){
+            Log::error('Error al procesar los datos: ' . $e->getMessage());
+            return response()->json(['error' => 'Error al procesar los datos: ' . $e->getMessage()], 500);
         }
-
-        return response()->json(['error' => true, 'mensaje' => "El objetivo con id: $id no Existe"], 404);
     }
 
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Request $request, string $id)
     {
-        $res = Objetivos_pei::find($id);
-        if (isset($res)) {
-            $res->delete();
-            $data = $res->toArray();
-            if ($data) {
+        DB::beginTransaction();
+        try{
 
-                return response()->json([
-                    'data' => $data,
-                    'mensaje' => "Eliminado con Éxito!!",
-                ]);
+            $res = Objetivos_pei::find($id);
+            if (isset($res)) {
+                $res->delete();
+                $data = $res->toArray();
+                if ($data) {
+                    DB::commit();
+                        // --- REGISTRO EN BITÁCORA (Post-Commit) ---
+                    try {
+                        $user = Auth::user(); // Obtenemos el usuario autenticado
+                        Bitacora::create([
+                            'bt_usuario' => $user->NombUsu,
+                            'bt_fechahora' => Carbon::now(),
+                            'bt_accion' => 'Eliminación de un Objetivo para el departamento - INVESTIGACIÓN',
+                            'bt_ippc' => $request->ip(),
+                            'bt_observacion' => "USUARIO: {$user->NombUsu} REALIZÓ: Eliminación de un Objetivo con ID: {$res->id_obj_pei} y cod_obj: {$res->cod_obj}",
+                        ]);
+                    } catch (\Exception $ex) {
+                        Log::error('Error bitácora en Eliminar: ' . $ex->getMessage());
+                    }
+                    return response()->json([
+                        'data' => $data,
+                        'mensaje' => "Eliminado con Éxito!!",
+                    ]);
+                } else {
+                    return response()->json([
+                        'data' => $data,
+                        'mensaje' => "El objetivo no existe (puede que ya la haya eliminado)",
+                    ]);
+                }
             } else {
                 return response()->json([
-                    'data' => $data,
-                    'mensaje' => "El objetivo no existe (puede que ya la haya eliminado)",
+                    'error' => true,
+                    'mensaje' => "El objetivo con id: $id no Existe",
                 ]);
             }
-        } else {
-            return response()->json([
-                'error' => true,
-                'mensaje' => "El objetivo con id: $id no Existe",
-            ]);
+        }catch(\Exception $e){
+            Log::error('Error al procesar los datos: ' . $e->getMessage());
+            return response()->json(['error' => 'Error al procesar los datos: ' . $e->getMessage()], 500);
         }
     }
 }

@@ -9,7 +9,7 @@ class Pei extends Model
 {
     protected $table = 'pei';
     protected $primaryKey = 'id_pei';
-    public $incrementing = false;
+    public $incrementing = true;
     protected $keyType = 'int';
     public $timestamps = false;
 
@@ -23,6 +23,7 @@ class Pei extends Model
     {
         return $this->hasMany(Subsistemas_pei::class, 'id_pei');
     }
+
     public function objetivos()
     {
         return $this->hasManyThrough(
@@ -34,4 +35,21 @@ class Pei extends Model
             'id_sub_sistema_pei'    // Llave local en subsistemas_pei
         );
     }
+    /**
+     * Relación: Estados de este PEI por departamento.
+     */
+    public function estadosDepartamentos()
+    {
+        return $this->hasMany(PeiEstadoDepartamento::class, 'id_pei', 'id_pei');
+    }
+
+    /**
+     * Relación Muchos a Muchos: Departamentos que han interactuado con este PEI.
+     */
+    public function departamentos()
+    {
+        return $this->belongsToMany(Departamento::class, 'pei_estados_departamentos', 'id_pei', 'id_departamento')
+                    ->withPivot('estado');
+    }
+
 }

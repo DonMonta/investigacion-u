@@ -4,8 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable; 
+use Tymon\JWTAuth\Contracts\JWTSubject;
 
-class InformacionPersonalD extends Model
+class InformacionPersonalD extends Authenticatable implements JWTSubject
 {
     protected $table = 'informacionpersonal_d';
 
@@ -34,5 +36,14 @@ class InformacionPersonalD extends Model
     public function invi_detalle_integrante()
     {
         return $this->hasMany(Invi_deta_inte::class, 'CIInfPer', 'ciinfper_doc');
+    }
+     public function getJWTIdentifier()
+    {
+        return $this->getKey();
+    }
+
+    public function getJWTCustomClaims()
+    {
+        return [];
     }
 }

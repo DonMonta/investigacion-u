@@ -40,6 +40,14 @@ return [
             'driver' => 'jwt',
             'provider' => 'usuario',
         ],
+        'docente' => [
+            'driver' => 'jwt',
+            'provider' => 'docente',
+        ],
+        'estudiante' => [
+            'driver' => 'jwt',
+            'provider' => 'estudiantes',
+        ],
     ],
 
     /*
@@ -63,6 +71,14 @@ return [
         'usuario' => [
             'driver' => 'eloquent',
             'model' => App\Models\User::class,
+        ],
+        'docente' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\InformacionPersonalD::class,
+        ],
+        'estudiantes' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\informacionpersonal::class,
         ],
 
         // 'users' => [

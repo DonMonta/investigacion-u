@@ -9,7 +9,7 @@ class Plandne extends Model
 {
     protected $table = 'plandne';
     protected $primaryKey = 'id_pladne';
-    public $incrementing = false;
+    public $incrementing = true;
     protected $keyType = 'int';
     public $timestamps = false;
 
@@ -33,6 +33,22 @@ class Plandne extends Model
             'id_pladne',               
             'id_obj_pol_pladne'   
         );
+    }
+     /**
+     * Relación: Estados de este PlanDNE por departamento.
+     */
+    public function estadosDepartamentosPlanDNE()
+    {
+        return $this->hasMany(PlandneEstadoDepartamento::class, 'id_pladne', 'id_pladne');
+    }
+
+    /**
+     * Relación Muchos a Muchos: Departamentos que han interactuado con este PlanDNE.
+     */
+    public function departamentos()
+    {
+        return $this->belongsToMany(Departamento::class, 'plandne_estados_departamentos', 'id_pladne', 'id_departamento')
+                    ->withPivot('estado');
     }
 
 }

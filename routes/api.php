@@ -13,6 +13,14 @@ use App\Http\Controllers\Obj_pol_plandneController;
 use App\Http\Controllers\Politicas_plandneController;
 use App\Http\Controllers\Invi_proyectosController;
 use App\Http\Controllers\InformacionPersonalController;
+use App\Http\Controllers\Agenda_ODSController;
+use App\Http\Controllers\ODSController;
+use App\Http\Controllers\Invi_dom_humaController;
+use App\Http\Controllers\Invi_linea_investigaController;
+use App\Http\Controllers\Invi_sub_linea_invesController;
+use App\Http\Controllers\SubAreaUnescoController;
+use App\Http\Controllers\Zona_planificacionController;
+use App\Http\Controllers\PraempresaController;
 
 /*
 |--------------------------------------------------------------------------
@@ -29,11 +37,12 @@ Route::prefix('inves')->group(function () {
     Route::get('getFotoDocente/{ci}', [InformacionPersonal_DController::class, 'getFotografia']);
 
     Route::post('login', [AuthController::class, 'login']);
-    Route::middleware('auth:api')->group(function () {
+    Route::middleware('auth:api,docente,estudiante')->group(function () {
         Route::get('me', [AuthController::class, 'me']);
         Route::post('refresh', [AuthController::class, 'refresh']);
         Route::get('logout', [AuthController::class, 'logout'])->name('logout');
         Route::apiResource("directorescarr", DirectorCarrerasController::class);
+        /**Apis PEI */
         //Definición de endpoint para el recurso Pei, perimitiendo operaciones CRUD
         Route::apiResource("pei", PeiController::class);
         //Definición de la ruta endpoint para habilitar un pei
@@ -41,7 +50,7 @@ Route::prefix('inves')->group(function () {
         //Definición de la ruta endpoint para deshabilitar un pei
         Route::delete('inhabilitar_pei/{id}', [PeiController::class, 'destroy']);
         //Definición de la ruta endpoint para subir un archivo
-        Route::post('subir_archivo', [PeiController::class, 'uploadArchivo']);
+        Route::post('subir_archivo_pei', [PeiController::class, 'uploadArchivo']);
         //Definición de la ruta endpoint para eliminar un archivo
         Route::post('eliminar_archivo', [PeiController::class, 'deleteArchivo']);
         //Definición de la ruta endpoint para el recurso Subsistemas_pei, perimitiendo operaciones CRUD
@@ -49,6 +58,7 @@ Route::prefix('inves')->group(function () {
         //Definición de la ruta endpoint para el recurso Objetivos_pei, perimitiendo operaciones CRUD
         Route::apiResource("objetivos_pei", Objetivos_peiController::class);
         Route::get('objetivos_por_pei/{id_pei}', [Objetivos_peiController::class, 'listarPorPei']);
+        /**Apis Plandne */
         //Definición de la ruta endpoint para el recurso Plandne, perimitiendo operaciones CRUD
         Route::apiResource("plandne", PlandneController::class);
         //Definicio de endpoint para habilitar un plandne
@@ -61,6 +71,72 @@ Route::prefix('inves')->group(function () {
         Route::apiResource("politicas_plandne", Politicas_plandneController::class);
         //Definición de ruta endpoint para listar las politicas de un plandne
         Route::get('politicas_por_plandne/{id_pladne}', [Politicas_plandneController::class, 'listarPorPlandne']);
+        /**
+         * API AGENDA ODS
+         */
+         //Definición de endpoint para el recurso Agenda_ODS, perimitiendo operaciones CRUD
+        Route::apiResource("agenda_ods", Agenda_ODSController::class);
+        //Definición de endpoint para el recurso ODS, perimitiendo operaciones CRUD
+        Route::apiResource("ods", ODSController::class);
+        //Denificion de endpoint para habilitar e inhabilitar un Agenda ODS
+        Route::delete('habilitar_agenda_ods/{id}', [Agenda_ODSController::class, 'habilitar']);
+        Route::delete('inhabilitar_agenda_ods/{id}', [Agenda_ODSController::class, 'destroy']);
+         Route::post('subir_archivo_agenda_ods', [Agenda_ODSController::class, 'uploadArchivo']);
+        //Definición de la ruta endpoint para eliminar un archivo
+        Route::post('eliminar_archivo_agenda_ods', [Agenda_ODSController::class, 'deleteArchivo']);
+        /**
+         * API DOMINIO HUMANISTICO
+         */
+        //Definción del recurso Dominio Humano, perimitiendo operaciones CRUD
+        Route::apiResource("invi_dom_huma", Invi_dom_humaController::class);
+        /**
+         * API INVESTIGACIÓN
+         */
+        //Definición del recurso Línea de Investigación, perimitiendo operaciones CRUD
+        Route::apiResource("invi_linea_investiga", Invi_linea_investigaController::class);
+        //Definición de endpoint para habilitar una línea de investigación
+        Route::delete('habilitar_linea_investiga/{id}', [Invi_linea_investigaController::class, 'habilitar']);
+        //Definición de endpoint para deshabilitar una línea de investigación
+        Route::delete('inhabilitar_linea_investiga/{id}', [Invi_linea_investigaController::class, 'destroy']);
+        //Definición de endpoint para obtener las facultades de una sede
+        Route::get('getFacultades', [Invi_linea_investigaController::class, 'getFacultades']);
+        //Definición de endpoint para obtener las carreras de una facultad
+        Route::get('getCarreras/{idfacultad}', [Invi_sub_linea_invesController::class, 'getCarrerasPorFacultad']);
+        //Definición de endpoint para obtener las sublineas de una línea de investigación
+        Route::get('getSublineas/{id_lin_investiga}', [Invi_sub_linea_invesController::class, 'getSublineasPorLinea']);
+        //Definición de recurso para las sublineas de una línea de investigación
+        Route::apiResource("invi_sub_linea_inves", Invi_sub_linea_invesController::class);
+        /**
+         * API UNESCO
+         */
+        //Definición para obtener las Subareas de UNESCO
+        Route::get('getSubareas', [SubAreaUnescoController::class, 'index']);
+        /**
+         * API ZONA DE PLANIFICACIÓN
+         */
+        //Definición de recurso para las zonas de planificación, perimitiendo operaciones CRUD
+        Route::apiResource("zona_planificacion", Zona_planificacionController::class);
+        //Definición de endpoint para obtener las provincias
+        Route::get('getProvincias', [Zona_planificacionController::class, 'getProvincias']);
+        //Definición de endpoint para obtener las provincias asignadas a una zona de planificación
+        Route::get('getProvinciasPorZona/{id_zona_plan}', [Zona_planificacionController::class, 'getProvinciasPorZona']);
+        //Definición de endpoint para guardar las provincias asignadas a una zona de planificación
+        Route::post('guardarProvincias', [Zona_planificacionController::class, 'guardarProvincias']);
+
+        /**
+         * API EMPRESAS
+         */
+        //Definiciónd del recurso Empresa, perimitiendo operaciones CRUD
+        Route::apiResource("empresa", PraempresaController::class);
+        //Definición de endpoint para subir un archivo
+        Route::post('subir_archivo', [PraempresaController::class, 'uploadArchivo']);
+        //Definición de endpoint para habilitar un empresa
+        Route::delete('habilitar_empresa/{id}', [PraempresaController::class, 'habilitar']);
+        //Definición de endpoint para inhabilitar un empresa
+        Route::delete('inhabilitar_empresa/{id}', [PraempresaController::class, 'destroy']);
+        //Definición de endpoint para buscar una empresa
+        Route::get('buscar_empresa', [PraempresaController::class, 'buscarEmpresa']);
+
         //Definición de ruta endpoint para el recurso Invi_proyectos, perimitiendo operaciones CRUD
         Route::apiResource("invi_proyectos", Invi_proyectosController::class);
         //definción de ruta para el catalogo de integrantes

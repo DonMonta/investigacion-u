@@ -5,6 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\Subsistemas_pei;
 use Illuminate\Support\Facades\File;
 use Illuminate\Http\Request;
+use App\Models\Bitacora;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class Subsistemas_peiController extends Controller
 {
@@ -70,14 +75,34 @@ class Subsistemas_peiController extends Controller
      */
     public function store(Request $request)
     {
-        $inputs = $request->input();
+        DB::beginTransaction();
+        try{
 
-        $res = Subsistemas_pei::create($inputs);
-
-        return response()->json([
-            'data' => $res,
-            'mensaje' => 'Agregado con Éxito!!',
-        ]);
+            $inputs = $request->input();
+    
+            $res = Subsistemas_pei::create($inputs);
+            DB::commit();
+                // --- REGISTRO EN BITÁCORA (Post-Commit) ---
+            try {
+                $user = Auth::user(); // Obtenemos el usuario autenticado
+                Bitacora::create([
+                    'bt_usuario' => $user->NombUsu,
+                    'bt_fechahora' => Carbon::now(),
+                    'bt_accion' => 'Creación de un Subsistema para el departamento - INVESTIGACIÓN',
+                    'bt_ippc' => $request->ip(),
+                    'bt_observacion' => "USUARIO: {$user->NombUsu} REALIZÓ: Creación de un Subsistema con ID: {$res->id_subsistema} y nombre: {$res->nombre_subsistema}",
+                ]);
+            } catch (\Exception $ex) {
+                Log::error('Error bitácora en Guardar: ' . $ex->getMessage());
+            }
+            return response()->json([
+                'data' => $res,
+                'mensaje' => 'Agregado con Éxito!!',
+            ]);
+        }catch(\Exception $e){
+            Log::error('Error al procesar los datos: ' . $e->getMessage());
+            return response()->json(['error' => 'Error al procesar los datos: ' . $e->getMessage()], 500);
+        }
     }
 
     /**
@@ -107,52 +132,94 @@ class Subsistemas_peiController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $res = Subsistemas_pei::find($id);
+        DB::beginTransaction();
+        try{
 
-        if (isset($res)) {
-            $res->id_pei = $request->id_pei;
-            $res->nombre_subsistema = $request->nombre_subsistema;
-
-            if ($res->save()) {
-                return response()->json([
-                    'data' => $res,
-                    'mensaje' => "Actualizado con Éxito!!",
-                ]);
+            $res = Subsistemas_pei::find($id);
+    
+            if (isset($res)) {
+                $res->id_pei = $request->id_pei;
+                $res->nombre_subsistema = $request->nombre_subsistema;
+    
+                if ($res->save()) {
+                    DB::commit();
+                        // --- REGISTRO EN BITÁCORA (Post-Commit) ---
+                    try {
+                        $user = Auth::user(); // Obtenemos el usuario autenticado
+                        Bitacora::create([
+                            'bt_usuario' => $user->NombUsu,
+                            'bt_fechahora' => Carbon::now(),
+                            'bt_accion' => 'Actualización de un Subsistema para el departamento - INVESTIGACIÓN',
+                            'bt_ippc' => $request->ip(),
+                            'bt_observacion' => "USUARIO: {$user->NombUsu} REALIZÓ: Actualización de un Subsistema con ID: {$res->id_subsistema} y nombre: {$res->nombre_subsistema}",
+                        ]);
+                    } catch (\Exception $ex) {
+                        Log::error('Error bitácora en Actualizar: ' . $ex->getMessage());
+                    }
+                    return response()->json([
+                        'data' => $res,
+                        'mensaje' => "Actualizado con Éxito!!",
+                    ]);
+                }
+    
+                return response()->json(['error' => true, 'mensaje' => 'Error al Actualizar'], 500);
             }
-
-            return response()->json(['error' => true, 'mensaje' => 'Error al Actualizar'], 500);
+    
+            return response()->json(['error' => true, 'mensaje' => "El subsistema con id: $id no Existe"], 404);
+        }catch(\Exception $e){
+            Log::error('Error al procesar los datos: ' . $e->getMessage());
+            return response()->json(['error' => 'Error al procesar los datos: ' . $e->getMessage()], 500);
         }
-
-        return response()->json(['error' => true, 'mensaje' => "El subsistema con id: $id no Existe"], 404);
     }
 
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Request $request, string $id)
     {
-        $res = Subsistemas_pei::find($id);
-        if (isset($res)) {
-            $res->delete();
-            $data = $res->toArray();
-            if ($data) {
+        DB::beginTransaction();
+        try{
 
-                return response()->json([
-                    'data' => $data,
-                    'mensaje' => "Eliminado con Éxito!!",
-                ]);
+            $res = Subsistemas_pei::find($id);
+            if (isset($res)) {
+                $res->delete();
+                $data = $res->toArray();
+                if ($data) {
+                    DB::commit();
+                        // --- REGISTRO EN BITÁCORA (Post-Commit) ---
+                    try {
+                        $user = Auth::user(); // Obtenemos el usuario autenticado
+                        Bitacora::create([
+                            'bt_usuario' => $user->NombUsu,
+                            'bt_fechahora' => Carbon::now(),
+                            'bt_accion' => 'Eliminación de un Subsistema para el departamento - INVESTIGACIÓN',
+                            'bt_ippc' => $request->ip(),
+                            'bt_observacion' => "USUARIO: {$user->NombUsu} REALIZÓ: Eliminación de un Subsistema con ID: {$res->id_subsistema} y nombre: {$res->nombre_subsistema}",
+                        ]);
+                    } catch (\Exception $ex) {
+                        Log::error('Error bitácora en Eliminar: ' . $ex->getMessage());
+                    }
+                    return response()->json([
+                        'data' => $data,
+                        'mensaje' => "Eliminado con Éxito!!",
+                    ]);
+                } else {
+                    return response()->json([
+                        'data' => $data,
+                        'mensaje' => "El subsistema no existe (puede que ya la haya eliminado)",
+                    ]);
+                }
             } else {
                 return response()->json([
-                    'data' => $data,
-                    'mensaje' => "El subsistema no existe (puede que ya la haya eliminado)",
+                    'error' => true,
+                    'mensaje' => "El subsistema con id: $id no Existe",
                 ]);
             }
-        } else {
-            return response()->json([
-                'error' => true,
-                'mensaje' => "El subsistema con id: $id no Existe",
-            ]);
+        }catch(\Exception $e){
+            Log::error('Error al procesar los datos: ' . $e->getMessage());
+            return response()->json(['error' => 'Error al procesar los datos: ' . $e->getMessage()], 500);
         }
+
     }
 }

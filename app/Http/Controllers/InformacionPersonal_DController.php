@@ -116,4 +116,114 @@ class InformacionPersonal_DController extends Controller
             return response()->json(['error' => 'Error al obtener la fotografía: ' . $e->getMessage()], 500);
         }
     }
+    // Metodo para buscar un docente por su cédula sin fotografía
+    public function getDocente(Request $request)
+    {
+        $cedula = $request->cedula;
+        $docente = InformacionPersonalD::select(
+            'informacionpersonal_d.CIInfPer',
+            'informacionpersonal_d.ApellInfPer',
+            'informacionpersonal_d.ApellMatInfPer',
+            'informacionpersonal_d.NombInfPer'
+        )
+            ->where('CIInfPer', $cedula)
+            ->where('StatusPer', 1)
+            ->first();
+        if (! $docente) {
+            return response()->json(['message' => 'Docente no encontrado en la base de datos institucional.'], 404);
+        }
+
+        return response()->json([
+            'data' => $docente,
+            'mensaje' => 'Encontrado con Éxito!!',
+        ]);
+    }
+    public function getAllDocente(Request $request)
+    {
+        $cedula = $request->cedula;
+
+        // Agregamos el with(['titulos.nivel']) para Eager Loading y evitar el problema N+1
+        // Traemos también GeneroPer ya que lo necesitamos para validar si es Sra/Sr Lcda/Lcdo
+        $docente = InformacionPersonalD::with(['titulos.nivel'])->select(
+            'informacionpersonal_d.CIInfPer',
+            'informacionpersonal_d.ApellInfPer',
+            'informacionpersonal_d.ApellMatInfPer',
+            'informacionpersonal_d.NombInfPer',
+            'informacionpersonal_d.GeneroPer'
+        )
+            ->where('CIInfPer', $cedula)
+            ->first();
+
+        if (! $docente) {
+            return response()->json(['message' => 'Docente no encontrado en la base de datos institucional.'], 404);
+        }
+
+        // Lógica para Títulos y Formateo de Nombres
+        $esMujer = strtoupper(trim($docente->GeneroPer)) === 'F';
+
+        // Buscar Tercer Nivel
+        $tituloGrado = $docente->titulos->first(function ($titulo) {
+            return optional($titulo->nivel)->nv_numnivel == 3;
+        });
+
+        // Buscar Cuarto Nivel
+        $tituloPosgrado = $docente->titulos->first(function ($titulo) {
+            return optional($titulo->nivel)->nv_numnivel == 4;
+        });
+
+        $prefijoNombre = '';
+        $sufijoNombre = '';
+
+        // A. Mapeo de PREFIJOS (3er Nivel)
+        if ($tituloGrado) {
+            $textoGrado = mb_strtolower($tituloGrado->ad_titulo);
+
+            if (str_contains($textoGrado, 'licencia')) {
+                $prefijoNombre = $esMujer ? 'Lcda.' : 'Lcdo.';
+            } elseif (
+                str_contains($textoGrado, 'ingenier') || str_contains($textoGrado, 'ing.') ||
+                str_contains($textoGrado, 'ingeniería') || str_contains($textoGrado, 'tecnolog')
+            ) {
+                $prefijoNombre = 'Ing.';
+            } elseif (str_contains($textoGrado, 'econom') || str_contains($textoGrado, 'econ.')) {
+                $prefijoNombre = 'Econ.';
+            } elseif (str_contains($textoGrado, 'abogad') || str_contains($textoGrado, 'abg.')) {
+                $prefijoNombre = 'Abg.';
+            } elseif (str_contains($textoGrado, 'arquitect') || str_contains($textoGrado, 'arq.')) {
+                $prefijoNombre = 'Arq.';
+            } else {
+                $prefijoNombre = 'Prof.';
+            }
+        } else {
+            $prefijoNombre = $esMujer ? 'Sra.' : 'Sr.';
+        }
+
+        // B. Definir el SUFIJO (4to Nivel)
+        if ($tituloPosgrado) {
+            $textoPosgrado = mb_strtolower($tituloPosgrado->ad_titulo);
+
+            if (str_contains($textoPosgrado, 'phd') || str_contains($textoPosgrado, 'doctorado') || str_contains($textoPosgrado, 'doctor')) {
+                $sufijoNombre = ', PhD';
+            } elseif (str_contains($textoPosgrado, 'msc') || str_contains($textoPosgrado, 'science') || str_contains($textoPosgrado, 'ciencias')) {
+                $sufijoNombre = ', MSc.';
+            } else {
+                $sufijoNombre = ', Mgtr.';
+            }
+        }
+
+        // C. Formatear Nombres y Apellidos (Title Case)
+        $nombreRaw = trim($docente->NombInfPer . ' ' . $docente->ApellInfPer . ' ' . $docente->ApellMatInfPer);
+        $nombresFormateados = mb_convert_case(mb_strtolower($nombreRaw, 'UTF-8'), MB_CASE_TITLE, 'UTF-8');
+
+        // Asignar el nombre completo a un nuevo atributo virtual en la respuesta JSON
+        $docente->nombre_formateado = trim("{$prefijoNombre} {$nombresFormateados}{$sufijoNombre}");
+
+        // Ocultamos la relación títulos para no saturar la respuesta JSON del frontend, ya sacamos lo que necesitábamos.
+        $docente->makeHidden(['titulos']);
+
+        return response()->json([
+            'data' => $docente,
+            'mensaje' => 'Encontrado con Éxito!!',
+        ]);
+    }
 }

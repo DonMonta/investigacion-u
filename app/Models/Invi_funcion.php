@@ -15,7 +15,7 @@ class Invi_funcion extends Model
 
     protected $fillable = [
         'nombre_funcion',
-        'tipo_funcion',//Por defecto es VINCULACIÓN
+        'tipo_funcion',
         'estado',
     ];
     public function invi_detalle_integrante()

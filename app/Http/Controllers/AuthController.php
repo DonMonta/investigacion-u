@@ -38,7 +38,7 @@ class AuthController extends Controller
 
         $CIInfPer = $request->input('LoginUsu');
         $codigo_dactilar = $request->input('ClaveUsu');
-        $perfilesPermitidos = ['sotics', 'atics', 'sa', 'ainv'];
+        $perfilesPermitidos = ['sotics', 'atics', 'sa', 'inv'];
         $user = User::select('ciinfper', 'NombUsu', 'LoginUsu', 'email', 'idperfil', 'ClaveUsu', 'StatusUsu')
             ->where('LoginUsu', $CIInfPer)
             ->where('StatusUsu', 1)

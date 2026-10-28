@@ -6,6 +6,7 @@ use App\Models\Praempresa;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Bitacora;
+use App\Models\Pais;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
@@ -417,5 +418,9 @@ class PraempresaController extends Controller
         } catch (\Exception $e) {
             return response()->json(['error' => 'Error al obtener la fotografía: ' . $e->getMessage()], 500);
         }
+    }
+    public function getPais(){
+        $paises = Pais::all();
+        return response()->json($paises);
     }
 }

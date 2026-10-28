@@ -44,4 +44,8 @@ class Invi_deta_inte extends Model
     {
         return $this->belongsTo(informacionpersonal::class, 'ciinfper_est', 'CIInfPer');
     }
+    public function compromisos()
+    {
+        return $this->hasMany(Invi_compromiso::class, 'id_deta_invi_proyect', 'id_deta_invi_proyect');
+    }
 }

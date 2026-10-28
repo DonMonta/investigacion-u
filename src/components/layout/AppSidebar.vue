@@ -205,16 +205,20 @@ const menuData = [
         icon: PlateIcon,
         name: "Proyectos",
         subItems: [
+          { name: "Convocatorias", path: "/site-admin/proyectos/convocatoria", pro: false },
+          { name: "Tipos de Proyectos de Investigación", path: "/site-admin/proyectos/tipo_proyecto_investigacion", pro: false },
           { name: "Lista de Proyectos", path: "/site-admin/proyectos", pro: false },
         ],
       },
-      /*{
-        icon: MesaIcon,
-        name: "Mesas",
+      {
+        icon: UserCircleIcon,
+        name: "Departamento de Investigación",
         subItems: [
-          //{ name: "Mesas Disponibles", path: "/mesas", pro: false },
+          { name: "Roles del equipo de Investigación", path: "/site-admin/roles_equipo", pro: false },
+          { name: "Equipo de Trabajo", path: "/site-admin/equipo", pro: false },
+          { name: "Responsables de Investigación de Facultades", path: "/site-admin/responsables_inv", pro: false },
         ],
-      },*/
+      },
      
       
     ],

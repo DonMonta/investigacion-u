@@ -18,7 +18,7 @@ export async function enviarsolilogin(method, parametros, url, mensaje) {
           mensaje: response.data.mensaje,
         };
       }
-      else if (response.data.Role === "sotics" || response.data.Role === "atics" || response.data.Role === "sa" || response.data.Role === "ainv") {
+      else if (response.data.Role === "sotics" || response.data.Role === "atics" || response.data.Role === "sa" || response.data.Role === "inv") {
         store.commit("setRol_inves", response.data.Role);
         store.commit("setemail_inves", response.data.email);
         store.commit("setid_inves", response.data.cedula);

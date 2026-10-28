@@ -264,7 +264,7 @@
                   <label class="mb-1.5 block text-xs font-semibold text-gray-700 dark:text-gray-400">País *</label>
                   <select v-model="objetoguardar.pais" class="form-style-input">
                     <option value="">Seleccione...</option>
-                    <option v-for="opt in listasCombos.paises" :key="opt" :value="opt">{{ opt }}</option>
+                   <option v-for="opt in listasCombos.paises" :key="opt.cod_pais" :value="opt.nomb_pais">{{ opt.nomb_pais }}</option>
                   </select>
                 </div>
                 <div>
@@ -472,7 +472,7 @@
                   <label class="mb-1.5 block text-xs font-semibold text-gray-700 dark:text-gray-400">País *</label>
                   <select v-model="objetoeditar.pais" class="form-style-input">
                     <option value="">Seleccione...</option>
-                    <option v-for="opt in listasCombos.paises" :key="opt" :value="opt">{{ opt }}</option>
+                    <option v-for="opt in listasCombos.paises" :key="opt.cod_pais" :value="opt.nomb_pais">{{ opt.nomb_pais }}</option>
                   </select>
                 </div>
                 <div>
@@ -661,8 +661,7 @@ export default {
           'Cámara de Comercio o Producción', 'Colegio Profesional', 'Centro de Investigación', 'Centro Comunitario',
           'Hospital o Centro de Salud', 'Escuela o Colegio', 'Universidad o Politécnica'],
 
-        paises: ['ECUADOR', 'COLOMBIA', 'PERÚ', 'CHILE', 'ARGENTINA', 'ESPAÑA', 'ESTADOS UNIDOS',
-        ]
+        paises: []
       },
       objetoguardar: {
         ruc: "", //ruc de la empresa
@@ -819,11 +818,19 @@ export default {
     },
   },
   methods: {
+    async getPaises() {
+      try {
+        const resp = await API.get(`${this.baseUrl}/getPais`);
+        this.listasCombos.paises = resp.data || [];
+      } catch (error) {
+        console.error("Error al obtener paises:", error);
+      }
+    },
     getPhotoUrl(idempresa) {
       if (!idempresa) return '';
       const baseURL2 = API.defaults.baseURL;
       // Agregamos un timestamp para limpiar la caché del navegador cuando actualices el logo
-      return `${baseURL2}/vin/getFotoEmpresa/${idempresa}?t=${new Date().getTime()}`;
+      return `${baseURL2}/inves/getFotoEmpresa/${idempresa}?t=${new Date().getTime()}`;
     },
     esFechaPasada(fechaFinStr) {
       if (!fechaFinStr) return false;

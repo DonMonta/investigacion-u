@@ -21,6 +21,12 @@ use App\Http\Controllers\Invi_sub_linea_invesController;
 use App\Http\Controllers\SubAreaUnescoController;
 use App\Http\Controllers\Zona_planificacionController;
 use App\Http\Controllers\PraempresaController;
+use App\Http\Controllers\Invi_convocatoriaController;
+use App\Http\Controllers\DepartamentoController;
+use App\Http\Controllers\Invi_tip_proyectController;
+use App\Http\Controllers\Invi_equipo_rolesController;
+use App\Http\Controllers\Invi_equipo_departController;
+use App\Http\Controllers\Invi_responsableController;
 
 /*
 |--------------------------------------------------------------------------
@@ -35,8 +41,18 @@ use App\Http\Controllers\PraempresaController;
 
 Route::prefix('inves')->group(function () {
     Route::get('getFotoDocente/{ci}', [InformacionPersonal_DController::class, 'getFotografia']);
-
+    Route::get('getFotoEmpresa/{ci}', [PraempresaController::class, 'getFotografia']);
     Route::post('login', [AuthController::class, 'login']);
+    //Definición de endpoint para obtener a los directores de proyectos Investigacion
+    Route::get('getDirectoresProyectosInvestigacion', [Invi_proyectosController::class, 'getDirectoresProyectosInvestigacion']);
+    //Definición de endpoint para obtener a los subdirectores de proyectos de Investigacion
+    Route::get('getSubdirectoresProyectosInvestigacion', [Invi_proyectosController::class, 'getSubDireProyectosInvestigacion']);
+    //Definición de endpoint para obtener a los docentes de proyectos de Investigacion
+    Route::get('getDocentesProyectosInvestigacion', [Invi_proyectosController::class, 'getDocentesProyectosInvestigacion']);
+    //Definición de endpoint para obtener a los estudiantes de proyectos de Investigacion
+    Route::get('getEstudiantesProyectosInvestigacion', [Invi_proyectosController::class, 'getEstProyectosInvestigacion']);
+    //Definición de endpoint para obtener a los proyectos de Investigacion
+    Route::get('getProyectosInvestigacionInfo', [Invi_proyectosController::class, 'getProyectosInvestigacionInfo']);
     Route::middleware('auth:api,docente,estudiante')->group(function () {
         Route::get('me', [AuthController::class, 'me']);
         Route::post('refresh', [AuthController::class, 'refresh']);
@@ -74,14 +90,14 @@ Route::prefix('inves')->group(function () {
         /**
          * API AGENDA ODS
          */
-         //Definición de endpoint para el recurso Agenda_ODS, perimitiendo operaciones CRUD
+        //Definición de endpoint para el recurso Agenda_ODS, perimitiendo operaciones CRUD
         Route::apiResource("agenda_ods", Agenda_ODSController::class);
         //Definición de endpoint para el recurso ODS, perimitiendo operaciones CRUD
         Route::apiResource("ods", ODSController::class);
         //Denificion de endpoint para habilitar e inhabilitar un Agenda ODS
         Route::delete('habilitar_agenda_ods/{id}', [Agenda_ODSController::class, 'habilitar']);
         Route::delete('inhabilitar_agenda_ods/{id}', [Agenda_ODSController::class, 'destroy']);
-         Route::post('subir_archivo_agenda_ods', [Agenda_ODSController::class, 'uploadArchivo']);
+        Route::post('subir_archivo_agenda_ods', [Agenda_ODSController::class, 'uploadArchivo']);
         //Definición de la ruta endpoint para eliminar un archivo
         Route::post('eliminar_archivo_agenda_ods', [Agenda_ODSController::class, 'deleteArchivo']);
         /**
@@ -136,9 +152,110 @@ Route::prefix('inves')->group(function () {
         Route::delete('inhabilitar_empresa/{id}', [PraempresaController::class, 'destroy']);
         //Definición de endpoint para buscar una empresa
         Route::get('buscar_empresa', [PraempresaController::class, 'buscarEmpresa']);
+        //Definición de endpoint para obtener los paises
+        Route::get('getPais', [PraempresaController::class, 'getPais']);
+        /**
+         * --------------------------------------------------------------------------
+         * Rutas de Gestión de Convocatorias (Invi_convocatoriaController)
+         * --------------------------------------------------------------------------
+         * Define los puntos de acceso (endpoints) para el ciclo de vida del recurso.
+         * Incluye operaciones CRUD estandarizadas, gestión de estados (activación/desactivación)
+         * y carga de archivos adjuntos al servidor.
+         */
+        // Registra de forma automática los endpoints CRUD para la API (index, store, show, update, destroy)
+        Route::apiResource("invi_convocatoria", Invi_convocatoriaController::class);
+        //Definición de endpoint para habilitar una convocatoria
+        Route::delete('habilitar_convocatoria/{id}', [Invi_convocatoriaController::class, 'habilitar']);
+        //Definición de endpoint para inhabilitar una convocatoria
+        Route::delete('inhabilitar_convocatoria/{id}', [Invi_convocatoriaController::class, 'destroy']);
+        //Definición de endpoint para subir un archivo
+        Route::post('subir_archivo_convocatoria', [Invi_convocatoriaController::class, 'uploadArchivo']);
+        //Definición de endpoint para listar convocatorias
+        Route::get('listar_convocatorias', [Invi_convocatoriaController::class, 'listconvocatoria']);
 
+        /**
+         * --------------------------------------------------------------------------
+         * Rutas de Gestión de Departamentos (DepartamentoController)
+         * --------------------------------------------------------------------------
+         * Define los puntos de acceso (endpoints) para el ciclo de vida del recurso.
+         * Incluye operaciones para obtener la lista de departamentos y para obtener
+         * la información de un departamento específico.
+         * 
+         */
+        //Definición de endpoint para obtener la lista de departamentos
+        Route::get('listar_departamentos', [DepartamentoController::class, 'index']);
+        //Definición de endpint para obtener a un docente por su cédula
+        Route::get('getDocente/{cedula}', [InformacionPersonal_DController::class, 'getDocente']);
+        Route::get('getalldoce/{cedula}', [InformacionPersonal_DController::class, 'getAllDocente']);
+
+        /**
+         * --------------------------------------------------------------------------
+         * Rutas de Gestión de Tipos de Proyectos (Invi_tip_proyectController)
+         * --------------------------------------------------------------------------
+         * Define los puntos de acceso (endpoints) para el ciclo de vida del recurso.
+         * Incluye operaciones CRUD estandarizadas
+         */
+        Route::apiResource("invi_tipo_proyecto", Invi_tip_proyectController::class);
         //Definición de ruta endpoint para el recurso Invi_proyectos, perimitiendo operaciones CRUD
         Route::apiResource("invi_proyectos", Invi_proyectosController::class);
+        //Definición de endpoint para obtener datos para el modal de edición de proyectos
+        Route::get('getEdicionDatos/{id}', [Invi_proyectosController::class, 'getEdicionDatos']);
+
+        /**
+         * --------------------------------------------------------------------------
+         * Rutas de Gestión de Roles del equipo de INVESTIGACIÓN (Invi_equipo_rolesController)
+         * --------------------------------------------------------------------------
+         * Define los puntos de acceso (endpoints) para el ciclo de vida del recurso.
+         * Incluye operaciones CRUD estandarizadas
+         */
+
+        //Definición de recurso para el Equipo de Roles, perimitiendo operaciones CRUD
+        Route::apiResource("invi_equipo_roles", Invi_equipo_rolesController::class);
+        //Definición de endpoint para habilitar un Equipo de Roles
+        Route::delete('habilitar_equipo_roles/{id}', [Invi_equipo_rolesController::class, 'habilitar']);
+        //Definición de endpoint para inhabilitar un Equipo de Roles
+        Route::delete('inhabilitar_equipo_roles/{id}', [Invi_equipo_rolesController::class, 'destroy']);
+
+        /**
+         * --------------------------------------------------------------------------
+         * Rutas de Gestión equipo de INVESTIGACIÓN (Invi_equipo_departController)
+         * --------------------------------------------------------------------------
+         * Define los puntos de acceso (endpoints) para el ciclo de vida del recurso.
+         * Incluye operaciones CRUD estandarizadas
+         */
+        //Definición de recurso para el Equipo de Departamento, perimitiendo operaciones CRUD
+        Route::apiResource("invi_equipo_depart", Invi_equipo_departController::class);
+        //Definición de endpoint para habilitar un Equipo de Departamento
+        Route::delete('habilitar_equipo_depart/{id}', [Invi_equipo_departController::class, 'habilitar']);
+        //Definición de endpoint para inhabilitar un Equipo de Departamento
+        Route::delete('inhabilitar_equipo_depart/{id}', [Invi_equipo_departController::class, 'destroy']);
+        //Definición de endpoint para obtener los roles INVESTIGACIÓN
+        Route::get('getRolesInvestigacion', [Invi_equipo_departController::class, 'getRolesInvestigacion']);
+        //Definición de endpoint para subir un archivo
+        Route::post('subir_archivo_quipoinves', [Invi_equipo_departController::class, 'uploadArchivo']);
+
+        /**
+         * --------------------------------------------------------------------------
+         * Rutas de Gestión Responsables de Investigación (Invi_responsableController)
+         * --------------------------------------------------------------------------
+         * Los endpoints aquí son de tipo: API Resource el cual permite la creación (post), 
+         * lectura (get), actualización (put) y eliminación (delete) de recursos.
+         * Y un endpoint de tipo delete que permite la habilitación (habilitar) y inhabilitación (inhabilitar) de registros.
+         */
+        //Definición de endpoint para obtener información de los responsables de INVESTIGACIÓN
+        Route::get('getResponsablesInfo', [Invi_responsableController::class, 'getResponsablesInfo']);
+
+        Route::apiResource("invi_responsable", Invi_responsableController::class);
+        //Definición de endpoint para habilitar un Responsible
+        Route::delete('habilitar_responsable/{id}', [Invi_responsableController::class, 'habilitar']);
+        //Definición de endpoint para inhabilitar un Responsible
+        Route::delete('inhabilitar_responsable/{id}', [Invi_responsableController::class, 'destroy']);
+        //Definición de endpoint para subir un archivo
+        Route::post('subir_archivo_responsable', [Invi_responsableController::class, 'uploadArchivo']);
+        //Definición de endpoint para obtener las facultades de Investigacion
+        Route::get('getFacultadesInvestigacion', [Invi_responsableController::class, 'getFacultadesInvestigacion']);
+        Route::get('getResponsablesIndInfo/{id}', [Invi_responsableController::class, 'getResponsablesIndInfo']);
+
         //definción de ruta para el catalogo de integrantes
         Route::get('catalogos-integrantes', [Invi_proyectosController::class, 'catalogos']);
         Route::put('actualizar-integrante/{id}', [Invi_proyectosController::class, 'actualizarIntegrante']);
@@ -151,7 +268,7 @@ Route::prefix('inves')->group(function () {
         //Definicion para obtener foto del estudiante
         Route::get('getFoto/{ci}', [InformacionPersonalController::class, 'getFoto']);
         //Definicion para obtener la foto del docente
-        
+
         //Definición de ruta para subir un archivo
         Route::post('subir_archivo_anexo', [Invi_proyectosController::class, 'uploadArchivo']);
         //Definición de ruta para subir un archivo

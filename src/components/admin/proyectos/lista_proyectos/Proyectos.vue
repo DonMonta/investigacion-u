@@ -1148,7 +1148,7 @@
                                             </td>
                                             <td class="px-5 py-4 text-xs font-bold text-gray-700 dark:text-gray-300">
                                                 <span
-                                                    :class="obj.subsistemas_pei?.nombre_subsistema.toLowerCase().includes('vinculación') ? 'bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300' : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400'"
+                                                    :class="obj.subsistemas_pei?.nombre_subsistema.toLowerCase().includes('Investigación') ? 'bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300' : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400'"
                                                     class="px-2.5 py-1 rounded-md tracking-wide">
                                                     {{ obj.subsistemas_pei ? obj.subsistemas_pei.nombre_subsistema :
                                                         'N/A' }}
@@ -1767,7 +1767,7 @@
                                     <p class="text-xs text-gray-500">
                                         Los dominios humanísticos representan áreas del conocimiento enfocadas en el
                                         desarrollo
-                                        social, ético y cultural. En vinculación, guían el impacto del proyecto hacia el
+                                        social, ético y cultural. En investigacion, guían el impacto del proyecto hacia el
                                         bienestar comunitario y la transformación del entorno social.
                                     </p>
                                 </div>
@@ -2027,7 +2027,7 @@
                                         </svg>
                                     </span>
                                     <div>
-                                        <h4 class="text-sm font-semibold text-gray-800 dark:text-gray-200">Tipo de proyecto de vinculación</h4>
+                                        <h4 class="text-sm font-semibold text-gray-800 dark:text-gray-200">Tipo de proyecto de Investigación</h4>
                                         <p class="text-xs text-gray-500 dark:text-gray-400">
                                             Seleccione la modalidad o categoría específica que regirá el desarrollo del proyecto. Esta clasificación es fundamental ya que determina los lineamientos normativos, el formato de los informes técnicos y los criterios institucionales de evaluación aplicables.
                                         </p>
@@ -2037,7 +2037,7 @@
                                 <div class="p-5 border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm bg-white dark:bg-gray-950 space-y-4">
                                     <div class="space-y-2">
                                         <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                                            Seleccione el tipo de proyecto de vinculación: <span class="text-red-500">*</span>
+                                            Seleccione el tipo de proyecto de Investigación: <span class="text-red-500">*</span>
                                         </label>
 
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-60 overflow-y-auto pr-1">
@@ -2064,7 +2064,7 @@
 
                                             <div v-if="tip_proyectCatalogo.length === 0"
                                                 class="col-span-2 text-xs text-gray-400 italic p-2 text-center">
-                                                No hay tipos de proyecto de vinculación disponibles en el sistema...
+                                                No hay tipos de proyecto de Investigación disponibles en el sistema...
                                             </div>
                                         </div>
                                     </div>
@@ -2083,7 +2083,7 @@
                                 <div>
                                     <h4 class="text-sm font-semibold text-gray-800 dark:text-gray-200">Cobertura y localización</h4>
                                     <p class="text-xs text-gray-500 dark:text-gray-400">
-                                        Especifique el alcance territorial y la delimitación geográfica del impacto del proyecto. Esto permite clasificar el radio de acción de las actividades y la vinculación de los beneficiarios mapeados.
+                                        Especifique el alcance territorial y la delimitación geográfica del impacto del proyecto. Esto permite clasificar el radio de acción de las actividades y la Investigación de los beneficiarios mapeados.
                                     </p>
                                 </div>
                             </div>
@@ -2545,7 +2545,7 @@
                                     Antecedentes <span class="text-red-500">*</span>
                                 </label>
                                 <p class="text-sm text-gray-500 dark:text-gray-400 mb-4 text-justify">
-                                    Hacer referencia a las investigaciones realizadas sobre el tema, incluyendo los resultados de proyectos de vinculación o investigación anteriores realizados en la UTLVTE.
+                                    Hacer referencia a las investigaciones realizadas sobre el tema, incluyendo los resultados de proyectos de Investigación o investigación anteriores realizados en la UTLVTE.
                                 </p>
                                 <textarea 
                                     ref="antecedentesTextarea"
@@ -2615,7 +2615,7 @@
 
                                 <div v-if="empresaNoEncontrada" class="mt-4 p-4 bg-yellow-50 border-l-4 border-yellow-400 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-200 rounded">
                                     <p class="font-semibold">La empresa ingresada no existe.</p>
-                                    <p class="text-sm mt-1">Comunícate con alguien de la dirección de vinculación para que añadan los datos de la empresa a la base de datos. O si estás con el rol de analista de vinculación puedes dirigirte a <strong>Mantenimiento > Empresas Registradas</strong> y registrarla.</p>
+                                    <p class="text-sm mt-1">Comunícate con alguien de la dirección de Investigación para que añadan los datos de la empresa a la base de datos. O si estás con el rol de analista de Investigación puedes dirigirte a <strong>Mantenimiento > Empresas Registradas</strong> y registrarla.</p>
                                 </div>
                                 
                                 <div v-if="empresaBuscada && !empresaNoEncontrada" class="mt-4 border border-brand-200 dark:border-brand-700 rounded-lg p-4 bg-brand-50 dark:bg-brand-900/20">
@@ -2627,7 +2627,7 @@
                                         <p><strong>Correo Electrónico:</strong> {{ empresaBuscada.email || 'N/A' }}</p>
                                         <p><strong>Dirección:</strong> {{ empresaBuscada.direccion || 'N/A' }}</p>
                                         <p><strong>Página Web:</strong> <a v-if="empresaBuscada.url" :href="empresaBuscada.url" target="_blank" class="text-blue-500 hover:underline">{{ empresaBuscada.url }}</a><span v-else>N/A</span></p>
-                                        <p class="md:col-span-2"><strong>Órgano Ejecutor:</strong> Dirección de Vinculación UTLVTE</p>
+                                        <p class="md:col-span-2"><strong>Órgano Ejecutor:</strong> Dirección de Investigación UTLVTE</p>
                                     </div>
                                     <div class="mt-4 flex justify-end">
                                         <button @click="agregarEmpresaSeleccionada" type="button" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-lg shadow transition-colors">
@@ -2645,7 +2645,7 @@
                                     <li v-for="(empresa, index) in empresasAgregadas" :key="empresa.idempresa" class="p-4 flex flex-col md:flex-row justify-between md:items-center hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                                         <div class="mb-2 md:mb-0">
                                             <p class="font-bold text-gray-800 dark:text-white">{{ empresa.empresacorta }} <span class="text-xs font-normal text-gray-500 ml-2">RUC: {{ empresa.ruc }}</span></p>
-                                            <p class="text-sm text-gray-600 dark:text-gray-400">Rep: {{ empresa.representante }} | Órgano Ejecutor: Dirección de Vinculación UTLVTE</p>
+                                            <p class="text-sm text-gray-600 dark:text-gray-400">Rep: {{ empresa.representante }} | Órgano Ejecutor: Dirección de Investigación UTLVTE</p>
                                         </div>
                                         <button @click="quitarEmpresa(index)" type="button" class="px-3 py-1 bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50 rounded-lg text-sm font-semibold transition-colors">
                                             Quitar
@@ -3024,10 +3024,10 @@
                                     <span>{{ palabrasDiagnostico }} palabras</span>
                                 </div>
                             </div>
-                            <!-- Tarjeta de Articulación del proyecto de vinculación con el programa de la carrera -->
+                            <!-- Tarjeta de Articulación del proyecto de Investigación con el programa de la carrera -->
                             <div class="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm transition-all hover:shadow-md">
                                 <label class="block text-lg font-bold text-gray-800 dark:text-gray-200 mb-1">
-                                    Articulación del proyecto de vinculación con el programa de la carrera <span class="text-red-500">*</span>
+                                    Articulación del proyecto de Investigación con el programa de la carrera <span class="text-red-500">*</span>
                                 </label>
                                 <p class="text-sm text-gray-500 dark:text-gray-400 mb-4 text-justify">
                                     Contribución a la sociedad
@@ -3038,7 +3038,7 @@
                                     @input="ajustarAlturaTextarea"
                                     @contextmenu.prevent="abrirMenuContextual($event, 'proyect_contribucion_soci')"
                                     class="w-full p-4 text-sm bg-gray-50 dark:bg-gray-900/50 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 resize-none overflow-hidden text-justify transition-shadow" 
-                                    placeholder="Detalle como contribuye a la sociedad su proyecto de vinculación"
+                                    placeholder="Detalle como contribuye a la sociedad su proyecto de Investigación"
                                     rows="4"
                                 ></textarea>
                             </div>
@@ -3793,7 +3793,7 @@
                         <div class="mb-4 p-4 bg-green-50 dark:bg-gray-800 rounded-lg border-l-4 border-green-500 flex gap-4">
                            
                             <div>
-                                <h3 class="text-lg font-bold text-gray-900 dark:text-white">Metodología para la Vinculación</h3>
+                                <h3 class="text-lg font-bold text-gray-900 dark:text-white">Metodología para la Investigación</h3>
                                 <p class="text-sm text-gray-600 dark:text-gray-400">
                                     Diseño del Estudio: Detallar diseño experimental, tipo de análisis estadístico, otros
                                 </p>
@@ -4886,6 +4886,7 @@ defineExpose({
 import API from "@/assets/js/services/axios";
 import { useRoute } from "vue-router";
 import debounce from 'lodash.debounce';
+import { useUsuario } from "@/composables/useUsuario";
 import Modal from '@/components/Modal/Modal.vue'
 import { mostraralertas2, enviarsolig } from '@/assets/js/function/funciones';
 import jsPDF from 'jspdf';
@@ -7455,7 +7456,7 @@ export default {
                 return;
             }
             if (!this.editForm.id_tip_invi_proy) {
-                mostraralertas2('Debe seleccionar un tipo de proyecto de vinculación obligatoriamente.', 'error');
+                mostraralertas2('Debe seleccionar un tipo de proyecto de Investigación obligatoriamente.', 'error');
                 return;
             }
             const cantAnt = this.palabrasAntecedentes;
@@ -7634,19 +7635,19 @@ export default {
             return response.data.nombre_carrera;
         },
         async ObteneProDoc(id){
-            const response = await API.get(`${this.baseUrl}/getDocentesIndProyectosVinculacion/${id}`);
+            const response = await API.get(`${this.baseUrl}/getDocentesIndProyectosInvestigacion/${id}`);
             return response;
         },
         async ObteneProEst(id){
-            const response = await API.get(`${this.baseUrl}/getEstudiantesIndProyectosVinculacion/${id}`);
+            const response = await API.get(`${this.baseUrl}/getEstudiantesIndProyectosInvestigacion/${id}`);
             return response;
         },
         async ObteneProDir(id){
-            const response = await API.get(`${this.baseUrl}/getDirectoresIndProyectosVinculacion/${id}`);
+            const response = await API.get(`${this.baseUrl}/getDirectoresIndProyectosInvestigacion/${id}`);
             return response;
         },
         async ObteneProSubDir(id){
-            const response = await API.get(`${this.baseUrl}/getSubDirectoresIndProyectosVinculacion/${id}`);
+            const response = await API.get(`${this.baseUrl}/getSubDirectoresIndProyectosInvestigacion/${id}`);
             return response;
         },
         async ObteneRespVin(id){
@@ -7654,7 +7655,7 @@ export default {
             return response;
         },
         async ObteneDirVin(id){
-            const response = await API.get(`${this.baseUrl}/getdirectvin`);
+            const response = await API.get(`${this.baseUrl}/getdirectinv`);
             return response;
         },
         async abrirModalAreaTematica(id) {

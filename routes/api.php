@@ -53,6 +53,8 @@ Route::prefix('inves')->group(function () {
     Route::get('getEstudiantesProyectosInvestigacion', [Invi_proyectosController::class, 'getEstProyectosInvestigacion']);
     //Definición de endpoint para obtener a los proyectos de Investigacion
     Route::get('getProyectosInvestigacionInfo', [Invi_proyectosController::class, 'getProyectosInvestigacionInfo']);
+    //Definición de enndpoint para obtener a los directores de carreras
+    Route::get('getDirectoresCarreras', [DirectorCarrerasController::class, 'getCarrerasDirectores']);
     Route::middleware('auth:api,docente,estudiante')->group(function () {
         Route::get('me', [AuthController::class, 'me']);
         Route::post('refresh', [AuthController::class, 'refresh']);
@@ -200,6 +202,14 @@ Route::prefix('inves')->group(function () {
         Route::apiResource("invi_proyectos", Invi_proyectosController::class);
         //Definición de endpoint para obtener datos para el modal de edición de proyectos
         Route::get('getEdicionDatos/{id}', [Invi_proyectosController::class, 'getEdicionDatos']);
+        Route::get('getDirectoresIndProyectosInvestigacion/{id}', [Invi_proyectosController::class, 'getDirectoresiNDProyectosInvestigacion']);
+        Route::get('getSubDirectoresIndProyectosInvestigacion/{id}', [Invi_proyectosController::class, 'getSubDireIndProyectosInvestigacion']);
+        Route::get('getDocentesIndProyectosInvestigacion/{id}', [Invi_proyectosController::class, 'getDocentesIndProyectosInvestigacion']);
+        Route::get('getEstudiantesIndProyectosInvestigacion/{id}', [Invi_proyectosController::class, 'getEstIndvProyectosInvestigacion']);
+        Route::get('getResponsablesIndInfo/{id}', [Invi_responsableController::class, 'getResponsablesIndInfo']);
+        Route::get('getdirectinv', [Invi_equipo_departController::class, 'getDirectorInfo']);
+        Route::get('getCarrerasFacultad/{idfacultad}', [DirectorCarrerasController::class, 'ObtCarrerasFacultad']);
+        Route::get('obtnercarreraindv/{id}', [DirectorCarrerasController::class, 'obtnercarreraindv']);
 
         /**
          * --------------------------------------------------------------------------

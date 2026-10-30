@@ -184,6 +184,25 @@
                     <rect x="3" y="3" width="18" height="18" rx="2" />
                   </svg>
                 </button>
+                <button v-if="post.estado_departamento === 1" @click="abrirModalPoliticas(post)" :disabled="botonCargando === 'politicas_' + post.id_pei"
+                  class="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                  title="Gestionar Políticas">
+                  
+                  <!-- Spinner de Carga -->
+                  <svg v-if="botonCargando === 'politicas_' + post.id_pei" class="animate-spin h-5 w-5 text-purple-600"
+                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                    </path>
+                  </svg>
+                  
+                  <!-- Ícono de Políticas (Escudo con Check) -->
+                  <svg v-else width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                    <path d="M9 12l2 2 4-4" />
+                  </svg>
+                </button>
                 <button @click="eliminar(post.id_pei, post.nombre_pei)" v-if="(post.estado_departamento !== undefined ? post.estado_departamento : post.estado_pei) === 1"
                   class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -343,6 +362,163 @@
                 </tbody>
               </table>
             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div v-if="isPoliticasModalOpen"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 z-[99999]">
+      <div
+        class="bg-white dark:bg-gray-900 rounded-2xl shadow-xl w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col">
+
+        <!-- Header del Modal -->
+        <div
+          class="p-6 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center bg-gray-50/50 dark:bg-white/[0.02] shrink-0">
+          <div>
+            <h3 class="text-xl font-bold text-gray-800 dark:text-white">Políticas del</h3>
+            <p class="text-sm text-success-600 font-medium">{{ selectedPei?.nombre_pei }}</p>
+          </div>
+          <button @click="isPoliticasModalOpen = false"
+            class="text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800 dark:hover:text-gray-200 p-2 rounded-full transition-colors">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <!-- Contenido Scrolleable -->
+        <div class="flex-1 overflow-y-auto p-6 md:p-8 custom-scrollbar">
+
+          <!-- Mensaje de Información -->
+          <div
+            class="mb-8 p-5 rounded-xl bg-blue-50 border border-blue-100 dark:bg-blue-500/10 dark:border-blue-500/20">
+            <div class="flex gap-4 items-start">
+              <svg class="text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" width="22" height="22" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="16" x2="12" y2="12" />
+                <line x1="12" y1="8" x2="12.01" y2="8" />
+              </svg>
+              <p class="text-sm text-blue-800 dark:text-blue-300 leading-relaxed">
+                <strong>Nota importante:</strong> Las políticas que añada aquí deben ser únicamente las que se
+                encuentran registradas en el documento oficial del <strong>PEI</strong> seleccionado.
+              </p>
+            </div>
+          </div>
+
+          <!-- Cuadrícula Principal -->
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-10">
+
+            <!-- Columna Izquierda: Formulario -->
+            <div
+              class="md:col-span-5 border-b md:border-b-0 md:border-r border-gray-100 dark:border-gray-800 pb-8 md:pb-0 md:pr-8">
+              <h4 class="text-sm font-bold text-gray-700 dark:text-gray-300 mb-6 uppercase tracking-wider">
+                {{ isEditingPoliticas ? 'Editar Política' : 'Nueva Política' }}
+              </h4>
+
+              <div class="space-y-6">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">Nombre de la
+                    política</label>
+                  <input type="text" v-model="PoliticasForm.nombre_pol"
+                    class="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-700 dark:bg-gray-800 focus:ring-2 focus:ring-purple-500 outline-none transition-all"
+                    placeholder="Ej: Políticas de Formación">
+                </div>
+
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">Detalle de la
+                    Política</label>
+                  <textarea v-model="PoliticasForm.detalle_pol" rows="5"
+                    class="w-full px-4 py-3 border border-gray-200 rounded-lg dark:bg-gray-800 dark:border-gray-700 outline-none focus:ring-2 focus:ring-purple-500 transition-all leading-relaxed text-justify"
+                    placeholder="Detalle la política descrita..."></textarea>
+                </div>
+
+                <div class="flex gap-3 pt-2">
+                  <button @click="guardarPoliticas" :disabled="uploading"
+                    class="flex-1 btn-primary text-white font-bold py-3 px-4 rounded-lg transition-colors hover:shadow-lg bg-purple-600 hover:bg-purple-700">
+                    <span v-if="uploading" class="inline-flex items-center justify-center gap-2 w-full">
+                      <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none"
+                        viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+                        </circle>
+                        <path class="opacity-75" fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                        </path>
+                      </svg>
+                      <span>{{ isEditingPoliticas ? 'Actualizando...' : 'Guardando...' }}</span>
+                    </span>
+                    <span v-else class="block w-full text-center">
+                      {{ isEditingPoliticas ? 'Actualizar Política' : 'Guardar Política' }}
+                    </span>
+                  </button>
+
+                  <button v-if="isEditingPoliticas" @click="cancelarEdicionPoliticas"
+                    class="px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg transition-colors"
+                    title="Cancelar edición">
+                    ✕
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Columna Derecha: Tabla -->
+            <div class="md:col-span-7 flex flex-col min-h-0">
+              <h4 class="text-sm font-bold text-gray-700 dark:text-gray-300 mb-6 uppercase tracking-wider">
+                Políticas Registradas
+              </h4>
+
+              <div class="overflow-y-auto border border-gray-200 rounded-xl dark:border-gray-700 custom-scrollbar"
+                style="max-height: 450px;">
+                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-800">
+                  <thead class="bg-gray-50 dark:bg-gray-800/80 sticky top-0 z-10 backdrop-blur-sm">
+                    <tr>
+                      <th class="px-5 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Nombre y
+                        Detalle</th>
+                      <th class="px-5 py-4 text-right text-xs font-bold text-gray-500 uppercase tracking-wider w-28">
+                        Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-gray-100 dark:divide-gray-800 bg-white dark:bg-gray-900">
+
+                    <tr v-for="pol in listaPoliticas" :key="pol.id_pol_pei"
+                      class="hover:bg-gray-50/80 dark:hover:bg-white/[0.02] transition-colors">
+                      <td class="px-5 py-4 align-top">
+                        <p class="text-sm font-bold text-purple-700 dark:text-purple-400 mb-1.5">{{ pol.nombre_pol }}
+                        </p>
+                        <p class="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{{ pol.detalle_pol }}</p>
+                      </td>
+                      <td class="px-5 py-4 align-top text-right whitespace-nowrap">
+                        <div class="flex justify-end gap-3">
+                          <button @click="prepararEdicionSPol(pol)"
+                            class="text-blue-600 hover:text-blue-800 font-semibold text-sm transition-colors">
+                            Editar
+                          </button>
+                          <button @click="eliminarPol(pol.id_pol_pei)"
+                            class="text-red-600 hover:text-red-800 font-semibold text-sm transition-colors">
+                            Eliminar
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+
+                    <tr v-if="listaPoliticas.length === 0">
+                      <td colspan="2" class="px-5 py-12 text-center">
+                        <div class="flex flex-col items-center justify-center gap-2">
+                          <svg class="w-10 h-10 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                          </svg>
+                          <p class="text-gray-500 text-sm font-medium">No hay políticas registradas</p>
+                        </div>
+                      </td>
+                    </tr>
+
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
           </div>
         </div>
       </div>
@@ -794,6 +970,7 @@ export default {
       archivoPreviewName: '',
       uploading: false,
       isSubsistemaModalOpen: false,
+      isPoliticasModalOpen: false,
       selectedPei: null,
       listaSubsistemas: [],
       isEditingSubsistema: false,
@@ -801,6 +978,14 @@ export default {
         id_sub_sistema_pei: null,
         id_pei: null,
         nombre_subsistema: ''
+      },
+      listaPoliticas: [],
+      isEditingSPoliticas: false,
+      PoliticasForm: {
+        id_pol_pei: null,
+        id_pei: null,
+        nombre_pol: '',
+        detalle_pol: ''
       },
       isObjetivoModalOpen: false,
       listaObjetivos: [],
@@ -936,7 +1121,22 @@ export default {
         await this.getSubsistemas();
         this.isSubsistemaModalOpen = true;
       }catch(e){
-        console.error("❌ Error:", error.e?.data || e);
+        console.error("❌ Error:", e.data || e);
+      }finally{
+        this.botonCargando = null;
+      }
+      
+    },
+    async abrirModalPoliticas(pei) {
+      this.botonCargando = 'politicas_' + pei.id_pei;
+      try{
+        this.selectedPei = pei;
+        this.PoliticasForm.id_pei = pei.id_pei;
+        this.cancelarEdicionPoliticas(); // Limpia el form
+        await this.getPoliticas();
+        this.isPoliticasModalOpen = true;
+      }catch(e){
+        console.error("❌ Error:", e.data || e);
       }finally{
         this.botonCargando = null;
       }
@@ -966,6 +1166,14 @@ export default {
         this.listaSubsistemas = resp.data.data || [];
       } catch (error) {
         console.error("Error al obtener subsistemas:", error);
+      }
+    },
+    async getPoliticas() {
+      try {
+        const resp = await API.get(`${this.baseUrl}/politicas_pei/${this.selectedPei.id_pei}`);
+        this.listaPoliticas = resp.data.data || [];
+      } catch (error) {
+        console.error("Error al obtener Politicas:", error);
       }
     },
 
@@ -1016,6 +1224,61 @@ export default {
       );
       if (response && response.status === 200) {
         this.listaSubsistemas = this.listaSubsistemas.filter(sub => sub.id_sub_sistema_pei !== id);
+      }
+    },
+    async guardarPoliticas() {
+
+      if (!this.PoliticasForm.nombre_pol.trim()) {
+        mostraralertas2("El nombre es obligatorio", "warning");
+        return;
+      }
+      if (!this.PoliticasForm.detalle_pol.trim()) {
+        mostraralertas2("El detalle es obligatorio", "warning");
+        return;
+      }
+      if (this.uploading) return;
+      try {
+        this.uploading = true;
+        const metodo = this.isEditingPoliticas ? 'PUT' : 'POST';
+        const url = this.isEditingPoliticas
+          ? `${this.baseUrl}/politicas_pei/${this.PoliticasForm.id_pol_pei}`
+          : `${this.baseUrl}/politicas_pei`;
+
+        const exito = await enviarsolig(metodo, this.PoliticasForm, url, 'Operación exitosa');
+        if (exito) {
+          this.cancelarEdicionPoliticas();
+          this.getPoliticas();
+        }
+      } catch (error) {
+        console.error("Error al guardar Politicas:", error);
+      } finally {
+        this.uploading = false; // Desactiva el loader al terminar
+      }
+    },
+
+    prepararEdicionSPol(pol) {
+      this.isEditingPoliticas = true;
+      this.PoliticasForm.id_pol_pei = pol.id_pol_pei;
+      this.PoliticasForm.nombre_pol = pol.nombre_pol;
+      this.PoliticasForm.detalle_pol = pol.detalle_pol;
+    },
+
+    cancelarEdicionPoliticas() {
+      this.isEditingPoliticas = false;
+      this.PoliticasForm.id_pol_pei = null;
+      this.PoliticasForm.nombre_pol = '';
+      this.PoliticasForm.detalle_pol = '';
+    },
+
+    async eliminarPol(id) {
+      const response = await elimnarpermanente(
+        `${this.baseUrl}/politicas_pei/`,
+        id,
+        'Eliminar Politicas',
+        '¿Realmente desea eliminar el Politicas?'
+      );
+      if (response && response.status === 200) {
+        this.listaPoliticas = this.listaPoliticas.filter(pol => pol.id_pol_pei !== id);
       }
     },
     handleFileChange(event) {

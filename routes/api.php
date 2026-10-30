@@ -7,6 +7,7 @@ use App\Http\Controllers\DirectorCarrerasController;
 use App\Http\Controllers\InformacionPersonal_DController;
 use App\Http\Controllers\PeiController;
 use App\Http\Controllers\Subsistemas_peiController;
+use App\Http\Controllers\Politicas_peiController;
 use App\Http\Controllers\Objetivos_peiController;
 use App\Http\Controllers\PlandneController;
 use App\Http\Controllers\Obj_pol_plandneController;
@@ -73,6 +74,8 @@ Route::prefix('inves')->group(function () {
         Route::post('eliminar_archivo', [PeiController::class, 'deleteArchivo']);
         //Definición de la ruta endpoint para el recurso Subsistemas_pei, perimitiendo operaciones CRUD
         Route::apiResource("subsistemas_pei", Subsistemas_peiController::class);
+        //Definición de la ruta endpoint para el recurso politicas_pei, perimitiendo operaciones CRUD
+        Route::apiResource("politicas_pei", Politicas_peiController::class);
         //Definición de la ruta endpoint para el recurso Objetivos_pei, perimitiendo operaciones CRUD
         Route::apiResource("objetivos_pei", Objetivos_peiController::class);
         Route::get('objetivos_por_pei/{id_pei}', [Objetivos_peiController::class, 'listarPorPei']);

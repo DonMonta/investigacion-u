@@ -35,6 +35,10 @@ class Pei extends Model
             'id_sub_sistema_pei'    // Llave local en subsistemas_pei
         );
     }
+    public function politicas_pei()
+    {
+        return $this->hasMany(Politicas_pei::class, 'id_pei');
+    }
     /**
      * Relación: Estados de este PEI por departamento.
      */

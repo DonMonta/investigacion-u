@@ -1109,6 +1109,49 @@
                                     </svg>
                                 </span>
                                 <div>
+                                    <h4 class="text-sm font-semibold text-gray-800 dark:text-gray-200">
+                                        Misión y Visión Institucional
+                                    </h4>
+                                    <p class="text-xs text-gray-500">
+                                        Principios rectores que fundamentan el accionar de la institución.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- Contenedor de los inputs bloqueados -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                                <!-- Input Bloqueado: Misión -->
+                                <div class="flex flex-col">
+                                    <label class="mb-1.5 text-xs font-semibold text-gray-700 dark:text-gray-300">
+                                        Misión institucional
+                                    </label>
+                                    <textarea readonly rows="6"
+                                        class="w-full text-sm p-3 rounded-lg border border-gray-200 bg-gray-100 text-gray-500 focus:ring-0 focus:outline-none cursor-not-allowed resize-none dark:bg-gray-900/50 dark:border-gray-800 dark:text-gray-400 select-none">Formación integral de profesionales críticos, propositivos y humanistas, mediante un proceso educativo actual, articulado entre la docencia, la investigación y la vinculación con la sociedad, para el desarrollo sostenible de la sociedad, basados en la construcción adecuada de la cultura universal y ancestral ecuatoriana, la ciencia y la tecnología.</textarea>
+                                </div>
+
+                                <!-- Input Bloqueado: Visión -->
+                                <div class="flex flex-col">
+                                    <label class="mb-1.5 text-xs font-semibold text-gray-700 dark:text-gray-300">
+                                        Visión institucional
+                                    </label>
+                                    <textarea readonly rows="6"
+                                        class="w-full text-sm p-3 rounded-lg border border-gray-200 bg-gray-100 text-gray-500 focus:ring-0 focus:outline-none cursor-not-allowed resize-none dark:bg-gray-900/50 dark:border-gray-800 dark:text-gray-400 select-none">Ser un referente a nivel nacional e internacional de excelencia académica, científica, tecnológica y cultural, que incide positivamente en el desarrollo equitativo e integral de la sociedad.</textarea>
+                                </div>
+
+                            </div>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="flex items-start gap-2.5">
+                                <span
+                                    class="p-1 rounded-md bg-purple-50 text-purple-600 mt-0.5 dark:bg-purple-950/40 dark:text-purple-400">
+                                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                    </svg>
+                                </span>
+                                <div>
                                     <h4 class="text-sm font-semibold text-gray-800 dark:text-gray-200">Objetivos del
                                         Plan
                                         Estratégico Institucional</h4>
@@ -1175,6 +1218,69 @@
                                 </svg>
                                 Restricción: Es obligatorio seleccionar como mínimo un objetivo estratégico
                                 institucional.
+                            </div>
+                        </div>
+                        <!-- Sección Políticas del PEI -->
+                       <div class="space-y-3 mt-6">
+                            <div class="flex items-start gap-2.5">
+                                <span
+                                    class="p-1 rounded-md bg-blue-50 text-blue-600 mt-0.5 dark:bg-blue-950/40 dark:text-blue-400">
+                                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                                    </svg>
+                                </span>
+                                <div>
+                                    <h4 class="text-sm font-semibold text-gray-800 dark:text-gray-200">Políticas de
+                                        Investigación del
+                                        Plan Estratégico Institucional</h4>
+                                    <p class="text-xs text-gray-500">Seleccione las políticas de investigación del Plan
+                                        Estratégico Institucional </p>
+                                </div>
+                            </div>
+
+                            <div
+                                class="border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden shadow-sm bg-white dark:bg-gray-950">
+                                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-800">
+                                    <thead class="bg-gray-50 dark:bg-gray-900/80">
+                                        <tr>
+                                            <th
+                                                class="px-5 py-3 text-left w-14 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                                                Sel.</th>
+                                            <th
+                                                class="px-5 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider w-1/4">
+                                                Nombre de Política</th>
+                                            <th
+                                                class="px-5 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                                Detalle</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+                                        <tr v-for="pol in politicasPeiDisponibles" :key="pol.id_pol_pei"
+                                            :class="editForm.peipoliticas.includes(pol.id_pol_pei) ? 'bg-brand-50/40 dark:bg-brand-950/20 transition-colors' : 'hover:bg-gray-50/70 dark:hover:bg-gray-800/30 transition-colors'"
+                                            class="cursor-pointer" @click="togglePeiPolitica(pol.id_pol_pei)">
+                                            <td class="px-5 py-4 text-center" @click.stop>
+                                                <input type="checkbox" :value="pol.id_pol_pei"
+                                                    v-model="editForm.peipoliticas"
+                                                    class="w-4 h-4 text-brand-600 rounded border-gray-300 dark:border-gray-700 focus:ring-brand-500/30 transition-all duration-150">
+                                            </td>
+                                            <td class="px-5 py-4 text-xs font-bold text-gray-700 dark:text-gray-300">
+                                                {{ pol.nombre_pol }}
+                                            </td>
+                                            <!-- AQUI CAMBIA LA VISUALIZACIÓN DEL DETALLE -->
+                                            <td
+                                                class="px-5 py-4 text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                                                <ul class="list-disc pl-4 space-y-2 marker:text-gray-400">
+                                                    <li v-for="(item, index) in formatearDetalle(pol.detalle_pol)"
+                                                        :key="index">
+                                                        {{ item }}
+                                                    </li>
+                                                </ul>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                         <div class="space-y-3 mt-6">
@@ -2299,10 +2405,10 @@
                                         <span class="bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">Nivel Operativo</span>
                                         <h4 class="text-base font-bold text-gray-800 dark:text-gray-100">Objetivos Específicos</h4>
                                     </div>
-                                    <p class="text-[11px] text-gray-500">Agregue hasta 4 objetivos específicos y sus productos verificables.</p>
+                                    <p class="text-[11px] text-gray-500">Agregue los objetivos específicos y sus productos verificables.</p>
                                 </div>
                                 
-                                <button v-if="obtenerEspecificos().length < 4" @click="abrirModalMarcoLogico('especifico')" class="shrink-0 inline-flex items-center gap-2 bg-amber-50 text-amber-700 hover:bg-amber-100 dark:bg-amber-500/10 dark:text-amber-400 dark:hover:bg-amber-500/20 px-4 py-2 rounded-lg text-sm font-semibold transition-colors">
+                                <button v-if="obtenerEspecificos().length < 6" @click="abrirModalMarcoLogico('especifico')" class="shrink-0 inline-flex items-center gap-2 bg-amber-50 text-amber-700 hover:bg-amber-100 dark:bg-amber-500/10 dark:text-amber-400 dark:hover:bg-amber-500/20 px-4 py-2 rounded-lg text-sm font-semibold transition-colors">
                                     <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg> Añadir Específico ({{ obtenerEspecificos().length }}/4)
                                 </button>
                             </div>
@@ -4960,6 +5066,7 @@ export default {
             guardando: false,
             yaTraducido: false,
             objetivosPeiDisponibles: [],
+            politicasPeiDisponibles: [],
             politicasPlandeDisponibles: [],
             objetivosPoliticasDisponibles: [],
             objetivosODSDisponibles: [],
@@ -4999,6 +5106,7 @@ export default {
                 proyect_multidis: 0,
                 objetivos: [],
                 politicas: [],
+                peipoliticas: [],
                 ods: [],
                 facultades: [],
                 id_facultad_priori: '',
@@ -6448,10 +6556,11 @@ export default {
                 const data = response.data;
                 
                 this.objetivosPeiDisponibles = data.objetivos_pei;
-                
+                this.politicasPeiDisponibles = data.politicas_pei;
                 this.politicasPlandeDisponibles = data.politicas_plandne || [];
                 //Objetivos del Plan de Desarrollo para el Nuevo Ecuador 2024 • 2025:
                 this.objetivosPoliticasDisponibles = data.objetivos_politicas_seleccionadas || [];
+
                 
                 this.objetivosODSDisponibles = data.ods || [];
                 this.facultadesCatalogo = data.facultades_catalogo || [];
@@ -6571,6 +6680,7 @@ export default {
                     //Objetivos del Plan Estratégico Institucional
                     objetivos: data.seleccionados || [],
                     //Políticas del Plan de Desarrollo para el Nuevo Ecuador 2024 • 2025
+                    peipoliticas: data.politicas_pei_seleccionadas || [],
                     politicas: data.politicas_seleccionadas || [],
                     //Agenda 2030 y los Objetivos de desarrollo sostenible una oportunidad para América Latina y el Caribe
                     ods: data.ods_seleccionadas || [],
@@ -7133,11 +7243,11 @@ export default {
                 return;
             }
             if (this.modalFormML.tipo_obj_proy === 'especifico') {
-                let tieneProds = this.modalFormML.prod_verificables.some(p => p.detalle_prod_verif.trim() !== '');
+                /*let tieneProds = this.modalFormML.prod_verificables.some(p => p.detalle_prod_verif.trim() !== '');
                 if (!tieneProds) {
                     mostraralertas2("Los objetivos específicos requieren al menos un Producto Verificable", "warning");
                     return;
-                }
+                }*/
             }
 
             // Guardar en el editForm (el array que viaja a Laravel)
@@ -7284,6 +7394,32 @@ export default {
             } else {
                 this.editForm.politicas.push(id_pol); // Seleccionar
             }
+        },
+        togglePeiPolitica(id_pol_pei) {
+            const index = this.editForm.peipoliticas.indexOf(id_pol_pei);
+            if (index > -1) {
+                this.editForm.peipoliticas.splice(index, 1);
+            } else {
+                this.editForm.peipoliticas.push(id_pol_pei);
+            }
+        },
+        formatearDetalle(texto) {
+            if (!texto) return [];
+            
+            // 1. Separa el string usando el punto seguido de un espacio (\.\s+) o saltos de línea (\n)
+            // 2. Filtra los elementos que queden vacíos
+            // 3. Vuelve a colocar el punto al final de cada oración (ya que el split lo elimina)
+            return texto
+                .split(/\.\s+|\n/)
+                .filter(item => item.trim().length > 0)
+                .map(item => {
+                    let oracion = item.trim();
+                    // Si la oración no termina en punto, se lo agregamos para mantener la ortografía
+                    if (!oracion.endsWith('.')) {
+                        oracion += '.';
+                    }
+                    return oracion;
+                });
         },
         toggleODS(id_ods) {
             const index = this.editForm.ods.indexOf(id_ods);

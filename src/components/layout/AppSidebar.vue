@@ -214,6 +214,7 @@ const menuData = [
         icon: UserCircleIcon,
         name: "Departamento de Investigación",
         subItems: [
+          {name: "Detalle de Departamentos", path: "/site-admin/det_departamento", pro: false},
           { name: "Roles del equipo de Investigación", path: "/site-admin/roles_equipo", pro: false },
           { name: "Equipo de Trabajo", path: "/site-admin/equipo", pro: false },
           { name: "Responsables de Investigación de Facultades", path: "/site-admin/responsables_inv", pro: false },

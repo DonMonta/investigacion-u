@@ -28,6 +28,7 @@ use App\Http\Controllers\Invi_tip_proyectController;
 use App\Http\Controllers\Invi_equipo_rolesController;
 use App\Http\Controllers\Invi_equipo_departController;
 use App\Http\Controllers\Invi_responsableController;
+use App\Http\Controllers\DepartamentoDetalleController;
 
 /*
 |--------------------------------------------------------------------------
@@ -246,6 +247,17 @@ Route::prefix('inves')->group(function () {
         Route::get('getRolesInvestigacion', [Invi_equipo_departController::class, 'getRolesInvestigacion']);
         //Definición de endpoint para subir un archivo
         Route::post('subir_archivo_quipoinves', [Invi_equipo_departController::class, 'uploadArchivo']);
+        /**
+         * * --------------------------------------------------------------------------
+         * Rutas de Gestión de Detalle de Departamentos (DepartamentoDetalleController)
+         * --------------------------------------------------------------------------
+         * Define los puntos de acceso (endpoints) para el ciclo de vida del recurso.
+         * Incluye operaciones para obtener la lista de detalle de departamentos específicos,
+         * Incluye creacion, actualizacion y eliminacion del detalle de un depatamento específico
+         */
+        // Registra de forma automática los endpoints CRUD para la API (index, store, show, update, destroy)
+        Route::apiResource("detalle_departamentos", DepartamentoDetalleController::class);
+        Route::delete('elimi_detalle_departamentos/{id}', [DepartamentoDetalleController::class, 'destroy']);
 
         /**
          * --------------------------------------------------------------------------

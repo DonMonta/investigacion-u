@@ -65,6 +65,7 @@ use App\Models\Invi_det_difusion;
 use App\Models\Invi_difusion;
 use App\Models\Invi_bibliografias;
 use App\Models\Invi_compromiso;
+use App\Models\Invi_detalle_pol_pei;
 use App\Models\Obj_pol_plandne;
 use App\Models\Asignaturas;
 use Carbon\Carbon;
@@ -191,6 +192,7 @@ class Invi_proyectosController extends Controller
         $proyecto = Invi_proyectos::with(
             'invi_detalle_obj_pro_pei',
             'invi_detalle_obj_pol_proyect',
+            'invi_detalle_obj_pol_pei',
             'invi_detalle_ods_proyect',
             'invi_detalle_fac_proy',
             'invi_detalle_carr_proy',
@@ -253,6 +255,8 @@ class Invi_proyectosController extends Controller
 
         $objetivos = [];
         $preseleccionados = [];
+        $polpei = [];
+        $polpeiSeleccionado = [];
 
         if ($peiActivo) {
             // 2. Obtener los objetivos de este PEI con su subsistema
@@ -260,7 +264,8 @@ class Invi_proyectosController extends Controller
                 ->whereHas('subsistemas_pei', function ($query) use ($peiActivo) {
                     $query->where('id_pei', $peiActivo->id_pei);
                 })->get();
-
+            
+            $polpei = $peiActivo->politicas_pei()->get();
             // 3. Buscar el objetivo de investigación para preseleccionarlo por defecto
             foreach ($objetivos as $obj) {
                 $nombreSubsistema = strtolower($obj->subsistemas_pei->nombre_subsistema ?? '');
@@ -279,7 +284,9 @@ class Invi_proyectosController extends Controller
                 }
             }
         }
-        
+        if ($proyecto->invi_detalle_obj_pol_pei) {
+            $polpeiSeleccionado = $proyecto->invi_detalle_obj_pol_pei->pluck('id_pol_pei')->toArray();
+        }
 
         $plandneActivo =  $queryPlandne->first();
         $politicas = [];
@@ -658,6 +665,8 @@ class Invi_proyectosController extends Controller
             'proyecto' => $proyecto,
             'objetivos_pei' => $objetivos,
             'seleccionados' => $preseleccionados,
+            'politicas_pei' => $polpei,
+            'politicas_pei_seleccionadas'=> $polpeiSeleccionado,
             'politicas_plandne' => $politicas,
             'politicas_seleccionadas' => $politicasSeleccionadas,
             'objetivos_politicas_seleccionadas' => $objetivosPoliticasSeleccionadas,
@@ -883,7 +892,7 @@ class Invi_proyectosController extends Controller
             $proyecto->id_convocatoria = $request->id_convocatoria;
             $proyecto->id_tip_invi_proy = $request->id_tip_invi_proy;
             $proyecto->proyect_cobertura = $request->proyect_cobertura;
-            $proyecto->proyect_antecedentes = $request->proyect_antecedentes;
+            //$proyecto->proyect_antecedentes = $request->proyect_antecedentes;
             $proyecto->proyect_justificacion = $request->proyect_justificacion;
             $proyecto->proyect_fecha_pres = $request->proyect_fecha_pres;
             $proyecto->fechainicio = $request->fechainicio;
@@ -936,6 +945,15 @@ class Invi_proyectosController extends Controller
                     Invi_detalle_obj_pei::insert([
                         'proyect_id' => $id,
                         'id_obj_pei' => $id_obj
+                    ]);
+                }
+            }
+            Invi_detalle_pol_pei::where('proyect_id', $id)->delete();
+            if ($request->has('politicas_pei') && is_array($request->politicas)) {
+                foreach ($request->politicas as $id_pol) {
+                    Invi_detalle_pol_pei::insert([
+                        'proyect_id' => $id,
+                        'id_pol_pei' => $id_pol
                     ]);
                 }
             }

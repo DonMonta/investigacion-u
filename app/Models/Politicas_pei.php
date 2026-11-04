@@ -22,5 +22,9 @@ class Politicas_pei extends Model
     {
         return $this->belongsTo(Pei::class , 'id_pei');
     }
+    public function invi_detalle_pol_pei()
+    {
+        return $this->belongsTo(Invi_detalle_pol_pei::class, 'id_pol_pei', 'id_pol_pei');
+    }
 
 }

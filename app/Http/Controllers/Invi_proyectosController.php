@@ -66,6 +66,8 @@ use App\Models\Invi_difusion;
 use App\Models\Invi_bibliografias;
 use App\Models\Invi_compromiso;
 use App\Models\Invi_detalle_pol_pei;
+use App\Models\Invi_det_base_pat;
+use App\Models\Invi_base_pat;
 use App\Models\Obj_pol_plandne;
 use App\Models\Asignaturas;
 use Carbon\Carbon;
@@ -224,6 +226,7 @@ class Invi_proyectosController extends Controller
             'invi_detalle_financia.invi_rubros',
             'invi_det_impactos_esperados.invi_impactos',
             'invi_detalle_difusion.invi_difusion',
+            'invi_det_base_pat.invi_base_pat',
             'invi_bibliografias'
         )->findOrFail($id);
         $id_departamento = $request->input('id_departamento');
@@ -1412,6 +1415,60 @@ class Invi_proyectosController extends Controller
                     Invi_detalle_adqui::create([
                         'proyect_id'     => $id,
                         'id_adquisicion' => $nuevaAdqui->id_adquisicion
+                    ]);
+                }
+            }
+            $basePatReq = $request->base_patentes ?? [];
+
+            // Obtener IDs de detalles que vienen del frontend
+            $basePatIdsReq = collect($basePatReq)->pluck('id_det_base_pat')->filter()->toArray();
+
+            // Obtener detalles actuales en BD para este proyecto
+            $detallesBasePatActuales = Invi_det_base_pat::where('proyect_id', $id)->get();
+            $basePatIdsActuales = $detallesBasePatActuales->pluck('id_det_base_pat')->toArray();
+
+            // Determinar cuáles hay que ELIMINAR
+            $idsBasePatToDelete = array_diff($basePatIdsActuales, $basePatIdsReq);
+            
+            if (!empty($idsBasePatToDelete)) {
+                // Obtenemos los id_base_pat (catálogo) vinculados antes de eliminar el detalle
+                $detallesBPAborrar = Invi_det_base_pat::whereIn('id_det_base_pat', $idsBasePatToDelete)->get();
+                $idsCatalogoBPAborrar = $detallesBPAborrar->pluck('id_base_pat')->filter()->toArray();
+                
+                // Eliminamos los detalles pivote
+                Invi_det_base_pat::whereIn('id_det_base_pat', $idsBasePatToDelete)->delete();
+                
+                // Eliminamos los registros del catálogo vinculados
+                if (!empty($idsCatalogoBPAborrar)) {
+                    Invi_base_pat::whereIn('id_base_pat', $idsCatalogoBPAborrar)->delete();
+                }
+            }
+
+            // CREAR o ACTUALIZAR los detalles de bases de datos y patentes
+            foreach ($basePatReq as $bpReq) {
+                if (isset($bpReq['id_det_base_pat']) && $bpReq['id_det_base_pat']) {
+                    // ACTUALIZAR CATÁLOGO (El detalle pivote no tiene campos extra además de las FK)
+                    if (isset($bpReq['id_base_pat']) && $bpReq['id_base_pat']) {
+                        Invi_base_pat::where('id_base_pat', $bpReq['id_base_pat'])
+                            ->update([
+                                'nombre_base'  => $bpReq['nombre_base'],
+                                'denominacion' => $bpReq['denominacion'],
+                                'no_patente'   => $bpReq['no_patente'] ?? null,
+                                'otros'        => $bpReq['otros'] ?? null,
+                            ]);
+                    }
+                } else {
+                    // CREAR (Primero el catálogo, luego el detalle)
+                    $nuevaBasePat = Invi_base_pat::create([
+                        'nombre_base'  => $bpReq['nombre_base'],
+                        'denominacion' => $bpReq['denominacion'],
+                        'no_patente'   => $bpReq['no_patente'] ?? null,
+                        'otros'        => $bpReq['otros'] ?? null,
+                    ]);
+
+                    Invi_det_base_pat::create([
+                        'proyect_id'  => $id,
+                        'id_base_pat' => $nuevaBasePat->id_base_pat
                     ]);
                 }
             }

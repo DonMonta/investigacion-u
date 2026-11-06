@@ -113,7 +113,10 @@ class Invi_proyectos extends Model
     {
         return $this->hasMany(Invi_bibliografias::class, 'proyect_id');
     }
-
+    public function invi_det_base_pat()
+    {
+        return $this->hasMany(Invi_det_base_pat::class, 'proyect_id', 'proyect_id');
+    }
 
 
 }

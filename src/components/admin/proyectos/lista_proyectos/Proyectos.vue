@@ -850,7 +850,7 @@
                         class="flex-shrink-0 whitespace-nowrap pb-3 pt-2.5 px-4 text-sm font-medium transition-all duration-200 border-b-2 -mb-[1px] flex items-center gap-2">
                         <span
                             class="flex h-5 w-5 items-center justify-center rounded-full bg-brand-100 dark:bg-brand-900/40 text-[11px] font-bold text-brand-600 dark:text-brand-400">4</span>
-                        Antecedentes y Justificación
+                        Justificación
                     </button>
                     <button @click="activeTab = 'instituciones'"
                         :class="activeTab === 'instituciones'
@@ -2638,44 +2638,20 @@
                     <div v-else-if="activeTab === 'antecedentes_justifi'" class="space-y-8 animate-fade-in-up">
                         <div class="mb-4 p-4 bg-green-50 dark:bg-gray-800 rounded-lg border-l-4 border-green-500 flex gap-4">
                             <div>
-                                <h3 class="text-lg font-bold text-gray-900 dark:text-white">Antecedentes y Justificacionnes</h3>
+                                <h3 class="text-lg font-bold text-gray-900 dark:text-white">Justificacionnes</h3>
                                 <p class="text-sm text-gray-600 dark:text-gray-400">
-                                    Detalle los antecedentes y justificaciones de su proyecto
+                                    Detalle la justificaciones de su proyecto
                                 </p>
                             </div>
                         </div>
                         <div class="space-y-3 mt-6">
-                            <!-- Tarjeta de Antecedentes -->
-                            <div class="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm transition-all hover:shadow-md">
-                                <label class="block text-lg font-bold text-gray-800 dark:text-gray-200 mb-1">
-                                    Antecedentes <span class="text-red-500">*</span>
-                                </label>
-                                <p class="text-sm text-gray-500 dark:text-gray-400 mb-4 text-justify">
-                                    Hacer referencia a las investigaciones realizadas sobre el tema, incluyendo los resultados de proyectos de Investigación o investigación anteriores realizados en la UTLVTE.
-                                </p>
-                                <textarea 
-                                    ref="antecedentesTextarea"
-                                    v-model="editForm.proyect_antecedentes" 
-                                    @input="ajustarAlturaTextarea"
-                                    @contextmenu.prevent="abrirMenuContextual($event, 'proyect_antecedentes')"
-                                    class="w-full p-4 text-sm bg-gray-50 dark:bg-gray-900/50 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 resize-none overflow-hidden text-justify transition-shadow" 
-                                    placeholder="Deben incluirse todos los aspectos y circunstancias que motivaron la identificación y preparación del proyecto..."
-                                    rows="4"
-                                ></textarea>
-                                <!-- Contador de palabras -->
-                                <div class="flex justify-between items-center mt-2 text-sm font-semibold transition-colors" :class="colorContadorAntecedentes">
-                                    <span>Mínimo: 500 / Máximo: 800 palabras</span>
-                                    <span>{{ palabrasAntecedentes }} palabras</span>
-                                </div>
-                            </div>
-
                             <!-- Tarjeta de Justificación -->
                             <div class="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm transition-all hover:shadow-md">
                                 <label class="block text-lg font-bold text-gray-800 dark:text-gray-200 mb-1">
                                     Justificación <span class="text-red-500">*</span>
                                 </label>
                                 <p class="text-sm text-gray-500 dark:text-gray-400 mb-4 text-justify">
-                                    Indicar por qué es necesario este proyecto argumentando desde la legislación vigente, con datos objetivos y/o peticiones realizadas por las instituciones (copaternales), las cuales financian el proyecto.
+                                    Incluir investigaciones realizadas en proyectos de investigación anteriores
                                 </p>
                                 <textarea 
                                     ref="justificacionTextarea"
@@ -2683,12 +2659,12 @@
                                     @input="ajustarAlturaTextarea"
                                     @contextmenu.prevent="abrirMenuContextual($event, 'proyect_justificacion')"
                                     class="w-full p-4 text-sm bg-gray-50 dark:bg-gray-900/50 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 resize-none overflow-hidden text-justify transition-shadow" 
-                                    placeholder="Argumento que apoya o sustenta la idea. En otras palabras, es una forma de explicar algo que sirve como complemento o aclaración de una afirmación previa."
+                                    placeholder=""
                                     rows="4"
                                 ></textarea>
                                 <!-- Contador de palabras -->
                                 <div class="flex justify-between items-center mt-2 text-sm font-semibold transition-colors" :class="colorContadorJustificacion">
-                                    <span>Mínimo: 600 / Máximo: 800 palabras</span>
+                                    <span>Mínimo: 300 / Máximo: 800 palabras</span>
                                     <span>{{ palabrasJustificacion }} palabras</span>
                                 </div>
                             </div>
@@ -3086,7 +3062,7 @@
                             <!-- Tarjeta de Descripción de Situación Actual -->
                             <div class="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm transition-all hover:shadow-md">
                                 <label class="block text-lg font-bold text-gray-800 dark:text-gray-200 mb-1">
-                                    Descripción de la situación actual <span class="text-red-500">*</span>
+                                    Descripción de la situación actual del tema a investigar: <span class="text-red-500">*</span>
                                 </label>
                                 <p class="text-sm text-gray-500 dark:text-gray-400 mb-4 text-justify">
                                     Descripción de la situación actual para contribuir a la satisfacción de necesidades y la solución de problemáticas del entorno desde el ámbito académico e investigativo
@@ -3097,12 +3073,11 @@
                                     @input="ajustarAlturaTextarea"
                                     @contextmenu.prevent="abrirMenuContextual($event, 'proyect_desc_situ_act')"
                                     class="w-full p-4 text-sm bg-gray-50 dark:bg-gray-900/50 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 resize-none overflow-hidden text-justify transition-shadow" 
-                                    placeholder="Descripción de la realidad existente de una zona determinada, problemas o necesidades de su población; que inciden en el lento o nulo desarrollo económico, social, cultural y ambiental; falta de integración física, comercial y social en pro del bienestar de sus habitantes."
                                     rows="4"
                                 ></textarea>
                                 <!-- Contador de palabras -->
                                 <div class="flex justify-between items-center mt-2 text-sm font-semibold transition-colors" :class="colorContadorDescripcion">
-                                    <span>Mínimo: 550 / Máximo: 650 palabras</span>
+                                    <span>Mínimo: 300 / Máximo: 800 palabras</span>
                                     <span>{{ palabrasDescrip }} palabras</span>
                                 </div>
                             </div>
@@ -3121,13 +3096,88 @@
                                     @input="ajustarAlturaTextarea"
                                     @contextmenu.prevent="abrirMenuContextual($event, 'proyect_diag_probl')"
                                     class="w-full p-4 text-sm bg-gray-50 dark:bg-gray-900/50 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 resize-none overflow-hidden text-justify transition-shadow" 
-                                    placeholder="En los proyectos sociales el problema social se define como una carencia o déficits existentes que afecta a un segmento de la población de una determinado zona o lugar. En el proceso de identificación, descripción y diagnóstico del problema es fundamental realizar el análisis de participación de los/as involucrados/as con la finalidad que la comunidad beneficiaria en el futuro se involucre y comprometa en la implementación del proyecto"
                                     rows="4"
                                 ></textarea>
                                 <!-- Contador de palabras -->
                                 <div class="flex justify-between items-center mt-2 text-sm font-semibold transition-colors" :class="colorContadorDiagnostico">
-                                    <span>Mínimo: 550 / Máximo: 650 palabras</span>
+                                    <span>Mínimo: 300 / Máximo: 800 palabras</span>
                                     <span>{{ palabrasDiagnostico }} palabras</span>
+                                </div>
+                            </div>
+                            <!-- Sección: Bases de Datos y Patentes -->
+                           <div
+                                class="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm transition-all mt-6">
+                                <div class="flex justify-between items-center mb-4">
+                                    <div>
+                                        <label class="block text-lg font-bold text-gray-800 dark:text-gray-200 mb-1">
+                                            Bases de Datos y Patentes
+                                        </label>
+                                        <p class="text-sm text-gray-500 dark:text-gray-400">
+                                            Añada las bases de datos (links) y patentes asociadas al proyecto.
+                                        </p>
+                                    </div>
+                                    <button type="button" @click="abrirModalBasePat"
+                                        class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-lg shadow-sm transition-colors flex items-center gap-2">
+                                        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                                        </svg>
+                                        Añadir Registro
+                                    </button>
+                                </div>
+
+                                <!-- Tabla de registros -->
+                                <div v-if="editForm.base_patentes.length > 0"
+                                    class="overflow-x-auto border border-gray-200 dark:border-gray-700 rounded-lg">
+                                    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                                        <thead class="bg-gray-50 dark:bg-gray-900">
+                                            <tr>
+                                                <th
+                                                    class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">
+                                                    Base de datos (Link)</th>
+                                                <th
+                                                    class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">
+                                                    Denominación</th>
+                                                <th
+                                                    class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">
+                                                    Nº Patente</th>
+                                                <th
+                                                <th
+                                                    class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">
+                                                    Otros</th>
+                                                <th
+                                                    class="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase w-24">
+                                                    Acciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                                            <tr v-for="(item, index) in editForm.base_patentes" :key="index"
+                                                class="bg-white dark:bg-gray-800">
+                                                <td class="px-4 py-3 text-sm text-blue-600 dark:text-blue-400 truncate max-w-[200px]"
+                                                    :title="item.nombre_base">{{ item.nombre_base }}</td>
+                                                <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{{
+                                                    item.denominacion }}</td>
+                                                <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{{
+                                                    item.no_patente || 'N/A' }}</td>
+                                                <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{{
+                                                    item.otros || 'N/A' }}</td>
+                                                <td class="px-4 py-3 text-sm text-center flex justify-center gap-2">
+                                                    <button type="button" @click="editarBasePat(item, index)"
+                                                        class="text-blue-500 hover:text-blue-700">
+                                                        Editar
+                                                    </button>
+                                                    <button type="button" @click="eliminarBasePat(index)"
+                                                        class="text-red-500 hover:text-red-700">
+                                                        Eliminar
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div v-else
+                                    class="text-center py-6 text-sm text-gray-500 border border-dashed border-gray-300 dark:border-gray-700 rounded-lg">
+                                    No hay registros añadidos. Haga clic en "Añadir Registro" para comenzar.
                                 </div>
                             </div>
                             <!-- Tarjeta de Articulación del proyecto de Investigación con el programa de la carrera -->
@@ -4414,7 +4464,40 @@
                         </div>
                     </div>
                 </div>
-                
+                <!-- Modal para Bases de Datos y Patentes -->
+                <div v-if="showDivModalBasePat" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+                    <div class="bg-white dark:bg-gray-800 rounded-xl w-full max-w-lg p-6 shadow-xl">
+                        <h3 class="text-lg font-bold text-gray-800 dark:text-gray-100 mb-4">
+                            {{ indexBasePatEditando !== null ? 'Editar Registro' : 'Añadir Registro' }}
+                        </h3>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Base de datos (Link) <span class="text-red-500">*</span></label>
+                                <input type="text" v-model="formBasePat.nombre_base" class="w-full px-3 py-2 border rounded-lg dark:bg-gray-900 dark:border-gray-700">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Denominación <span class="text-red-500">*</span></label>
+                                <input type="text" v-model="formBasePat.denominacion" class="w-full px-3 py-2 border rounded-lg dark:bg-gray-900 dark:border-gray-700">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Nº Patente (Opcional)</label>
+                                <input type="text" v-model="formBasePat.no_patente" class="w-full px-3 py-2 border rounded-lg dark:bg-gray-900 dark:border-gray-700">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Otros (Opcional)</label>
+                                <textarea v-model="formBasePat.otros" rows="2" class="w-full px-3 py-2 border rounded-lg dark:bg-gray-900 dark:border-gray-700"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-end gap-3 mt-6">
+                            <button type="button" @click="cerrarModalBasePat" class="px-4 py-2 text-sm font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg">Cancelar</button>
+                            <button type="button" @click="guardarBasePatEnTabla" class="px-4 py-2 text-sm font-semibold text-white bg-brand-600 hover:bg-brand-700 rounded-lg">
+                                Guardar
+                            </button>
+                        </div>
+                    </div>
+                </div>
                 <!-- Modal para Área Temática -->
                 <div v-if="showModalAreaTematica" class="fixed inset-0 z-50 flex items-center justify-center overflow-x-hidden overflow-y-auto bg-black/50 backdrop-blur-sm transition-opacity">
                     <div class="relative w-full max-w-md p-4 mx-auto bg-white rounded-xl shadow-lg dark:bg-gray-800">
@@ -5123,7 +5206,7 @@ export default {
                 cantones: [],   // Arreglo de id_canton
                 parroquias: [],  // Arreglo de idparroquia
                 objetivos_marco_logico: [],
-                proyect_antecedentes: '',
+                //proyect_antecedentes: '',
                 proyect_justificacion: '',
                 empresas: [],
                 aportes_utlvt: [],
@@ -5137,6 +5220,7 @@ export default {
                 proyect_diag_probl: '',
                 proyect_contribucion_soci: '',
                 asignaturas: [],
+                base_patentes: [],
                 proyec_ident_poblaobj: '',
                 proyect_num_direct_hombres: 0,
                 proyect_num_direct_mujeres: 0,
@@ -5177,6 +5261,16 @@ export default {
             anioSeleccionadoTab: 'Primer Año',
             showModalActividad: false,
             indiceActividadEditando: null,
+            showDivModalBasePat: false,
+            indexBasePatEditando: null,
+            formBasePat: {
+                id_det_base_pat: null,
+                id_base_pat: null,
+                nombre_base: '',
+                denominacion: '',
+                no_patente: '',
+                otros: ''
+            },
             modalFormML: {
                 id_obj_proy: null,
                 tipo_obj_proy: '',
@@ -5440,9 +5534,6 @@ export default {
 
             return filtradas;
         },
-        palabrasAntecedentes() {
-            return this.contarPalabras(this.editForm.proyect_antecedentes);
-        },
         palabrasMetodo() {
             return this.contarPalabras(this.editForm.proyect_metodologia);
         },
@@ -5455,12 +5546,6 @@ export default {
         palabrasDiagnostico() {
             return this.contarPalabras(this.editForm.proyect_diag_probl);
         },
-        colorContadorAntecedentes() {
-            const total = this.palabrasAntecedentes;
-            if (total === 0) return 'text-gray-500 dark:text-gray-400';
-            if (total < 500 || total > 800) return 'text-red-500';
-            return 'text-green-600 dark:text-green-400';
-        },
         colorContadorMetodo() {
             const total = this.palabrasMetodo;
             if (total === 0) return 'text-gray-500 dark:text-gray-400';
@@ -5470,19 +5555,19 @@ export default {
         colorContadorDescripcion() {
             const total = this.palabrasDescrip;
             if (total === 0) return 'text-gray-500 dark:text-gray-400';
-            if (total < 550 || total > 650) return 'text-red-500';
+            if (total < 300 || total > 800) return 'text-red-500';
             return 'text-green-600 dark:text-green-400';
         },
         colorContadorJustificacion() {
             const total = this.palabrasJustificacion;
             if (total === 0) return 'text-gray-500 dark:text-gray-400';
-            if (total < 600 || total > 800) return 'text-red-500';
+            if (total < 300 || total > 800) return 'text-red-500';
             return 'text-green-600 dark:text-green-400';
         },
         colorContadorDiagnostico() {
             const total = this.palabrasDiagnostico;
             if (total === 0) return 'text-gray-500 dark:text-gray-400';
-            if (total < 550 || total > 650) return 'text-red-500';
+            if (total < 300 || total > 800) return 'text-red-500';
             return 'text-green-600 dark:text-green-400';
         },
         cooperadoresFiltrados() {
@@ -6260,7 +6345,6 @@ export default {
         recalcularAlturasCargadas() {
             // Añadimos un pequeño retraso mínimo por las animaciones de transición de Tailwind
             setTimeout(() => {
-                const antTextarea = this.$refs.antecedentesTextarea;
                 const jusTextarea = this.$refs.justificacionTextarea;
                 const descriTextarea = this.$refs.descripcionTextarea;
                 const diagnTextarea = this.$refs.diagnostico_problemaTextarea;
@@ -6284,11 +6368,6 @@ export default {
                 const protTextarea = this.$refs.protoTextarea;
                 const repTextarea = this.$refs.reproTextarea;
                 const spinTextarea = this.$refs.spinofTextarea;
-
-                if (antTextarea) {
-                    antTextarea.style.height = 'auto';
-                    antTextarea.style.height = antTextarea.scrollHeight + 'px';
-                }
                 if (jusTextarea) {
                     jusTextarea.style.height = 'auto';
                     jusTextarea.style.height = jusTextarea.scrollHeight + 'px';
@@ -6521,7 +6600,7 @@ export default {
 
                 // Calculamos la diferencia de años y sumamos 1 para incluir el año de inicio
                 // Ejemplo: 2027 - 2025 = 2. Sumamos 1 = 3 años.
-                let aniosTotales = (f2.getFullYear() - f1.getFullYear()) + 1;
+                let aniosTotales = (f2.getFullYear() - f1.getFullYear());
                 
                 // Convertimos los años a meses
                 let mesesTotales = aniosTotales * 12;
@@ -6593,6 +6672,19 @@ export default {
                 this.asignaturasDisponibles = data.asignaturas_disponibles || [];
                 const calc = data.calculo_integrantes || {};
                 const inte = data.integrantes_activos
+                let basePatMapeada = [];
+                if (data.proyecto.invi_det_base_pat && data.proyecto.invi_det_base_pat.length > 0) {
+                    basePatMapeada = data.proyecto.invi_det_base_pat.map(det => {
+                        return {
+                            id_det_base_pat: det.id_det_base_pat,
+                            id_base_pat: det.id_base_pat,
+                            nombre_base: det.invi_base_pat ? det.invi_base_pat.nombre_base : '',
+                            denominacion: det.invi_base_pat ? det.invi_base_pat.denominacion : '',
+                            no_patente: det.invi_base_pat ? det.invi_base_pat.no_patente : '',
+                            otros: det.invi_base_pat ? det.invi_base_pat.otros : ''
+                        };
+                    });
+                }
                 // Extraemos todas las actividades estructuradas
                 let actividadesExtraidas = [];
                 (data.proyecto.invi_obj_proyectos || []).forEach(obj => {
@@ -6702,8 +6794,8 @@ export default {
                     provincias:   data.cobertura_guardada?.provincias || [],
                     cantones:     data.cobertura_guardada?.cantones || [],
                     parroquias:   data.cobertura_guardada?.parroquias || [],
+                    base_patentes: basePatMapeada,
                     objetivos_marco_logico: mapeoObjetivos,
-                    proyect_antecedentes: data.proyecto.proyect_antecedentes || '',
                     proyect_justificacion: data.proyecto.proyect_justificacion || '',
                     empresas: [...this.empresasAgregadas],
                     aportes_utlvt: data.aportes_utlvt || [],
@@ -6846,6 +6938,7 @@ export default {
             this.formImpacto = { id_impactos: '', descripcion_general: '' };
             this.showModalImpacto = true;
         },
+
         cerrarModalImpacto() {
             this.showModalImpacto = false;
             this.indexImpactoEditando = null;
@@ -6869,6 +6962,37 @@ export default {
         eliminarImpacto(indexOriginal) {
             // Se elimina usando el índice que tenía en this.editForm.impactos
             this.editForm.impactos.splice(indexOriginal, 1);
+        },
+        abrirModalBasePat() {
+            this.indexBasePatEditando = null;
+            this.formBasePat = { id_det_base_pat: null, id_base_pat: null, nombre_base: '', denominacion: '', no_patente: '', otros: '' };
+            this.showDivModalBasePat = true;
+        },
+        cerrarModalBasePat() {
+            this.showDivModalBasePat = false;
+            this.indexBasePatEditando = null;
+        },
+        guardarBasePatEnTabla() {
+            // Validaciones obligatorias
+            if (!this.formBasePat.nombre_base || !this.formBasePat.denominacion) {
+                mostraralertas2('La base de datos y denominación son obligatorias.', 'error');
+                return;
+            }
+
+            if (this.indexBasePatEditando !== null && this.indexBasePatEditando >= 0) {
+                this.editForm.base_patentes[this.indexBasePatEditando] = { ...this.formBasePat };
+            } else {
+                this.editForm.base_patentes.push({ ...this.formBasePat });
+            }
+            this.cerrarModalBasePat();
+        },
+        editarBasePat(item, index) {
+            this.indexBasePatEditando = index;
+            this.formBasePat = JSON.parse(JSON.stringify(item));
+            this.showDivModalBasePat = true;
+        },
+        eliminarBasePat(index) {
+            this.editForm.base_patentes.splice(index, 1);
         },
         abrirModalDifusion() {
             this.indexDifusionEditando = null;
@@ -7004,7 +7128,6 @@ export default {
         formatearNombreCampo(campo) {
             // Un pequeño helper para que se vea bonito en la pestaña Bibliografías
             const diccionario = {
-                'proyect_antecedentes': 'Antecedentes',
                 'proyect_justificacion': 'Justificación',
                 'proyect_desc_situ_act': ' Descripción de la situación actual',
                 'proyect_diag_probl': ' Diagnóstico de los problemas',
@@ -7595,24 +7718,18 @@ export default {
                 mostraralertas2('Debe seleccionar un tipo de proyecto de Investigación obligatoriamente.', 'error');
                 return;
             }
-            const cantAnt = this.palabrasAntecedentes;
             const cantJus = this.palabrasJustificacion;
             const cantdiag = this.palabrasDiagnostico;
             const cantDesc = this.palabrasDescrip;
-
-            if (cantAnt < 500 || cantAnt > 800) {
-                mostraralertas2(`Los antecedentes deben tener entre 500 y 800 palabras. Actualmente tienes ${cantAnt}.`, 'error');
-                return;
-            }
-            if (cantJus < 600 || cantJus > 800) {
+            if (cantJus < 300 || cantJus > 800) {
                 mostraralertas2(`La justificación debe tener entre 600 y 800 palabras. Actualmente tienes ${cantJus}.`, 'error');
                 return;
             }
-            if (cantdiag < 550 || cantdiag > 650) {
+            if (cantdiag < 300 || cantdiag > 800) {
                 mostraralertas2(`El diagnóstico debe tener entre 550 y 650 palabras. Actualmente tienes ${cantdiag}.`, 'error');
                 return;
             }
-            if (cantDesc < 550 || cantDesc > 650) {
+            if (cantDesc < 300 || cantDesc > 800) {
                 mostraralertas2(`La descripción debe tener entre 550 y 650 palabras. Actualmente tienes ${cantDesc}.`, 'error');
                 return;
             }
@@ -7699,7 +7816,7 @@ export default {
                 cantones: [],   // Arreglo de id_canton
                 parroquias: [],  // Arreglo de idparroquia
                 objetivos_marco_logico: [],
-                proyect_antecedentes: '',
+                //proyect_antecedentes: '',
                 proyect_justificacion: '',
                 empresas: [],
                 aportes_utlvt: [],
@@ -7928,7 +8045,7 @@ export default {
                         cantones: data.cobertura_guardada?.cantones || [],
                         parroquias: data.cobertura_guardada?.parroquias || [],
                         objetivos_marco_logico: mapeoObjetivos,
-                        proyect_antecedentes: data.proyecto.proyect_antecedentes || '',
+                        //proyect_antecedentes: data.proyecto.proyect_antecedentes || '',
                         proyect_justificacion: data.proyecto.proyect_justificacion || '',
                         empresas: [...this.empresasAgregadas],
                         aportes_utlvt: data.aportes_utlvt || [],

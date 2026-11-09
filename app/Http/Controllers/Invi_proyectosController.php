@@ -212,7 +212,7 @@ class Invi_proyectosController extends Controller
             'invi_detalle_inst_proy.praempresas',
             'invi_detalle_presu_proy.invi_aportesutlvt',
             'invi_detalle_presu_proy.invi_aportesinst.praempresa',
-            'invi_detalle_articulacion',
+            //'invi_detalle_articulacion',
             'invi_detalle_integrante.funciones',
             'invi_detalle_integrante.carreras.facultades',
             'invi_detalle_integrante.informacionPersonalD.titulos.nivel',
@@ -454,7 +454,7 @@ class Invi_proyectosController extends Controller
             }
         }
         // Obtener las asignaturas guardadas para este proyecto
-        $asignaturasSeleccionadas = $proyecto->invi_detalle_articulacion->pluck('IdAsig')->toArray();
+        /*$asignaturasSeleccionadas = $proyecto->invi_detalle_articulacion->pluck('IdAsig')->toArray();
 
         // Consulta SQL convertida a Query Builder para obtener las asignaturas de la malla
         $asignaturasDisponibles = [];
@@ -480,7 +480,7 @@ class Invi_proyectosController extends Controller
                 ->orderBy('dm.nivel', 'asc')
                 ->orderBy('a.NombAsig', 'asc')
                 ->get();
-        }
+        }*/
         $num_doce_h = 0;
         $num_doce_m = 0;
         $num_est_h  = 0;
@@ -662,7 +662,7 @@ class Invi_proyectosController extends Controller
         // Para Unesco filtramos la collection que ya creaste previamente:
         $unescoData = collect($unescoCatalogo)->whereIn('sau_id', $unescoSeleccionadas)->values();
         $tipoproyectoData = Invi_tip_proyect::where('id_tip_invi_proy', $proyecto->id_tip_invi_proy)->get();
-        $asignaturasData = Asignaturas::whereIn('IdAsig', $asignaturasSeleccionadas)->get();
+        //$asignaturasData = Asignaturas::whereIn('IdAsig', $asignaturasSeleccionadas)->get();
 
         return response()->json([
             'proyecto' => $proyecto,
@@ -706,8 +706,8 @@ class Invi_proyectosController extends Controller
             'empresas_seleccionadas2' => $empresasSeleccionadas2,
             'aportes_utlvt' => $aportesUtlvt,
             'aportes_inst' => $aportesInst,
-            'asignaturas_seleccionadas' => $asignaturasSeleccionadas,
-            'asignaturas_disponibles' => $asignaturasDisponibles,
+            /*'asignaturas_seleccionadas' => $asignaturasSeleccionadas,
+            'asignaturas_disponibles' => $asignaturasDisponibles,*/
             'integrantes_activos'       => $listaIntegrantesValidos,
             'integrantes_titulosactivos'       => $integrantesConTitulos,
             'calculo_integrantes'       => [
@@ -733,7 +733,7 @@ class Invi_proyectosController extends Controller
             'sublineas_data' => $sublineasData,
             'tipproyectos_data' => $tipoproyectoData,
             'zona_plan_data' => $zonaPlanData,
-            'asignaturas_data' => $asignaturasData,
+            //'asignaturas_data' => $asignaturasData,
         ]);
     }
 
@@ -895,7 +895,6 @@ class Invi_proyectosController extends Controller
             $proyecto->id_convocatoria = $request->id_convocatoria;
             $proyecto->id_tip_invi_proy = $request->id_tip_invi_proy;
             $proyecto->proyect_cobertura = $request->proyect_cobertura;
-            //$proyecto->proyect_antecedentes = $request->proyect_antecedentes;
             $proyecto->proyect_justificacion = $request->proyect_justificacion;
             $proyecto->proyect_fecha_pres = $request->proyect_fecha_pres;
             $proyecto->fechainicio = $request->fechainicio;
@@ -904,8 +903,9 @@ class Invi_proyectosController extends Controller
             $proyecto->proyect_estado = $request->proyect_estado;
             $proyecto->proyect_desc_situ_act = $request->proyect_desc_situ_act;
             $proyecto->proyect_diag_probl = $request->proyect_diag_probl;
-            $proyecto->proyect_contribucion_soci = $request->proyect_contribucion_soci;
             $proyecto->proyec_ident_poblaobj = $request->proyec_ident_poblaobj;
+            $proyecto->proyec_result_invest = $request->proyec_result_invest;
+            $proyecto->proyec_pagina_legal = $request->proyec_pagina_legal;
             $proyecto->proyect_num_direct_hombres = $request->proyect_num_direct_hombres;
             $proyecto->proyect_num_direct_mujeres = $request->proyect_num_direct_mujeres;
             $proyecto->proyect_total_num_direct = $request->proyect_total_num_direct;
@@ -1282,7 +1282,7 @@ class Invi_proyectosController extends Controller
                     }
                 }
             }
-            Invi_detalle_articulacion::where('proyect_id', $id)->delete();
+            /*Invi_detalle_articulacion::where('proyect_id', $id)->delete();
             if ($request->has('asignaturas') && is_array($request->asignaturas)) {
                 foreach ($request->asignaturas as $idAsig) {
                     Invi_detalle_articulacion::insert([
@@ -1290,7 +1290,7 @@ class Invi_proyectosController extends Controller
                         'IdAsig'     => $idAsig
                     ]);
                 }
-            }
+            }*/
             if ($request->has('actividades') && is_array($request->actividades)) {
                 $ids_actividades_recibidas = [];
 

@@ -3105,15 +3105,16 @@
                                 </div>
                             </div>
                             <!-- Sección: Bases de Datos y Patentes -->
-                           <div
+                            <div
                                 class="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm transition-all mt-6">
                                 <div class="flex justify-between items-center mb-4">
                                     <div>
                                         <label class="block text-lg font-bold text-gray-800 dark:text-gray-200 mb-1">
-                                            Bases de Datos y Patentes
+                                            Tabla de Búsqueda: En Bases de Datos/Documentos/Patentes/otros 
+
                                         </label>
                                         <p class="text-sm text-gray-500 dark:text-gray-400">
-                                            Añada las bases de datos (links) y patentes asociadas al proyecto.
+                                            (Solicita la comparación  entre el tema a investigar y los resultados de las búsquedas)
                                         </p>
                                     </div>
                                     <button type="button" @click="abrirModalBasePat"
@@ -3180,77 +3181,41 @@
                                     No hay registros añadidos. Haga clic en "Añadir Registro" para comenzar.
                                 </div>
                             </div>
-                            <!-- Tarjeta de Articulación del proyecto de Investigación con el programa de la carrera -->
+                            <!-- Tarjeta de Resultados de Investigaciones similares -->
                             <div class="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm transition-all hover:shadow-md">
                                 <label class="block text-lg font-bold text-gray-800 dark:text-gray-200 mb-1">
-                                    Articulación del proyecto de Investigación con el programa de la carrera <span class="text-red-500">*</span>
+                                   Resultados de Investigaciones similares <span class="text-red-500">*</span>
                                 </label>
                                 <p class="text-sm text-gray-500 dark:text-gray-400 mb-4 text-justify">
-                                    Contribución a la sociedad
+                                    Detalle los resultados de investigaciones similares a su proyecto
                                 </p>
                                 <textarea 
                                     ref="articulaTextarea"
-                                    v-model="editForm.proyect_contribucion_soci" 
+                                    v-model="editForm.proyec_result_invest" 
                                     @input="ajustarAlturaTextarea"
-                                    @contextmenu.prevent="abrirMenuContextual($event, 'proyect_contribucion_soci')"
+                                    @contextmenu.prevent="abrirMenuContextual($event, 'proyec_result_invest')"
                                     class="w-full p-4 text-sm bg-gray-50 dark:bg-gray-900/50 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 resize-none overflow-hidden text-justify transition-shadow" 
-                                    placeholder="Detalle como contribuye a la sociedad su proyecto de Investigación"
+                                   
                                     rows="4"
                                 ></textarea>
                             </div>
-                            <div class="p-4 bg-green-50 dark:bg-gray-800 rounded-xl border-l-4 border-green-500 flex gap-4">
-                                <svg class="text-green-500 w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
-                                <div>
-                                    <h3 class="text-lg font-bold text-gray-900 dark:text-white">Articulación con Asignaturas</h3>
-                                    <p class="text-sm text-gray-600 dark:text-gray-400">
-                                        Seleccione las asignaturas de la carrera prioritaria que se articulan con este proyecto. Puede utilizar el buscador para encontrarlas rápidamente.
-                                    </p>
-                                </div>
-                            </div>
-                            <div class="relative">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                                </div>
-                                <input type="text" 
-                                    v-model="searchAsignatura" 
-                                    placeholder="Buscar asignatura por nombre o código..." 
-                                    class="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 outline-none transition shadow-sm">
-                            </div>
-
-                            <!-- Lista de Asignaturas -->
-                            <div v-if="asignaturasDisponibles.length > 0" class="bg-gray-50 dark:bg-gray-900/50 rounded-xl p-4 border border-gray-200 dark:border-gray-700 h-96 overflow-y-auto">
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                    <label v-for="asig in filteredAsignaturas" :key="asig.Codigo_Asignatura" 
-                                        :class="{'border-green-500 bg-green-50 dark:bg-green-900/30 ring-1 ring-green-500': editForm.asignaturas.includes(asig.Codigo_Asignatura)}"
-                                        class="flex items-start p-3 border border-gray-200 dark:border-gray-700 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-all">
-                                        
-                                        <div class="flex items-center h-5">
-                                            <input type="checkbox" 
-                                                :value="asig.Codigo_Asignatura" 
-                                                v-model="editForm.asignaturas"
-                                                class="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500 dark:focus:ring-green-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
-                                        </div>
-                                        <div class="ml-3 text-sm flex-1">
-                                            <span class="font-bold text-gray-900 dark:text-white block">{{ asig.Nombre_Asignatura }}</span>
-                                            <div class="flex justify-between items-center mt-1">
-                                                <span class="text-xs text-gray-500 dark:text-gray-400">Cód: {{ asig.Codigo_Asignatura }}</span>
-                                                <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300">
-                                                    Nivel {{ asig.Nivel_Asignatura }}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </label>
-                                </div>
-                                
-                                <div v-if="filteredAsignaturas.length === 0" class="text-center py-8 text-gray-500 dark:text-gray-400">
-                                    No se encontraron asignaturas que coincidan con "{{ searchAsignatura }}"
-                                </div>
-                            </div>
-
-                            <div v-else class="text-center py-8 px-4 bg-gray-50 dark:bg-gray-800 rounded-xl border border-dashed border-gray-300 dark:border-gray-700">
-                                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                                <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">Sin asignaturas disponibles</h3>
-                                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Verifique que haya seleccionado una carrera prioritaria en la pestaña de Datos Generales y guardado los cambios.</p>
+                            <!-- Tarjeta de Resultados de Investigaciones similares -->
+                            <div class="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm transition-all hover:shadow-md">
+                                <label class="block text-lg font-bold text-gray-800 dark:text-gray-200 mb-1">
+                                   Adjuntar : Página Legal <span class="text-red-500">*</span>
+                                </label>
+                                <p class="text-sm text-gray-500 dark:text-gray-400 mb-4 text-justify">
+                                    Adjunte la página legal de investigaciones similares a su proyecto
+                                </p>
+                                <textarea 
+                                    ref="articulaTextarea"
+                                    v-model="editForm.proyec_pagina_legal" 
+                                    @input="ajustarAlturaTextarea"
+                                    @contextmenu.prevent="abrirMenuContextual($event, 'proyec_pagina_legal')"
+                                    class="w-full p-4 text-sm bg-gray-50 dark:bg-gray-900/50 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 resize-none overflow-hidden text-justify transition-shadow" 
+                                   
+                                    rows="4"
+                                ></textarea>
                             </div>
                             <div class="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm transition-all hover:shadow-md">
                                 <label class="block text-lg font-bold text-gray-800 dark:text-gray-200 mb-1">
@@ -3974,7 +3939,7 @@
                                 ></textarea>
                                 <!-- Contador de palabras -->
                                 <div class="flex justify-between items-center mt-2 text-sm font-semibold transition-colors" :class="colorContadorMetodo">
-                                    <span>Mínimo: 600 / Máximo: 800 palabras</span>
+                                    <span>Mínimo: 300 / Máximo: 800 palabras</span>
                                     <span>{{ palabrasMetodo }} palabras</span>
                                 </div>
                             </div>
@@ -5177,7 +5142,7 @@ export default {
             buscandoEmpresa: false,
             empresasAgregadas: [],
             empresasAgregadas2: [],
-            asignaturasDisponibles: [],
+            //asignaturasDisponibles: [],
             searchAsignatura: '',
             editForm: {
                 proyect_id: '',
@@ -5218,8 +5183,9 @@ export default {
                 proyect_estado: '',
                 proyect_desc_situ_act: '',
                 proyect_diag_probl: '',
-                proyect_contribucion_soci: '',
-                asignaturas: [],
+                proyec_result_invest: '',
+                proyec_pagina_legal: '',
+                //asignaturas: [],
                 base_patentes: [],
                 proyec_ident_poblaobj: '',
                 proyect_num_direct_hombres: 0,
@@ -5549,7 +5515,7 @@ export default {
         colorContadorMetodo() {
             const total = this.palabrasMetodo;
             if (total === 0) return 'text-gray-500 dark:text-gray-400';
-            if (total < 600 || total > 800) return 'text-red-500';
+            if (total < 300 || total > 800) return 'text-red-500';
             return 'text-green-600 dark:text-green-400';
         },
         colorContadorDescripcion() {
@@ -5602,7 +5568,7 @@ export default {
                 max: maxDate.toISOString().split('T')[0]
             };
         },
-        filteredAsignaturas() {
+        /*filteredAsignaturas() {
             if (!this.searchAsignatura) {
                 return this.asignaturasDisponibles;
             }
@@ -5611,7 +5577,7 @@ export default {
                 asig.Nombre_Asignatura.toLowerCase().includes(searchTerm) || 
                 asig.Codigo_Asignatura.toLowerCase().includes(searchTerm)
             );
-        },
+        },*/
         aniosProyecto() {
             if (!this.editForm.fechainicio || !this.editForm.fechafin) {
                 return [{ id: 'Primer Año', label: 'Primer Año', anio: new Date().getFullYear() }];
@@ -6669,7 +6635,7 @@ export default {
                 }));
                 this.empresasAgregadas = data.empresas_seleccionadas || [];
                 this.empresasAgregadas2 = data.empresas_seleccionadas2 || [];
-                this.asignaturasDisponibles = data.asignaturas_disponibles || [];
+                //this.asignaturasDisponibles = data.asignaturas_disponibles || [];
                 const calc = data.calculo_integrantes || {};
                 const inte = data.integrantes_activos
                 let basePatMapeada = [];
@@ -6807,8 +6773,9 @@ export default {
                     proyect_estado: data.proyecto.proyect_estado || '',
                     proyect_desc_situ_act: data.proyecto.proyect_desc_situ_act || '',
                     proyect_diag_probl: data.proyecto.proyect_diag_probl || '',
-                    proyect_contribucion_soci: data.proyecto.proyect_contribucion_soci || '',
-                    asignaturas: data.asignaturas_seleccionadas || [],
+                    proyec_result_invest: data.proyecto.proyec_result_invest || '',
+                    proyec_pagina_legal: data.proyecto.proyec_pagina_legal || '',
+                    //: data.asignaturas_seleccionadas || [],
                     proyec_ident_poblaobj: data.proyecto.proyec_ident_poblaobj || '',
                     proyect_num_direct_hombres: data.proyecto.proyect_num_direct_hombres || '',
                     proyect_num_direct_mujeres: data.proyecto.proyect_num_direct_mujeres || '',
@@ -7131,7 +7098,8 @@ export default {
                 'proyect_justificacion': 'Justificación',
                 'proyect_desc_situ_act': ' Descripción de la situación actual',
                 'proyect_diag_probl': ' Diagnóstico de los problemas',
-                'proyect_contribucion_soci': 'Contribución a la sociedad',
+                'proyec_result_invest': 'Resultados de investigaciones',
+                'proyec_pagina_legal': 'Adjuntar: Página Legal',
                 'proyec_ident_poblaobj': 'Identificación y caracterización de la población objetiva beneficiarios',
                 'proyect_fact_exito': ' Factores críticos de éxito',
                 'proyect_rest_supu': 'Restricciones/Supuestos',
@@ -7789,7 +7757,7 @@ export default {
             this.unescoCatalogo = [];
             this.tip_proyectCatalogo = [];
             this.searchAsignatura = '';
-            this.asignaturasDisponibles = [];
+            //this.asignaturasDisponibles = [];
             this.editForm = {
                 proyect_id: '',
                 proyect_cod: '',
@@ -7818,6 +7786,7 @@ export default {
                 objetivos_marco_logico: [],
                 //proyect_antecedentes: '',
                 proyect_justificacion: '',
+                proyec_pagina_legal: '',
                 empresas: [],
                 aportes_utlvt: [],
                 aportes_inst: [],
@@ -7828,8 +7797,8 @@ export default {
                 proyect_estado: '',
                 proyect_desc_situ_act: '',
                 proyect_diag_probl: '',
-                proyect_contribucion_soci: '',
-                asignaturas: [],
+                proyec_result_invest: '',
+                //asignaturas: [],
                 proyec_ident_poblaobj: '',
                 proyect_num_direct_hombres: 0,
                 proyect_num_direct_mujeres: 0,
@@ -8057,8 +8026,8 @@ export default {
                         proyect_estado: data.proyecto.proyect_estado || '',
                         proyect_desc_situ_act: data.proyecto.proyect_desc_situ_act || '',
                         proyect_diag_probl: data.proyecto.proyect_diag_probl || '',
-                        proyect_contribucion_soci: data.proyecto.proyect_contribucion_soci || '',
-                        asignaturas: data.asignaturas_seleccionadas || [],
+                        proyec_result_invest: data.proyecto.proyec_result_invest || '',
+                        //asignaturas: data.asignaturas_seleccionadas || [],
                         proyec_ident_poblaobj: data.proyecto.proyec_ident_poblaobj || '',
                         proyect_num_direct_hombres: data.proyecto.proyect_num_direct_hombres || '',
                         proyect_num_direct_mujeres: data.proyecto.proyect_num_direct_mujeres || '',

@@ -5,6 +5,7 @@ import PlandneAllView from "../views/Admin/Mantenimiento/Op_PLANDE/PlandneAllVie
 import ProyectosView from "../views/Admin/Proyectos/Lista_Proyectos/ProyectosView.vue";
 import Agenda_ODSAllView from "../views/Admin/Mantenimiento/Op_Agenda_ODS/Agenda_ODSAllView.vue";
 import DominioAcademicoAllView from "../views/Admin/Mantenimiento/Op_dominio_Aca/Dom_AcademicoAllView.vue";
+import ProgramaAllView from "../views/Admin/Mantenimiento/Op_programa/ProgramaAllView.vue";
 import LinInvestigaAllView from "../views/Admin/Mantenimiento/Op_Lin_Inves/Lin_InvestigaAllView.vue";
 import SubAreaUnescoAllView from "../views/Admin/Mantenimiento/Op_SubArea/SubAreaUnescoAllView.vue";
 import ZonaPlanificacionAllView from "../views/Admin/Mantenimiento/Op_ZonaPlan/Zona_PlanificacionAllView.vue";
@@ -47,6 +48,11 @@ const routes = [
     path: "/site-admin/dominio_academico",
     name: "site-admin-dominio_academico",
     component: DominioAcademicoAllView,
+  },
+  {
+    path: "/site-admin/programa",
+    name: "site-admin-programa",
+    component: ProgramaAllView,
   },
   {
     path: "/site-admin/linea_investigacion",

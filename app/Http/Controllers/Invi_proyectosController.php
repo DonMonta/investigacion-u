@@ -927,12 +927,15 @@ class Invi_proyectosController extends Controller
             $proyecto->proyect_viabilidad_tec = $request->proyect_viabilidad_tec;
             $proyecto->proyect_equip_tec = $request->proyect_equip_tec;
             $proyecto->proyect_no_ejecuta = $request->proyect_no_ejecuta;
+            $proyecto->proyect_resul_imp_es = $request->proyect_resul_imp_es;
+            $proyecto->proyect_dispo_metodo = $request->proyect_dispo_metodo;
             $proyecto->proyect_sostenibilidad_soc = $request->proyect_sostenibilidad_soc;
             $proyecto->proyect_transf_tecn = $request->proyect_transf_tecn;
             $proyecto->proyect_art_cientificos = $request->proyect_art_cientificos;
             $proyecto->proyect_prototipos = $request->proyect_prototipos;
             $proyecto->proyect_reg_propin = $request->proyect_reg_propin;
             $proyecto->proyect_empr_spin = $request->proyect_empr_spin;
+            $proyecto->proyect_otros = $request->proyect_otros;
             $proyecto->proyect_archivo = $request->proyect_archivo;
 
             $proyecto->save();

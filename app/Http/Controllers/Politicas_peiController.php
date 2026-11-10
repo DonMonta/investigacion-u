@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Politicas_pei;
 use Illuminate\Support\Facades\File;
 use Illuminate\Http\Request;
 use App\Models\Bitacora;
+use App\Models\Politicas_pei;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;

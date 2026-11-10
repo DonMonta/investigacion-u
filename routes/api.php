@@ -29,6 +29,7 @@ use App\Http\Controllers\Invi_equipo_rolesController;
 use App\Http\Controllers\Invi_equipo_departController;
 use App\Http\Controllers\Invi_responsableController;
 use App\Http\Controllers\DepartamentoDetalleController;
+use App\Http\Controllers\Invi_programaController;
 
 /*
 |--------------------------------------------------------------------------
@@ -111,6 +112,15 @@ Route::prefix('inves')->group(function () {
          */
         //Definción del recurso Dominio Humano, perimitiendo operaciones CRUD
         Route::apiResource("invi_dom_huma", Invi_dom_humaController::class);
+        /**
+         * API Programas
+         */
+        //Definción del recurso Programas, perimitiendo operaciones CRUD
+        Route::apiResource("invi_programa", Invi_programaController::class);
+        //Definición de endpoint para habilitar Programas
+        Route::delete('habilitar_programa/{id}', [Invi_programaController::class, 'habilitar']);
+        //Definición de endpoint para deshabilitar Programas
+        Route::delete('inhabilitar_programa/{id}', [Invi_programaController::class, 'destroy']);
         /**
          * API INVESTIGACIÓN
          */

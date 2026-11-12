@@ -27,7 +27,7 @@
 
         <button @click="isProfileAddressModal = true"
           class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-200">
-          Añadir Dominio
+          Añadir Programa
         </button>
       </div>
     </div>
@@ -64,11 +64,21 @@
             <td class="py-5 px-4 whitespace-nowrap">
               <p class="text-gray-600 text-sm font-medium dark:text-gray-400">{{ post.id_programa }}</p>
             </td>
-
-            <td class="py-5 px-4 whitespace-nowrap">
+             <td class="py-5 px-4 align-top min-w-[300px] max-w-[450px] whitespace-normal">
               <div>
                 <p class="font-bold text-gray-800 text-base dark:text-white/90">
                   {{ post.nombre_programa }}
+                </p>
+
+                <p class="text-sm text-gray-500 mt-1.5 dark:text-gray-400 leading-relaxed text-pretty">
+                  {{ post.dominio && post.dominio.length > 90
+                    ? post.dominio.substring(0, 90) + '...'
+                    : post.dominio }}
+
+                  <button v-if="post.dominio && post.dominio.length > 90" @click="abrirModalDetalle(post)"
+                    class="ml-1 inline-flex items-center font-semibold text-brand-600 hover:text-brand-700 hover:underline dark:text-brand-400 dark:hover:text-brand-300 transition-colors">
+                    Ver más
+                  </button>
                 </p>
               </div>
             </td>
@@ -151,16 +161,24 @@
           </div>
           <form class="flex flex-col">
             <div class="px-2 overflow-y-auto custom-scrollbar">
-              <div class="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
+              <div class="mt-5">
                 <div>
                   <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
                     Nombre del Progama
                   </label>
-                  <input type="text" v-model="objetoguardar.nombre_programa"
+                  <textarea type="text" v-model="objetoguardar.nombre_programa" rows="4"
                     placeholder="Ej: Científicos"
                     class="dark:bg-dark-900 h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:text-white/90" />
                   <p class="mt-1.5 text-xs text-gray-500">El nombre del programa ingresado deben ser los que se encuentren subidos en el SIIES</p>
                 </div>
+              </div>
+              <div>
+                <label class="mb-1.5 block text-sm font-semibold text-gray-700 dark:text-gray-300">
+                  Dominio
+                </label>
+                <textarea v-model="objetoguardar.dominio" rows="4"
+                  placeholder="Describa el dominio del programa ingresado..."
+                  class="w-full resize-y appearance-none rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 shadow-sm transition-colors focus:border-brand-500 focus:outline-none focus:ring-4 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus:border-brand-400 dark:focus:ring-brand-500/20"></textarea>
               </div>
             </div>
 
@@ -219,16 +237,22 @@
           </div>
           <form class="flex flex-col">
             <div class="px-2 overflow-y-auto custom-scrollbar">
-              <div class="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
                 <div>
                   <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
                     Nombre del Programa
                   </label>
-                  <input type="text" v-model="objetoeditar.nombre_programa"
+                  <textarea type="text" v-model="objetoeditar.nombre_programa" rows="4"
                     placeholder="Ej: Científicos"
                     class="dark:bg-dark-900 h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:text-white/90" />
                   <p class="mt-1.5 text-xs text-gray-500">El nombre del programa ingresado deben ser los que se encuentren subidos en el SIIES</p>
                 </div>
+              <div>
+                <label class="mb-1.5 block text-sm font-semibold text-gray-700 dark:text-gray-300">
+                  Dominio
+                </label>
+                <textarea v-model="objetoeditar.dominio" rows="4"
+                  placeholder="Describa el dominio del programa ingresado..."
+                  class="w-full resize-y appearance-none rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 shadow-sm transition-colors focus:border-brand-500 focus:outline-none focus:ring-4 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus:border-brand-400 dark:focus:ring-brand-500/20"></textarea>
               </div>
 
             </div>
@@ -263,6 +287,42 @@
         </div>
       </template>
     </Modal>
+     <div v-if="isDetalleModalOpen"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 z-99999">
+
+      <div
+        class="relative w-full max-w-lg transform overflow-hidden rounded-2xl bg-white p-6 shadow-2xl transition-all dark:bg-gray-900 sm:p-8">
+
+        <button @click="isDetalleModalOpen = false"
+          class="absolute right-4 top-4 rounded-full p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800 dark:hover:text-gray-300 transition-colors">
+          <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+
+        <div class="mt-2">
+          <h3 class="mb-4 text-xl font-bold text-gray-900 dark:text-white pr-8">
+            Detalle del Programa
+          </h3>
+          <h4 class="mb-3 font-semibold text-brand-600 dark:text-brand-400">
+            {{ postSeleccionado.nombre_programa }}
+          </h4>
+
+          <div class="max-h-[60vh] overflow-y-auto custom-scrollbar pr-2">
+            <p class="text-base leading-relaxed text-gray-700 text-justify dark:text-gray-300">
+              {{ postSeleccionado.dominio }}
+            </p>
+          </div>
+        </div>
+
+        <div class="mt-8 flex justify-end">
+          <button @click="isDetalleModalOpen = false" type="button"
+            class="w-full rounded-lg bg-gray-100 px-5 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 sm:w-auto">
+            Cerrar
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -300,10 +360,14 @@ export default {
       usersarray: [],
       objetoguardar: {
         nombre_programa: "",
+        dominio: "",
+        estado_programa: 1,
       },
       objetoeditar: {
         id_programa: 0,
         nombre_programa: "",
+        dominio: "",
+        estado_programa: 1,
       },
       uploading: false,
       filteredarray: [],
@@ -314,6 +378,8 @@ export default {
       lastPage: 1,
       buscando: false, // Mantenido, pero no se usa en la lógica de paginación actual
       debouncedFilter: null,
+      isDetalleModalOpen: false,
+      postSeleccionado: {}
     };
   },
   created() {
@@ -332,23 +398,30 @@ export default {
     formIsValid() {
 
       return (
-        this.objetoguardar.nombre_programa.trim() !== '' 
+        this.objetoguardar.nombre_programa.trim() !== '' &&
+        this.objetoguardar.dominio !== '' 
       );
     },
     formIsValidEdit() {
       return (
-        this.objetoeditar.nombre_programa.trim() !== ''
+        this.objetoeditar.nombre_programa.trim() !== ''&&
+        this.objetoeditar.dominio !== '' 
       );
     },
 
 
   },
   methods: {
+     abrirModalDetalle(post) {
+      this.postSeleccionado = post;
+      this.isDetalleModalOpen = true;
+    },
     abrirModalEdicion(user) {
       // Clonamos el objeto para no modificar la tabla directamente antes de guardar
       this.objetoeditar = {
         id_programa: user.id_programa,
         nombre_programa: user.nombre_programa,
+        dominio: user.dominio || null,
         estado_programa: 1
       };
       this.$.setupState.isEditModalOpen = true;
@@ -406,6 +479,7 @@ export default {
         this.uploading = true;
         const params = {
           nombre_programa: this.objetoguardar.nombre_programa,
+          dominio: this.objetoguardar.dominio,
           estado_programa: 1
         };
         const exito = await enviarsolig('POST', params, `${this.baseUrl}/invi_programa`, 'programa registrado con éxito');
@@ -429,6 +503,7 @@ export default {
         this.uploading = true;
         const params = {
           nombre_programa: this.objetoeditar.nombre_programa,
+          dominio: this.objetoeditar.dominio,
           estado_programa: 1
         };
         const exito = await enviarsolig('PUT', params, `${this.baseUrl}/invi_programa/${this.objetoeditar.id_programa}`, 'programa actualizado con éxito');
@@ -450,11 +525,13 @@ export default {
     limpiarFormulario() {
       this.objetoguardar = {
         nombre_programa: "", 
+        dominio: "", 
         estado_programa: 1
       };
       this.objetoeditar = {
         id_programa: 0,
         nombre_programa: "",
+        dominio: "",
         estado_programa: 1
       };
     },

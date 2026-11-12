@@ -997,7 +997,16 @@
                                         documentación oficial aprobada.</p>
                                 </div>
                             </div>
-
+                            <div class="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1.5 transition-colors group-focus-within:text-brand-600">
+                                        Código del Proyecto <span class="text-red-500">*</span>
+                                    </label>
+                                    <input type="text" v-model="editForm.proyect_cod"
+                                        class="w-full rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-850 p-3 text-sm text-gray-800 dark:text-gray-100 shadow-sm focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10 transition-all duration-200 outline-none"
+                                        placeholder="Ej: PROY-2024-001">
+                                </div>
+                            </div>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
 
                                 <div class="group flex flex-col">
@@ -1069,7 +1078,7 @@
                                 </div>
 
                             </div>
-
+                            
                             <div
                                 class="mt-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-amber-50 dark:bg-amber-950/20 border border-amber-200/70 dark:border-amber-900/40 p-3.5 rounded-xl">
                                 <div class="flex items-center gap-2.5">
@@ -1096,6 +1105,45 @@
                                         class="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
                                     {{ yaTraducido ? '✓ Textos Traducidos' : 'Auto-Traducir Textos' }}
                                 </button>
+                            </div>
+                            <!-- NUEVO: Diseño del Catálogo de Programas (Selección Única) -->
+                            <div class="mt-8 bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
+                                <label class="block text-lg font-bold text-gray-800 dark:text-gray-200 mb-1">
+                                    Programa Institucional <span class="text-red-500">*</span>
+                                </label>
+                                <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                                    Seleccione el programa al que pertenece este proyecto (Solo se permite elegir 1).
+                                </p>
+
+                                <!-- Grid de tarjetas de programas (Radio Buttons Estilizados) -->
+                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    <label v-for="prog in programasCatalogo" :key="prog.id_programa"
+                                        class="relative flex items-start p-4 cursor-pointer rounded-xl border-2 transition-all duration-200 shadow-sm"
+                                        :class="editForm.id_programa === prog.id_programa 
+                                                ? 'border-brand-500 bg-brand-50 dark:bg-brand-900/20' 
+                                                : 'border-gray-200 dark:border-gray-700 hover:border-brand-300 bg-white dark:bg-gray-850'">
+                                        
+                                        <div class="flex items-center h-5 mt-0.5">
+                                            <input type="radio" :value="prog.id_programa" v-model="editForm.id_programa" name="programa_proyecto"
+                                                class="w-4 h-4 text-brand-600 bg-gray-100 border-gray-300 focus:ring-brand-500 dark:focus:ring-brand-600 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                                        </div>
+                                        
+                                        <div class="ml-3 text-sm flex-1">
+                                            <span class="font-bold leading-tight block" 
+                                                :class="editForm.id_programa === prog.id_programa ? 'text-brand-700 dark:text-brand-400' : 'text-gray-800 dark:text-gray-200'">
+                                                {{ prog.nombre_programa }}
+                                            </span>
+                                            <p v-if="prog.dominio" class="text-xs mt-1.5 text-gray-500 dark:text-gray-400 line-clamp-2">
+                                                <span class="font-semibold text-gray-600 dark:text-gray-400">Dominio:</span> {{ prog.dominio }}
+                                            </p>
+                                        </div>
+                                        
+                                        <!-- Checkmark Icon para la selección activa -->
+                                        <div v-if="editForm.id_programa === prog.id_programa" class="absolute top-3 right-3 text-brand-600 dark:text-brand-400">
+                                            <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
+                                        </div>
+                                    </label>
+                                </div>
                             </div>
                         </div>
                         <div class="space-y-3">
@@ -1221,7 +1269,7 @@
                             </div>
                         </div>
                         <!-- Sección Políticas del PEI -->
-                       <div class="space-y-3 mt-6">
+                        <div class="space-y-3 mt-6">
                             <div class="flex items-start gap-2.5">
                                 <span
                                     class="p-1 rounded-md bg-blue-50 text-blue-600 mt-0.5 dark:bg-blue-950/40 dark:text-blue-400">
@@ -2721,19 +2769,95 @@
 
                             <div v-if="empresasAgregadas.length > 0" class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
                                 <div class="p-4 bg-gray-50 dark:bg-gray-900/50 border-b border-gray-200 dark:border-gray-700">
-                                    <h4 class="font-bold text-gray-800 dark:text-gray-200">Instituciones Añadidas al Proyecto</h4>
+                                    <h4 class="font-bold text-gray-800 dark:text-gray-200">Instituciones de Financiamiento Añadidas al Proyecto</h4>
                                 </div>
                                 <ul class="divide-y divide-gray-200 dark:divide-gray-700">
                                     <li v-for="(empresa, index) in empresasAgregadas" :key="empresa.idempresa" class="p-4 flex flex-col md:flex-row justify-between md:items-center hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                                         <div class="mb-2 md:mb-0">
-                                            <p class="font-bold text-gray-800 dark:text-white">{{ empresa.empresacorta }} <span class="text-xs font-normal text-gray-500 ml-2">RUC: {{ empresa.ruc }}</span></p>
+                                            <p class="font-bold text-gray-800 dark:text-white">{{ empresa.empresacorta }} 
+                                                <span class="text-xs font-normal text-gray-500 ml-2">RUC: {{ empresa.ruc }}</span>
+                                               
+                                            </p>
                                             <p class="text-sm text-gray-600 dark:text-gray-400">Rep: {{ empresa.representante }} | Órgano Ejecutor: Dirección de Investigación UTLVTE</p>
+                                            <p class="text-sm text-gray-600 dark:text-gray-400">
+                                                <span v-if="empresa.ruc === '0860000830001'" class="ml-2 px-2 py-0.5 text-xs bg-blue-100 text-blue-700 rounded-full">Aporte Interno</span>
+                                                <span v-else class="ml-2 px-2 py-0.5 text-xs bg-green-100 text-green-700 rounded-full">Aporte Externo</span>
+                                            </p>
                                         </div>
-                                        <button @click="quitarEmpresa(index)" type="button" class="px-3 py-1 bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50 rounded-lg text-sm font-semibold transition-colors">
+                                        <button @click="quitarEmpresa(index, 'FINANCIAMIENTO')" type="button" class="px-3 py-1 bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50 rounded-lg text-sm font-semibold transition-colors">
                                             Quitar
                                         </button>
                                     </li>
                                 </ul>
+                            </div>
+                            <hr class="my-6 border-gray-200 dark:border-gray-700">
+                            <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-xl border border-gray-200">
+                                <label class="flex items-center gap-3 font-semibold text-gray-800 dark:text-white cursor-pointer">
+                                    <input type="checkbox" v-model="tieneRedesInvestigacion" class="w-5 h-5 text-brand-600 rounded">
+                                    ¿Su proyecto tiene la participación de instituciones que sean redes de investigación?
+                                </label>
+                            </div>
+
+                            <div v-if="tieneRedesInvestigacion" class="space-y-4 mt-4 animate-fade-in-up">
+                                <label class="block text-sm font-bold">Buscar Red de Investigación</label>
+                                <div class="relative">
+                                    <input 
+                                        type="text" 
+                                        v-model="searchRedQuery" 
+                                        @input="ejecutarBusquedaRed"
+                                        placeholder="Ej: 0991234567001 o Nombre de la Red..." 
+                                        class="w-full p-3 pl-10 text-sm bg-gray-50 dark:bg-gray-900/50 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                                    >
+                                    <div class="absolute left-3 top-3.5 text-gray-400">
+                                        <svg v-if="!buscandoRed" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                                        <svg v-else class="animate-spin h-5 w-5 text-brand-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                    </div>
+                                </div>
+                                
+                                <div v-if="redBuscada" class="mt-4 border border-brand-200 dark:border-brand-700 rounded-lg p-4 bg-brand-50 dark:bg-brand-900/20">
+                                    <h4 class="font-bold text-lg text-brand-700 dark:text-brand-300 mb-4">{{ redBuscada.empresacorta }}</h4>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-700 dark:text-gray-300">
+                                        <p><strong>Representante:</strong> {{ redBuscada.representante || 'N/A' }}</p>
+                                        <p><strong>C.I. Representante:</strong> {{ redBuscada.ci_representante || 'N/A' }}</p>
+                                        <p><strong>Teléfonos:</strong> {{ redBuscada.telefono || 'N/A' }}</p>
+                                        <p><strong>Correo Electrónico:</strong> {{ redBuscada.email || 'N/A' }}</p>
+                                        <p><strong>Dirección:</strong> {{ redBuscada.direccion || 'N/A' }}</p>
+                                        <p><strong>Página Web:</strong> <a v-if="redBuscada.url" :href="redBuscada.url" target="_blank" class="text-blue-500 hover:underline">{{ redBuscada.url }}</a><span v-else>N/A</span></p>
+                                        <p class="md:col-span-2"><strong>Órgano Ejecutor:</strong> Dirección de Investigación UTLVTE</p>
+                                    </div>
+                                    <div class="mt-4 flex justify-end">
+                                        <button @click="agregarRed" type="button" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-lg shadow transition-colors">Añadir Red</button>
+                                    </div>
+                                </div>
+
+                                <!-- Lista de Redes -->
+                               <div v-if="redesInvestigacion.length > 0" class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
+                                    <div class="p-4 bg-gray-50 dark:bg-gray-900/50 border-b border-gray-200 dark:border-gray-700">
+                                        <h4 class="font-bold text-gray-800 dark:text-gray-200">Redes de Investigación Añadidas al Proyecto</h4>
+                                    </div>
+                                    <ul class="divide-y divide-gray-200 dark:divide-gray-700">
+                                        
+                                        <li v-for="(red, index) in redesInvestigacion" :key="'red-' + red.idempresa"
+                                        class="p-4 flex flex-col md:flex-row justify-between md:items-center hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                                            <div class="mb-2 md:mb-0">
+                                                <p class="font-bold text-gray-800 dark:text-white">{{ red.empresacorta }} 
+                                                    <span class="text-xs font-normal text-gray-500 ml-2">RUC: {{ red.ruc }}</span>
+                                                
+                                                </p>
+                                                <p class="text-sm text-gray-600 dark:text-gray-400">Rep: {{ red.representante }} | Órgano Ejecutor: Dirección de Investigación UTLVTE</p>
+                                                <p class="text-sm text-gray-600 dark:text-gray-400">
+                                                    <span v-if="red.pais !== 'ECUADOR'" class="ml-2 px-2 py-0.5 text-xs bg-blue-100 text-blue-700 rounded-full">Red de carácter internacional</span>
+                                                    <span v-else class="ml-2 px-2 py-0.5 text-xs bg-green-100 text-green-700 rounded-full">Red de carácter nacional</span>
+                                                </p>
+                                            </div>
+
+                                            <button @click="quitarEmpresa(index, 'RED_INVESTIGACION')" type="button"
+                                                class="px-3 py-1 bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50 rounded-lg text-sm font-semibold transition-colors">
+                                                Quitar
+                                            </button>
+                                        </li>
+                                    </ul>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -2741,7 +2865,7 @@
                         <div class="mb-4 p-4 bg-green-50 dark:bg-gray-800 rounded-lg border-l-4 border-green-500">
                             <h3 class="text-lg font-bold text-gray-900 dark:text-white">Presupuesto Institucional</h3>
                             <p class="text-sm text-gray-600 dark:text-gray-400">
-                                Defina detalladamente las actividades y los montos de financiamiento del proyecto divididos por la Universidad (UTLVT) y las Entidades Cooperantes autorizadas.
+                                Defina detalladamente las actividades y los montos de financiamiento del proyecto divididos por la Universidad (UTLVTE) y las Entidades Cooperantes autorizadas.
                             </p>
                         </div>
 
@@ -5041,6 +5165,7 @@ import API from "@/assets/js/services/axios";
 import { useRoute } from "vue-router";
 import debounce from 'lodash.debounce';
 import { useUsuario } from "@/composables/useUsuario";
+import Swal from 'sweetalert2';
 import Modal from '@/components/Modal/Modal.vue'
 import { mostraralertas2, enviarsolig } from '@/assets/js/function/funciones';
 import jsPDF from 'jspdf';
@@ -5121,6 +5246,7 @@ export default {
             facultadesCatalogo: [],
             carrerasCatalogo: [],
             dominiosCatalogo: [],
+            programasCatalogo: [],
             convocatoriasCatalogo: [],
             dominioRecomendadoId: '',
             lineasCatalogo: [],
@@ -5140,7 +5266,12 @@ export default {
             empresaBuscada: null,
             empresaNoEncontrada: false,
             buscandoEmpresa: false,
+            buscandoRed: false,
             empresasAgregadas: [],
+            redesInvestigacion: [],
+            tieneRedesInvestigacion: false,
+            searchRedQuery: '',
+            redBuscada: null,
             empresasAgregadas2: [],
             //asignaturasDisponibles: [],
             searchAsignatura: '',
@@ -5161,6 +5292,7 @@ export default {
                 carreras: [],
                 id_carr_priori: '',
                 dominios_humanisticos: [],
+                id_programa: null,
                 id_convocatoria: '',
                 sublineas_investigacion: [],
                 unesco_areas: [],
@@ -6258,6 +6390,17 @@ export default {
             // Llamamos a la función debounced
             this.debouncedBuscarEmpresa(query);
         },
+        ejecutarBusquedaRed(){
+            const query = this.searchRedQuery.trim();
+            
+            if (query.length < 3) {
+                this.redBuscada = null;
+                return;
+            }
+
+            this.buscandoRed = true;
+            this.debouncedBuscarRed(query);
+        },
         debouncedBuscarEmpresa: debounce(async function(query) {
             try {
                 // Modifica esta ruta para que coincida con la que creaste en web.php / api.php
@@ -6278,19 +6421,61 @@ export default {
                 this.buscandoEmpresa = false;
             }
         }, 600),
-        agregarEmpresaSeleccionada() {
+        debouncedBuscarRed: debounce(async function(query) {
+            try {
+                const response = await API.get(`${this.baseUrl}/buscar_red?q=${encodeURIComponent(query)}`);
+                
+                if (response.data && response.data.idempresa) {
+                    this.redBuscada = response.data;
+                } else {
+                    this.redBuscada = null;
+                }
+            } catch (error) {
+                console.error("Error buscando red:", error);
+                this.redBuscada = null;
+            } finally {
+                this.buscandoRed = false;
+            }
+        }, 600),
+        async agregarEmpresaSeleccionada() {
             if (!this.empresaBuscada) return;
 
-            // Validar si ya existe para no duplicarla
-            const existe = this.empresasAgregadas.some(emp => emp.idempresa === this.empresaBuscada.idempresa);
+            const yaEnFinanciamiento = this.empresasAgregadas.some(emp => emp.idempresa === this.empresaBuscada.idempresa);
             
-            if (existe) {
+            if (yaEnFinanciamiento) {
                 mostraralertas2('Esta institución ya ha sido añadida al proyecto.', 'warning');
                 return;
             }
 
-            // Agregamos al arreglo de visualización
-            this.empresasAgregadas.push(this.empresaBuscada);
+            let tipoAsignado = 'FINANCIAMIENTO';
+
+            // Si también es red de investigación, preguntamos
+            if (this.empresaBuscada.es_red_investigacion == 1) {
+                const result = await Swal.fire({
+                    title: 'Red de Investigación Detectada',
+                    html: `La búsqueda detectó que la institución <b>${this.empresaBuscada.empresacorta}</b> también es una red de investigación.<br><br>¿Desea añadirla como red de investigación para su proyecto?`,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#6b7280', // Color gris para que parezca una opción secundaria
+                    confirmButtonText: 'Sí, añadir a ambos',
+                    cancelButtonText: 'No, solo financiamiento'
+                });
+                
+                if (result.isConfirmed) {
+                    tipoAsignado = 'AMBOS';
+                    this.tieneRedesInvestigacion = true;
+                    
+                    // Verificamos si no estaba ya en redes antes de agregarla visualmente abajo
+                    const yaEnRed = this.redesInvestigacion.some(emp => emp.idempresa === this.empresaBuscada.idempresa);
+                    if (!yaEnRed) {
+                        this.redesInvestigacion.push({ ...this.empresaBuscada, tipo_participacion: tipoAsignado });
+                    }
+                }
+            }
+            
+            // La agregamos visualmente a la lista de financiamiento (arriba)
+            this.empresasAgregadas.push({ ...this.empresaBuscada, tipo_participacion: tipoAsignado });
             
             // Limpiamos el buscador
             this.searchEmpresaQuery = '';
@@ -6299,9 +6484,43 @@ export default {
             
             mostraralertas2('Institución añadida correctamente.', 'success');
         },
+        agregarRed() {
+            if (!this.redBuscada) return;
+            
+            if (this.redesInvestigacion.some(emp => emp.idempresa === this.redBuscada.idempresa)) {
+                mostraralertas2('Esta red ya ha sido añadida.', 'warning');
+                return;
+            }
+            
+            this.redesInvestigacion.push({...this.redBuscada, tipo_participacion: 'RED_INVESTIGACION'});
+            this.searchRedQuery = '';
+            this.redBuscada = null;
+        },
         // 4. Quitar empresa de la tabla
-        quitarEmpresa(index) {
-            this.empresasAgregadas.splice(index, 1);
+        quitarEmpresa(index, tipo) {
+            if (tipoTabla === 'FINANCIAMIENTO') {
+                const empresa = this.empresasAgregadas[index];
+                this.empresasAgregadas.splice(index, 1);
+                
+                if (empresa.tipo_participacion === 'AMBOS') {
+                    // Se quitó de financiamiento, por lo que en la lista de redes pasa a ser solo RED_INVESTIGACION
+                    const redIndex = this.redesInvestigacion.findIndex(e => e.idempresa === empresa.idempresa);
+                    if (redIndex !== -1) {
+                        this.redesInvestigacion[redIndex].tipo_participacion = 'RED_INVESTIGACION';
+                    }
+                }
+            } else {
+                const empresa = this.redesInvestigacion[index];
+                this.redesInvestigacion.splice(index, 1);
+                
+                if (empresa.tipo_participacion === 'AMBOS') {
+                    // Se quitó de redes, por lo que en la lista de financiamiento pasa a ser solo FINANCIAMIENTO
+                    const finIndex = this.empresasAgregadas.findIndex(e => e.idempresa === empresa.idempresa);
+                    if (finIndex !== -1) {
+                        this.empresasAgregadas[finIndex].tipo_participacion = 'FINANCIAMIENTO';
+                    }
+                }
+            }
         },
         contarPalabras(texto) {
             if (!texto) return 0;
@@ -6610,6 +6829,7 @@ export default {
                 this.objetivosODSDisponibles = data.ods || [];
                 this.facultadesCatalogo = data.facultades_catalogo || [];
                 this.dominiosCatalogo = data.dominios_catalogo || [];
+                this.programasCatalogo = data.programas_catalogo || [];
                 this.convocatoriasCatalogo = data.convocatorias_catalogo || [];
                 this.lineasCatalogo = data.lineas_catalogo || [];
                 this.sublineasCatalogo = data.sublineas_catalogo || [];
@@ -6633,7 +6853,20 @@ export default {
                     medios_verificacion: obj.invi_medios_verificacion || [],
                     prod_verificables: obj.invi_prod_verificables || [],
                 }));
-                this.empresasAgregadas = data.empresas_seleccionadas || [];
+                this.empresasAgregadas = data.empresas_seleccionadas.filter(e => 
+                    e.tipo_participacion === 'FINANCIAMIENTO' || e.tipo_participacion === 'AMBOS'
+                );
+
+                this.redesInvestigacion = data.empresas_seleccionadas.filter(e => 
+                    e.tipo_participacion === 'RED_INVESTIGACION' || e.tipo_participacion === 'AMBOS'
+                );
+
+                if (this.redesInvestigacion.length > 0) {
+                    this.tieneRedesInvestigacion = true;
+                }
+                const todasLasEmpresas = [...this.empresasAgregadas, ...this.redesInvestigacion];
+                const empresasUnicas = Array.from(new Map(todasLasEmpresas.map(e => [e.idempresa, e])).values());
+                this.tieneRedesInvestigacion = this.redesInvestigacion.length > 0;
                 this.empresasAgregadas2 = data.empresas_seleccionadas2 || [];
                 //this.asignaturasDisponibles = data.asignaturas_disponibles || [];
                 const calc = data.calculo_integrantes || {};
@@ -6750,6 +6983,7 @@ export default {
                     id_carr_priori: data.id_carr_priori || '',
                     //Dominios académicos
                     dominios_humanisticos: data.dominios_seleccionados || [],
+                    id_programa: data.id_programa_seleccionado || null,
                     //No. Convocatoria
                     id_convocatoria: data.proyecto.id_convocatoria || '',
                     sublineas_investigacion: [],
@@ -6763,7 +6997,7 @@ export default {
                     base_patentes: basePatMapeada,
                     objetivos_marco_logico: mapeoObjetivos,
                     proyect_justificacion: data.proyecto.proyect_justificacion || '',
-                    empresas: [...this.empresasAgregadas],
+                    empresas: empresasUnicas,
                     aportes_utlvt: data.aportes_utlvt || [],
                     aportes_inst: data.aportes_inst || [],
                     proyect_fecha_pres: data.proyecto.proyect_fecha_pres || '',
@@ -7678,6 +7912,10 @@ export default {
                 mostraralertas2('Debe seleccionar al menos un dominio humanístico.', 'error');
                 return;
             }
+            if (!this.editForm.id_programa) {
+                mostraralertas2('Debe seleccionar un Programa Institucional.', 'error');
+                return;
+            }
             if (!this.editForm.id_convocatoria) {
                 mostraralertas2('Debe seleccionar una convocatoria obligatoriamente.', 'error');
                 return;
@@ -7712,12 +7950,28 @@ export default {
                 mostraralertas2('La duración del proyecto debe ser obligatoriamente entre 3 y 5 años (36 a 60 meses).', 'error');
                 return;
             }
+            // 1. Unimos todas las empresas de ambas tablas
+            const todasLasEmpresas = [
+                ...this.empresasAgregadas, 
+                ...(this.tieneRedesInvestigacion ? this.redesInvestigacion : [])
+            ];
 
+            // 2. Eliminamos duplicados basados en 'idempresa' y formateamos para el backend
+            const empresasUnicas = Array.from(
+                new Map(todasLasEmpresas.map(emp => [
+                    emp.idempresa, 
+                    {
+                        idempresa: emp.idempresa,
+                        tipo_participacion: emp.tipo_participacion
+                    }
+                ]))
+                .values()
+            );
             this.guardando = true;
             try {
                 const payload = {
                     ...this.editForm,
-                    empresas: this.empresasAgregadas.map(emp => emp.idempresa)
+                    empresas: empresasUnicas
                 };
                 let uploadResp = null;
                 if (this.archivopdfSeleccionado){

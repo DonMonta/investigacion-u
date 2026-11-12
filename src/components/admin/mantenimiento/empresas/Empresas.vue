@@ -467,6 +467,30 @@
                 </div>
               </div>
 
+              <div v-show="activeEditTab === 'red_invest'" class="grid grid-cols-1 gap-x-6 gap-y-4">
+                <div class="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-100 dark:border-gray-700">
+                  <label class="mb-3 block text-sm font-semibold text-gray-800 dark:text-gray-200">
+                    Clasificación de Red de Investigación
+                  </label>
+                  <p class="text-xs text-gray-500 mb-4 dark:text-gray-400">
+                    Indique si esta institución/empresa funciona operativamente como una red de investigación vinculada a la institución.
+                  </p>
+                  
+                  <div class="flex items-center gap-6">
+                    <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer hover:text-brand-600 transition-colors">
+                      <input type="radio" :value="1" v-model="objetoeditar.es_red_investigacion" 
+                        class="w-4 h-4 text-brand-600 focus:ring-brand-500 border-gray-300" />
+                      Sí, es una red de investigación
+                    </label>
+                    <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer hover:text-brand-600 transition-colors">
+                      <input type="radio" :value="0" v-model="objetoeditar.es_red_investigacion" 
+                        class="w-4 h-4 text-brand-600 focus:ring-brand-500 border-gray-300" />
+                      No, institución regular
+                    </label>
+                  </div>
+                </div>
+              </div>
+
               <div v-show="activeEditTab === 'contacto'" class="grid grid-cols-1 gap-x-6 gap-y-4 lg:grid-cols-2">
                 <div>
                   <label class="mb-1.5 block text-xs font-semibold text-gray-700 dark:text-gray-400">País *</label>
@@ -503,7 +527,7 @@
                   <input type="url" v-model="objetoeditar.url" class="form-style-input" />
                 </div>
               </div>
-
+              
               <div v-show="activeEditTab === 'legal'" class="grid grid-cols-1 gap-x-6 gap-y-4 lg:grid-cols-2">
                 <div>
                   <label class="mb-1.5 block text-xs font-semibold text-gray-700 dark:text-gray-400">Título
@@ -570,7 +594,12 @@
                 Siguiente
               </button>
 
-              <button v-if="activeEditTab === 'contacto'" @click="activeEditTab = 'legal'" type="button"
+              <button v-if="activeEditTab === 'contacto'" @click="activeEditTab = 'red_invest'" type="button"
+                class="flex w-full justify-center rounded-lg bg-gray-100 dark:bg-gray-800 dark:text-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-200 sm:w-auto transition-all">
+                Siguiente
+              </button>
+
+              <button v-if="activeEditTab === 'red_invest'" @click="activeEditTab = 'legal'" type="button"
                 class="flex w-full justify-center rounded-lg bg-gray-100 dark:bg-gray-800 dark:text-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-200 sm:w-auto transition-all">
                 Siguiente
               </button>
@@ -633,7 +662,8 @@ export default {
       tabs: [
         { id: 'general', name: '1. Datos Generales' },
         { id: 'contacto', name: '2. Ubicación y Contacto' },
-        { id: 'legal', name: '3. Representación y Archivo' }
+        { id: 'red_invest', name: '3. Clasificación de Red de Investigación' },
+        { id: 'legal', name: '4. Representación y Archivo' }
       ],
 
       // Catálogos para Comboboxes
@@ -687,6 +717,7 @@ export default {
         archivoPdf: null, // Archivo PDF adjunto
         imagenPreview: null, // Preview de la imagen adjunta
         archivoImagenReal: null, // Archivo adjunto original
+        es_red_investigacion: 0,
       },
       objetoeditar: {
         idempresa: 0,
@@ -713,6 +744,7 @@ export default {
         archivoPdf: null, // Archivo PDF adjunto
         imagenPreview: null, // Preview de la imagen adjunta
         archivoImagenReal: null, // Archivo adjunto original
+        es_red_investigacion: 0,
       },
       filteredarray: [],
       searchQuery: "",
@@ -774,6 +806,7 @@ export default {
         String(this.objetoguardar.vision || '').trim() !== '' &&
         String(this.objetoguardar.mision || '').trim() !== '' &&
         this.objetoguardar.estado_empr !== null &&
+        this.objetoguardar.es_red_investigacion !== null &&
         this.objetoguardar.estado_empr !== undefined
       );
     },
@@ -813,6 +846,7 @@ export default {
         String(this.objetoeditar.mision || '').trim() !== '' &&
         String(this.objetoeditar.vision || '').trim() !== '' &&
         this.objetoeditar.estado_empr !== null &&
+        this.objetoeditar.es_red_investigacion !== null &&
         this.objetoeditar.estado_empr !== undefined
       );
     },
@@ -1008,9 +1042,11 @@ export default {
         estado_empr: user.estado_empr,
         vision: user.vision,
         mision: user.mision,
+        es_red_investigacion: user.es_red_investigacion || 0,
         imagenPreview: null,
       };
       this.activeEditTab = 'general';
+      this.getPaises();
       this.objetoeditar.archivoPdf = null;
       this.$.setupState.isEditModalOpen = true;
     },
@@ -1126,13 +1162,13 @@ export default {
         ruc: "", empresa: "", empresacorta: "", lugar: "", direccion: "", telefono: "",
         email: "", url: "", tipo: "", titulo: "", representante: "", cargo: "",
         actividad: "", fechafin: "", tipoinstitucion: "", pais: "", imagen: "",
-        estado_empr: 1, vision: "", mision: "", archivoPdf: null
+        estado_empr: 1, vision: "", mision: "", archivoPdf: null, imagenPreview: null, archivoImagenReal: null, es_red_investigacion: 0
       };
       this.objetoeditar = {
         idempresa: 0, ruc: "", empresa: "", empresacorta: "", lugar: "", direccion: "",
         telefono: "", email: "", url: "", tipo: "", titulo: "", representante: "",
         cargo: "", actividad: "", fechafin: "", tipoinstitucion: "", pais: "", imagen: "",
-        estado_empr: 1, vision: "", mision: "", archivoPdf: null
+        estado_empr: 1, vision: "", mision: "", archivoPdf: null, imagenPreview: null, archivoImagenReal: null, es_red_investigacion: 0
       };
     },
     async habilitar(id, nombre) {

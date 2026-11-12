@@ -197,6 +197,7 @@ const menuData = [
           { name: "DOMINIOS ACADEMICOS", path: "/site-admin/dominio_academico", pro: false },
           { name: "LÍNEAS DE INVESTIGACIÓN", path: "/site-admin/linea_investigacion", pro: false },
           { name: "ÁREAS UNESCO", path: "/site-admin/subarea_unesco", pro: false },
+          { name: "PROGRAMAS", path: "/site-admin/programa", pro: false },
           { name: "ZONAS DE PLANIFICACIÓN", path: "/site-admin/zona_planificacion", pro: false },
           { name: "Empresas Registradas", path: "/site-admin/empresa", pro: false },
         ],

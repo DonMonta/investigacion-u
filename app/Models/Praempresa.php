@@ -35,6 +35,7 @@ class Praempresa extends Model
         'imagen',
         'ciudad',
         'usuario_id',
+        'es_red_investigacion',
         'archivo'
     ];
     protected $hidden = ['imagen'];

@@ -16,6 +16,7 @@ class Invi_detalle_inst_proy extends Model
     protected $fillable = [
         'proyect_id',
         'idempresa',
+        'tipo_participacion',
     ];
     public function invi_proyectos()
     {

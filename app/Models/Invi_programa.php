@@ -15,6 +15,7 @@ class Invi_programa extends Model
 
     protected $fillable = [
         'nombre_programa',
+        'dominio',
         'estado_programa',
     ];
    

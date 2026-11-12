@@ -114,7 +114,7 @@ class PraempresaController extends Controller
                 'bt_fechahora'   => Carbon::now(),
                 'bt_accion'      => "Crear Empresa - INVESTIGACIÓN",
                 'bt_ippc'        => $request->ip(),
-                'bt_observacion' => "USUARIO: {$user->NombUsu} REALIZÓ: Crear Empresa CON NOMBRE: {$request->empresa}", // ✅ Corregido campo nombre
+                'bt_observacion' => "USUARIO: {$user->NombUsu} REALIZÓ: Crear Empresa CON RUC: {$request->ruc}", // ✅ Corregido campo nombre
             ]);
 
             DB::commit();
@@ -168,6 +168,23 @@ class PraempresaController extends Controller
 
         return response()->json($empresa); // Retorna la primera que coincida o null
     }
+    public function buscarRed(Request $request){
+        $termino = $request->query('q');
+        
+        if (empty($termino)) {
+            return response()->json(null);
+        }
+
+        // Busca por RUC, nombre de empresa o empresa corta
+        $empresa = Praempresa::where('ruc', 'LIKE', "%{$termino}%")
+            ->orWhere('empresa', 'LIKE', "%{$termino}%")
+            ->orWhere('empresacorta', 'LIKE', "%{$termino}%")
+            ->where('es_red_investigacion', 1)
+            ->first();
+
+        return response()->json($empresa);
+
+    }
 
     /**
      * Update the specified resource in storage.
@@ -197,6 +214,7 @@ class PraempresaController extends Controller
             $res->tipo = $request->tipo;
             $res->titulo = $request->titulo;
             $res->representante = $request->representante;
+            $res->ci_representante = $request->ci_representante;
             $res->cargo = $request->cargo;
             $res->actividad = $request->actividad;
             $res->fechafin = $request->fechafin;
@@ -206,6 +224,7 @@ class PraempresaController extends Controller
             $res->estado_empr = $request->estado_empr;
             $res->vision = $request->vision;
             $res->mision = $request->mision;
+            $res->es_red_investigacion = $request->es_red_investigacion;
             $res->usuario_id = $user->ciinfper;
             if ($request->filled('archivo')) {
                 $res->archivo = $request->archivo;
@@ -222,7 +241,7 @@ class PraempresaController extends Controller
                 'bt_fechahora'   => Carbon::now(),
                 'bt_accion'      => "Actualizar Empresa - INVESTIGACIÓN",
                 'bt_ippc'        => $request->ip(),
-                'bt_observacion' => "USUARIO: {$user->NombUsu} REALIZÓ: Actualizar Empresa CON NOMBRE: {$request->empresa}", // ✅ Corregido campo nombre
+                'bt_observacion' => "USUARIO: {$user->NombUsu} REALIZÓ: Actualizar Empresa CON RUC: {$request->ruc}", // ✅ Corregido campo nombre
             ]);
 
             DB::commit(); // ✅ Hacer commit al final de todo el bloque exitoso

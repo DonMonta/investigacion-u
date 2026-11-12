@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Bitacora;
 use App\Models\Carreras;
+use App\Models\Invi_programa;
+use App\Models\Invi_detalle_programa;
 use App\Models\informacionpersonal;
 use App\Models\InformacionPersonalD;
 use App\Models\Invi_deta_inte;
@@ -192,9 +194,10 @@ class Invi_proyectosController extends Controller
     public function getEdicionDatos(Request $request, int $id)
     {
         $proyecto = Invi_proyectos::with(
+            'invi_detalle_programa',
             'invi_detalle_obj_pro_pei',
             'invi_detalle_obj_pol_proyect',
-            'invi_detalle_obj_pol_pei',
+            'invi_detalle_pol_pei',
             'invi_detalle_ods_proyect',
             'invi_detalle_fac_proy',
             'invi_detalle_carr_proy',
@@ -287,8 +290,8 @@ class Invi_proyectosController extends Controller
                 }
             }
         }
-        if ($proyecto->invi_detalle_obj_pol_pei) {
-            $polpeiSeleccionado = $proyecto->invi_detalle_obj_pol_pei->pluck('id_pol_pei')->toArray();
+        if ($proyecto->invi_detalle_pol_pei) {
+            $polpeiSeleccionado = $proyecto->invi_detalle_pol_pei->pluck('id_pol_pei')->toArray();
         }
 
         $plandneActivo =  $queryPlandne->first();
@@ -345,6 +348,9 @@ class Invi_proyectosController extends Controller
         // NUEVO: Extraer catálogo total de dominios humanísticos y los seleccionados por el proyecto
         $dominiosCatalogo = Invi_dom_huma::all();
         $dominiosSeleccionados = $proyecto->invi_detalle_dom_hum->pluck('id_dom_hum')->toArray();
+        $programasCatalogo = Invi_programa::all();
+        $programaSeleccionado = $proyecto->invi_detalle_programa->first();
+        $id_programa_seleccionado = $programaSeleccionado ? $programaSeleccionado->id_programa : null;
         $convocatoriasCatalogo = Invi_convocatoria::where('estado', 1)->where('tipo_convocatoria', 'INVESTIGACIÓN')->get();
         $lineasCatalogo = Invi_linea_investigacion::where('estado_lin_investiga', 1)->get();
         $sublineasCatalogo = Invi_sub_linea_inves::all();
@@ -417,7 +423,12 @@ class Invi_proyectosController extends Controller
             $zonaPlanData = Zona_planificacion::where('id_zona_plan', $id_zona_plan_guardada)->first();
         }
         $empresasSeleccionadas = $proyecto->invi_detalle_inst_proy->map(function ($detalle) {
-            return $detalle->praempresas;
+            $empresa = $detalle->praempresas;
+            if ($empresa) {
+                // Inyectamos el tipo de participación al objeto empresa
+                $empresa->tipo_participacion = $detalle->tipo_participacion; 
+            }
+            return $empresa;
         })->filter()->values()->toArray();
 
         $empresasSeleccionadas2 = $proyecto->invi_detalle_inst_proy->map(function ($detalle) {
@@ -682,6 +693,8 @@ class Invi_proyectosController extends Controller
             'id_carr_priori' => $carreraPrioritaria,
             'dominios_catalogo' => $dominiosCatalogo,
             'dominios_seleccionados' => $dominiosSeleccionados,
+            'programas_catalogo' => $programasCatalogo,
+            'id_programa_seleccionado' => $id_programa_seleccionado,
             'convocatorias_catalogo' => $convocatoriasCatalogo,
             'lineas_catalogo' => $lineasCatalogo,
             'sublineas_catalogo' => $sublineasCatalogo,
@@ -887,6 +900,7 @@ class Invi_proyectosController extends Controller
        DB::beginTransaction();
         try {
             $proyecto = Invi_proyectos::findOrFail($id);
+            $proyecto->proyect_cod = $request->proyect_cod;
             $proyecto->proyect_nombre = $request->proyect_nombre;
             $proyecto->proyect_titulo = $request->proyect_titulo;
             $proyecto->proyect_nombre_en = $request->proyect_nombre_en;
@@ -955,8 +969,10 @@ class Invi_proyectosController extends Controller
                 }
             }
             Invi_detalle_pol_pei::where('proyect_id', $id)->delete();
-            if ($request->has('politicas_pei') && is_array($request->politicas)) {
-                foreach ($request->politicas as $id_pol) {
+            
+            // Cambiamos 'politicas_pei' y 'politicas' por 'peipoliticas', que es el array que manda el frontend
+            if ($request->has('peipoliticas') && is_array($request->peipoliticas)) {
+                foreach ($request->peipoliticas as $id_pol) {
                     Invi_detalle_pol_pei::insert([
                         'proyect_id' => $id,
                         'id_pol_pei' => $id_pol
@@ -1042,6 +1058,13 @@ class Invi_proyectosController extends Controller
                         'id_dom_hum' => $id_dom
                     ]);
                 }
+            }
+            Invi_detalle_programa::where('proyect_id', $id)->delete();
+            if ($request->has('id_programa') && $request->id_programa) {
+                Invi_detalle_programa::insert([
+                    'proyect_id' => $id,
+                    'id_programa' => $request->id_programa
+                ]);
             }
             Invi_detalle_lin_inves::where('proyect_id', $id)->delete();
 
@@ -1204,14 +1227,14 @@ class Invi_proyectosController extends Controller
 
             if ($request->has('empresas') && is_array($request->empresas)) {
                 foreach ($request->empresas as $empresa) {
-                    // SOLUCIÓN BACKEND: Tolerancia a fallos de tipos.
-                    // Si viene un array/objeto del frontend extrae 'idempresa', de lo contrario usa el valor directo.
-                    $id_empresa = is_array($empresa) ? ($empresa['idempresa'] ?? null) : $empresa;
+                    $id_empresa = is_array($empresa) ? ($empresa['idempresa'] ?? null) : null;
+                    $tipo = is_array($empresa) ? ($empresa['tipo_participacion'] ?? 'FINANCIAMIENTO') : 'FINANCIAMIENTO';
 
                     if ($id_empresa) {
                         Invi_detalle_inst_proy::insert([
-                            'proyect_id' => $id,
-                            'idempresa'  => $id_empresa
+                            'proyect_id'         => $id,
+                            'idempresa'          => $id_empresa,
+                            'tipo_participacion' => $tipo
                         ]);
                     }
                 }

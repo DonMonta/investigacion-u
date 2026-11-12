@@ -141,6 +141,7 @@ class Invi_programaController extends Controller
             $res = Invi_programa::find($id);
             if (isset($res)) {
                 $res->nombre_programa = $request->nombre_programa;
+                $res->dominio = $request->dominio;
                 $res->estado_programa = $request->estado_programa;
                 if ($res->save()) {
                     DB::commit();

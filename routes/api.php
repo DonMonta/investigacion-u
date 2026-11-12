@@ -168,6 +168,7 @@ Route::prefix('inves')->group(function () {
         Route::delete('inhabilitar_empresa/{id}', [PraempresaController::class, 'destroy']);
         //Definición de endpoint para buscar una empresa
         Route::get('buscar_empresa', [PraempresaController::class, 'buscarEmpresa']);
+        Route::get('buscar_red', [PraempresaController::class, 'buscarRed']);
         //Definición de endpoint para obtener los paises
         Route::get('getPais', [PraempresaController::class, 'getPais']);
         /**

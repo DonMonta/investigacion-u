@@ -80,7 +80,7 @@ class Invi_proyectos extends Model
     {
         return $this->hasMany(Invi_detalle_obj_pei::class, 'proyect_id');
     }
-    public function invi_detalle_obj_pol_pei()
+    public function invi_detalle_pol_pei()
     {
         return $this->hasMany(Invi_detalle_pol_pei::class, 'proyect_id');
     }

@@ -28,9 +28,12 @@ class Invi_proyectos extends Model
         'proyect_justificacion',
         'proyect_fecha_pres',
         'fechainicio',
+        'fechainicio_real',
         'fechafin',
+        'fechafin_real',
         'proyect_duracion_mes',
         'proyect_estado',
+        'proyect_estado_cases',
         'proyect_desc_situ_act',
         'proyect_diag_probl',
         'proyec_ident_poblaobj',
@@ -111,6 +114,10 @@ class Invi_proyectos extends Model
     public function invi_detalle_area_unesco()
     {
         return $this->hasMany(Invi_detalle_area_unesco::class, 'proyect_id');
+    }
+    public function invi_detalle_campo_unesco()
+    {
+        return $this->hasMany(Invi_detalle_campo_unesco::class, 'proyect_id', 'proyect_id');
     }
     public function invi_tip_proyectos()
     {

@@ -31,7 +31,9 @@ use App\Models\Invi_linea_investigacion;
 use App\Models\Invi_sub_linea_inves;
 use App\Models\Invi_detalle_lin_inves;
 use App\Models\SubareaUnesco;
+use App\Models\Campo_detallado_unesco;
 use App\Models\Invi_detalle_area_unesco;
+use App\Models\Invi_detalle_campo_unesco;
 use App\Models\Invi_tip_proyect;
 use App\Models\Zona_planificacion;
 use App\Models\Detalle_zona_planificacion;
@@ -99,10 +101,55 @@ class Invi_proyectosController extends Controller
                     $q->where('invi_proyectos.proyect_cod', 'LIKE', "%{$searchQuery}%");
                 });
             }
+            if (!empty($searchQuery)) {
+                $query->where('invi_proyectos.proyect_cod', 'LIKE', "%{$searchQuery}%");
+            }
             if (! empty($idConvocatoria)) {
                 $query->where('invi_proyectos.id_convocatoria', '=', $idConvocatoria);
             }
+            $rucInstitucionLocal = '0860000830001';
+            $stats = [
+                'TP' => (clone $query)->count(),
+                
+                // TPyRF: Proyectos con financiamiento externo verificables
+                'TPyRF' => (clone $query)->whereHas('invi_detalle_inst_proy', function($qDetalle) use ($rucInstitucionLocal) {
+                    // 1. Filtros de la tabla intermedia (detalle)
+                    $qDetalle->whereIn('tipo_participacion', ['FINANCIAMIENTO', 'AMBOS'])
+                             ->whereNotNull('archivo')
+                             ->where('archivo', '!=', '')
+                             ->where('es_verificable', 1)
+                             // 2. Filtros de la tabla de la institución (praempresas)
+                             ->whereHas('praempresas', function($qEmpresa) use ($rucInstitucionLocal) {
+                                 $qEmpresa->where('ruc', '!=', $rucInstitucionLocal);
+                             });
+                })->count(),
 
+                // TPyCI: Redes Internacionales verificables
+                'TPyCI' => (clone $query)->whereHas('invi_detalle_inst_proy', function($qDetalle) {
+                    // 1. Filtros de la tabla intermedia (detalle)
+                    $qDetalle->whereNotNull('archivo')
+                             ->where('archivo', '!=', '')
+                             ->where('es_verificable', 1)
+                             // 2. Filtros de la tabla de la institución (praempresas)
+                             ->whereHas('praempresas', function($qEmpresa) {
+                                 $qEmpresa->where('es_red_investigacion', 1)
+                                          ->whereRaw('UPPER(pais) != ?', ['ECUADOR']);
+                             });
+                })->count(),
+
+                // TPyCN: Redes Nacionales verificables
+                'TPyCN' => (clone $query)->whereHas('invi_detalle_inst_proy', function($qDetalle) {
+                    // 1. Filtros de la tabla intermedia (detalle)
+                    $qDetalle->whereNotNull('archivo')
+                             ->where('archivo', '!=', '')
+                             ->where('es_verificable', 1)
+                             // 2. Filtros de la tabla de la institución (praempresas)
+                             ->whereHas('praempresas', function($qEmpresa) {
+                                 $qEmpresa->where('es_red_investigacion', 1)
+                                          ->whereRaw('UPPER(pais) = ?', ['ECUADOR']);
+                             });
+                })->count(),
+            ];
             if ($request->has('all') && $request->all === 'true') {
                 $data = $query->get();
 
@@ -117,7 +164,10 @@ class Invi_proyectosController extends Controller
                     return $attributes;
                 });
 
-                return response()->json(['data' => $data]);
+                return response()->json([
+                    'data' => $data,
+                    'stats' => $stats // Añadido aquí
+                ]);
             }
 
             // Paginación por defecto
@@ -125,6 +175,7 @@ class Invi_proyectosController extends Controller
             if ($data->isEmpty()) {
                 return response()->json([
                     'data' => [],
+                    'stats' => $stats,
                     'message' => 'No se encontraron datos'
                 ], 200);
             }
@@ -140,6 +191,7 @@ class Invi_proyectosController extends Controller
             });
             return response()->json([
                 'data' => $data->items(),
+                'stats' => $stats,
                 'pagination' => [
                     'current_page' => $data->currentPage(),
                     'per_page' => $data->perPage(),
@@ -204,6 +256,7 @@ class Invi_proyectosController extends Controller
             'invi_detalle_dom_hum',
             'invi_detalle_lin_inves',
             'invi_detalle_area_unesco',
+            'invi_detalle_campo_unesco.campo_detallado',
             'invi_detalle_cobe.provincias',
             'invi_detalle_cobe.cantones',
             'invi_detalle_cobe.parroquias',
@@ -385,6 +438,42 @@ class Invi_proyectosController extends Controller
 
         // NUEVO: Extraer los ids que el proyecto ya tiene guardados en `invi_detalle_area_unesco`
         $unescoSeleccionadas = $proyecto->invi_detalle_area_unesco->pluck('id_subarea_unesco')->toArray();
+        // 1. Obtener todos los campos activos de la nueva tabla
+        $camposRaw = Campo_detallado_unesco::where('activo', 1)->get();
+
+        // 2. Agrupar la data jerárquicamente para la visualización del frontend
+        $catalogoAgrupado = [];
+        $gruposAmplios = $camposRaw->groupBy('codigo_amplio');
+
+        foreach ($gruposAmplios as $codAmplio => $itemsAmplio) {
+            $gruposEspecificos = $itemsAmplio->groupBy('codigo_especifico');
+            $especificosArray = [];
+
+            foreach ($gruposEspecificos as $codEsp => $itemsEsp) {
+                // Mapear solo los campos detallados (nivel más bajo)
+                $detalladosArray = $itemsEsp->map(function($item) {
+                    return [
+                        'id' => $item->id,
+                        'codigo' => $item->codigo,
+                        'campo_detallado' => $item->campo_detallado,
+                        'nivel' => $item->nivel
+                    ];
+                })->values()->toArray();
+                    $especificosArray[] = [
+                    'codigo_especifico' => $codEsp,
+                    'campo_especifico' => $itemsEsp->first()->campo_especifico,
+                    'detallados' => $detalladosArray
+                ];
+            }
+
+            $catalogoAgrupado[] = [
+                'codigo_amplio' => $codAmplio,
+                'campo_amplio' => $itemsAmplio->first()->campo_amplio,
+                'especificos' => $especificosArray
+            ];
+        }
+        // 3. Obtener los IDs guardados (seleccionados) en el proyecto actual
+        $camposSeleccionados = $proyecto->invi_detalle_campo_unesco->pluck('id_campo_unesco')->toArray();
         $tip_proyectCatalogo = Invi_tip_proyect::where('tipo', 'INVESTIGACIÓN')->get();
         $zonasCatalogo = Zona_planificacion::all();
         $detallesZonasCatalogo = Detalle_zona_planificacion::all();
@@ -425,17 +514,28 @@ class Invi_proyectosController extends Controller
         $empresasSeleccionadas = $proyecto->invi_detalle_inst_proy->map(function ($detalle) {
             $empresa = $detalle->praempresas;
             if ($empresa) {
-                // Inyectamos el tipo de participación al objeto empresa
                 $empresa->tipo_participacion = $detalle->tipo_participacion; 
+                $empresa->es_verificable = $detalle->es_verificable; 
+                $empresa->archivo = $detalle->archivo; 
             }
             return $empresa;
         })->filter()->values()->toArray();
 
-        $empresasSeleccionadas2 = $proyecto->invi_detalle_inst_proy->map(function ($detalle) {
-            return $detalle->praempresas;
-        })->filter(function ($empresa) {
-            return $empresa && $empresa->ruc !== '0860000830001';
-        })->values()->toArray();
+        $empresasSeleccionadas2 = $proyecto->invi_detalle_inst_proy
+            // 1. Filtramos primero el detalle para que tenga archivo válido y sea verificable
+            ->filter(function ($detalle) {
+                return !empty($detalle->archivo) && $detalle->es_verificable == 1;
+            })
+            // 2. Extraemos la relación de la empresa
+            ->map(function ($detalle) {
+                return $detalle->praempresas;
+            })
+            // 3. Filtramos que exista la empresa y que el RUC no sea el local
+            ->filter(function ($empresa) {
+                return $empresa && $empresa->ruc !== '0860000830001';
+            })
+        ->values()
+        ->toArray();
         $aportesUtlvt = [];
         $aportesInst = [];
 
@@ -672,6 +772,8 @@ class Invi_proyectosController extends Controller
         
         // Para Unesco filtramos la collection que ya creaste previamente:
         $unescoData = collect($unescoCatalogo)->whereIn('sau_id', $unescoSeleccionadas)->values();
+        // 4. Data plana seleccionada para pintar checks
+        $camposDataSeleccionada = $camposRaw->whereIn('id', $camposSeleccionados)->values();
         $tipoproyectoData = Invi_tip_proyect::where('id_tip_invi_proy', $proyecto->id_tip_invi_proy)->get();
         //$asignaturasData = Asignaturas::whereIn('IdAsig', $asignaturasSeleccionadas)->get();
 
@@ -701,6 +803,12 @@ class Invi_proyectosController extends Controller
             'sublineas_seleccionadas' => $sublineasSeleccionadas,
             'unesco_catalogo' => $unescoCatalogo,
             'unesco_seleccionadas' => $unescoSeleccionadas,
+            // El catálogo anidado para construir la tabla (UI)
+            'campo_det_unesco_catalogo_agrupado' => $catalogoAgrupado,
+            // Array simple de IDs para marcar los checkboxes
+            'campo_det_unesco_seleccionadas' => $camposSeleccionados,
+            // Detalles de lo que ya guardó
+            'campo_det_unesco_data' => $camposDataSeleccionada,
             'tip_proyect_catalogo' => $tip_proyectCatalogo,
             'zonas_catalogo' => $zonasCatalogo,
             'detalles_zonas_catalogo' => $detallesZonasCatalogo,
@@ -757,7 +865,46 @@ class Invi_proyectosController extends Controller
     {
 
     }
+    public function uploadArchivoInstitucion(Request $request){
+        $request->validate([
+            'file' => 'required|file|mimes:pdf|mimetypes:application/pdf|max:10240',
+            'old_filename' => 'nullable|string',
+        ]);
 
+        try {
+            $file = $request->file('file');
+            if (!$file->isValid()) {
+                throw new \Exception("Archivo inválido o corrupto.");
+            }
+
+            // Eliminar archivo antiguo si se envía
+            if ($request->filled('old_filename')) {
+                $oldPath = public_path("Documentos/INVESTIGACION/ArchivosInstituciones/" . basename($request->old_filename));
+                if (File::exists($oldPath)) {
+                    File::delete($oldPath);
+                }
+            }
+            $directory = public_path("Documentos/INVESTIGACION/ArchivosInstituciones");
+            if (!File::isDirectory($directory)) {
+                File::makeDirectory($directory, 0755, true);
+            }
+
+            $aleatorio = bin2hex(random_bytes(4));
+            $fechaHora = date("Ymd_His");
+            $extension = $file->getClientOriginalExtension();
+            $filename = "inst_verif_{$aleatorio}_{$fechaHora}.{$extension}";
+
+            $file->move($directory, $filename);
+
+            return response()->json([
+                'status'   => true,
+                'filename' => $filename,
+                'url'      => url("Documentos/INVESTIGACION/ArchivosInstituciones/" . $filename)
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['status' => false, 'error' => $e->getMessage()], 500);
+        }
+    }
     /**
      * Display the specified resource.
      */
@@ -912,9 +1059,12 @@ class Invi_proyectosController extends Controller
             $proyecto->proyect_justificacion = $request->proyect_justificacion;
             $proyecto->proyect_fecha_pres = $request->proyect_fecha_pres;
             $proyecto->fechainicio = $request->fechainicio;
+            $proyecto->fechainicio_real = $request->fechainicio_real;
             $proyecto->fechafin = $request->fechafin;
+            $proyecto->fechafin_real = $request->fechafin_real;
             $proyecto->proyect_duracion_mes = $request->proyect_duracion_mes;
             $proyecto->proyect_estado = $request->proyect_estado;
+            $proyecto->proyect_estado_cases = $request->proyect_estado_cases;
             $proyecto->proyect_desc_situ_act = $request->proyect_desc_situ_act;
             $proyecto->proyect_diag_probl = $request->proyect_diag_probl;
             $proyecto->proyec_ident_poblaobj = $request->proyec_ident_poblaobj;
@@ -1088,6 +1238,19 @@ class Invi_proyectosController extends Controller
                     ]);
                 }
             }
+            Invi_detalle_campo_unesco::where('proyect_id', $id)->delete();
+
+            // Si envían nuevos campos, insertar usando la nueva tabla pivote
+            if ($request->has('campos_unesco') && is_array($request->campos_unesco)) {
+                $insertData = [];
+                foreach ($request->campos_unesco as $id_campo) {
+                    $insertData[] = [
+                        'proyect_id'      => $id,
+                        'id_campo_unesco' => $id_campo
+                    ];
+                }
+                Invi_detalle_campo_unesco::insert($insertData);
+            }
             Invi_detalle_cobe::where('proyect_id', $id)->delete();
 
             $idZona = $request->id_zona_plan;
@@ -1229,12 +1392,16 @@ class Invi_proyectosController extends Controller
                 foreach ($request->empresas as $empresa) {
                     $id_empresa = is_array($empresa) ? ($empresa['idempresa'] ?? null) : null;
                     $tipo = is_array($empresa) ? ($empresa['tipo_participacion'] ?? 'FINANCIAMIENTO') : 'FINANCIAMIENTO';
+                    $es_verificable = is_array($empresa) ? ($empresa['es_verificable'] ?? false) : false;
+                    $archivo = is_array($empresa) ? ($empresa['archivo'] ?? null) : null;
 
                     if ($id_empresa) {
                         Invi_detalle_inst_proy::insert([
                             'proyect_id'         => $id,
                             'idempresa'          => $id_empresa,
-                            'tipo_participacion' => $tipo
+                            'tipo_participacion' => $tipo,
+                            'es_verificable'     => $es_verificable ? 1 : 0,
+                            'archivo'            => $archivo
                         ]);
                     }
                 }
@@ -3152,9 +3319,9 @@ class Invi_proyectosController extends Controller
                 $duracionTotalTexto = 'Fechas no definidas';
                 $tiempoRestanteTexto = 'No calculable';
 
-                if ($proyecto->fechainicio && $proyecto->fechafin) {
-                    $inicio = Carbon::parse($proyecto->fechainicio)->startOfDay();
-                    $fin = Carbon::parse($proyecto->fechafin)->endOfDay();
+                if ($proyecto->fechainicio_real && $proyecto->fechafin_real) {
+                    $inicio = Carbon::parse($proyecto->fechainicio_real)->startOfDay();
+                    $fin = Carbon::parse($proyecto->fechafin_real)->endOfDay();
 
                     // Calculamos la duración total en meses y días
                     $mesesDuracion = $inicio->diffInMonths($fin);
@@ -3231,8 +3398,8 @@ class Invi_proyectosController extends Controller
                     'nombre_proyecto'   => $proyecto->proyect_nombre,
                     'estado_temporal'   => $estadoProyecto,
                     'fechas' => [
-                        'inicio'        => $proyecto->fechainicio,
-                        'fin'           => $proyecto->fechafin,
+                        'inicio'        => $proyecto->fechainicio_real,
+                        'fin'           => $proyecto->fechafin_real,
                     ],
                     'metricas_tiempo' => [
                         'duracion_total'  => $duracionTotalTexto,

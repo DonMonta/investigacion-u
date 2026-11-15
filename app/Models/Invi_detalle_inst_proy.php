@@ -17,6 +17,8 @@ class Invi_detalle_inst_proy extends Model
         'proyect_id',
         'idempresa',
         'tipo_participacion',
+        'es_verificable',
+        'archivo',
     ];
     public function invi_proyectos()
     {

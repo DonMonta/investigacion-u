@@ -288,6 +288,7 @@ Route::prefix('inves')->group(function () {
         Route::delete('inhabilitar_responsable/{id}', [Invi_responsableController::class, 'destroy']);
         //Definición de endpoint para subir un archivo
         Route::post('subir_archivo_responsable', [Invi_responsableController::class, 'uploadArchivo']);
+        Route::post('uploadArchivoInstitucion', [Invi_proyectosController::class, 'uploadArchivoInstitucion']);
         //Definición de endpoint para obtener las facultades de Investigacion
         Route::get('getFacultadesInvestigacion', [Invi_responsableController::class, 'getFacultadesInvestigacion']);
         Route::get('getResponsablesIndInfo/{id}', [Invi_responsableController::class, 'getResponsablesIndInfo']);

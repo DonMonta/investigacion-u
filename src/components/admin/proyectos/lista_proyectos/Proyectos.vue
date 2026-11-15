@@ -1,6 +1,94 @@
 <template>
     <div
         class="overflow-hidden rounded-2xl border border-gray-200 bg-white px-4 pb-3 pt-4 dark:border-gray-800 dark:bg-white/[0.03] sm:px-6">
+        <div
+            class="mb-8 bg-white dark:bg-gray-900 rounded-2xl shadow-theme-md border border-gray-200 dark:border-gray-800 p-6">
+            <div class="flex flex-col lg:flex-row gap-6 items-center justify-between">
+
+                <!-- Sección Izquierda: Tarjetas de Variables y Fórmula -->
+                <div class="w-full lg:w-3/5 flex flex-col gap-5">
+                    <!-- Tarjetas -->
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                        <!-- TP -->
+                        <div
+                            class="bg-gray-50 dark:bg-gray-800 p-4 rounded-xl border border-gray-100 dark:border-gray-700 text-center">
+                            <p class="text-xs text-gray-500 dark:text-gray-400 font-semibold mb-1">Total Proyectos (TP)
+                            </p>
+                            <h3 class="text-2xl font-bold text-gray-800 dark:text-white">{{ stats.TP || 0 }}</h3>
+                        </div>
+                        <!-- TPyRF -->
+                        <div
+                            class="bg-indigo-50 dark:bg-indigo-900/20 p-4 rounded-xl border border-indigo-100 dark:border-indigo-800/30 text-center">
+                            <p class="text-xs text-indigo-600 dark:text-indigo-400 font-semibold mb-1">Financiamiento
+                                (TPyRF)</p>
+                            <h3 class="text-2xl font-bold text-indigo-700 dark:text-indigo-300">{{ stats.TPyRF || 0 }}
+                            </h3>
+                        </div>
+                        <!-- TPyCI -->
+                        <div
+                            class="bg-sky-50 dark:bg-sky-900/20 p-4 rounded-xl border border-sky-100 dark:border-sky-800/30 text-center">
+                            <p class="text-xs text-sky-600 dark:text-sky-400 font-semibold mb-1">Red Int. (TPyCI)</p>
+                            <h3 class="text-2xl font-bold text-sky-700 dark:text-sky-300">{{ stats.TPyCI || 0 }}</h3>
+                        </div>
+                        <!-- TPyCN -->
+                        <div
+                            class="bg-teal-50 dark:bg-teal-900/20 p-4 rounded-xl border border-teal-100 dark:border-teal-800/30 text-center">
+                            <p class="text-xs text-teal-600 dark:text-teal-400 font-semibold mb-1">Red Nac. (TPyCN)</p>
+                            <h3 class="text-2xl font-bold text-teal-700 dark:text-teal-300">{{ stats.TPyCN || 0 }}</h3>
+                        </div>
+                    </div>
+
+                    <!-- Fórmula Visual -->
+                    <div
+                        class="bg-gray-50 dark:bg-gray-800/50 rounded-xl py-3 px-4 border border-gray-100 dark:border-gray-700 flex items-center justify-center overflow-x-auto text-sm sm:text-base">
+                        <div class="flex items-center gap-3 text-gray-700 dark:text-gray-300 font-serif">
+                            <span class="font-bold italic text-gray-900 dark:text-white">IP = </span>
+                            <span>100 &times;</span>
+                            <div class="flex flex-col items-center">
+                                <span class="border-b-2 border-gray-400 dark:border-gray-600 px-4 pb-1 tracking-wider">
+                                    <span
+                                        class="text-indigo-600 dark:text-indigo-400 font-semibold font-sans">TPyRF</span>
+                                    +
+                                    <span class="text-sky-600 dark:text-sky-400 font-semibold font-sans">TPyCI</span> +
+                                    <span class="text-teal-600 dark:text-teal-400 font-semibold font-sans">TPyCN</span>
+                                </span>
+                                <span
+                                    class="pt-1 font-semibold text-gray-600 dark:text-gray-400 font-sans tracking-wider">TP</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sección Derecha: Resultado y Escala -->
+                <div class="w-full lg:w-2/5 flex flex-col items-center justify-center p-4 rounded-xl"
+                    :class="escalaIndicador.bgClass">
+                    <h2 class="text-sm font-bold uppercase tracking-wider mb-2" :class="escalaIndicador.textClass">
+                        {{ escalaIndicador.label }}
+                    </h2>
+                    <div class="flex items-baseline gap-1">
+                        <span class="text-5xl font-black" :class="escalaIndicador.textClass">{{ porcentajeIP }}</span>
+                        <span class="text-2xl font-bold" :class="escalaIndicador.textClass">%</span>
+                    </div>
+                    <p class="text-xs mt-2 text-center font-medium opacity-80" :class="escalaIndicador.textClass">
+                        Indicador de Investigación e Innovación (IP)
+                    </p>
+
+                    <!-- Barra de progreso -->
+                    <div class="w-full bg-white/50 dark:bg-black/20 rounded-full h-2.5 mt-4 overflow-hidden">
+                        <div class="h-2.5 rounded-full transition-all duration-1000 ease-out"
+                            :class="escalaIndicador.barClass" :style="{ width: `${Math.min(porcentajeIP, 100)}%` }">
+                        </div>
+                    </div>
+                    <div class="w-full flex justify-between text-[10px] mt-1 opacity-70 font-bold"
+                        :class="escalaIndicador.textClass">
+                        <span>0%</span>
+                        <span>13%</span>
+                        <span>26%</span>
+                        <span>40%+</span>
+                    </div>
+                </div>
+            </div>
+        </div>
         <div class="flex flex-col gap-2 mb-4 sm:flex-row sm:items-center sm:justify-between">
             <div class="flex flex-col gap-3 sm:flex-row sm:items-center w-full sm:w-auto">
                 <!-- Buscador por código -->
@@ -2173,6 +2261,93 @@
                             </div>
                         </div>
                         <div class="space-y-3 mt-6">
+                            <div class="flex items-start gap-2.5">
+                                <span class="p-1 rounded-md bg-emerald-50 text-emerald-600 mt-0.5 dark:bg-emerald-950/40 dark:text-emerald-400">
+                                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+                                    </svg>
+                                </span>
+                                <div>
+                                    <h4 class="text-sm font-semibold text-gray-800 dark:text-gray-200">Clasificación UNESCO (CINE)</h4>
+                                    <p class="text-xs text-gray-500 mt-0.5">
+                                        Navegue por los niveles para clasificar el proyecto. <br>
+                                        <span class="text-emerald-600 dark:text-emerald-400 font-medium">Importante:</span> La selección final en el <b>Campo Detallado</b> es requerida para el llenado de información que se sube al <b>CACES</b>.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div
+                                class="p-5 border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm bg-white dark:bg-gray-950 space-y-4">
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+                                    <!-- Columna 1: Campos Amplios -->
+                                    <div
+                                        class="p-3 border border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/30 rounded-lg">
+                                        <label
+                                            class="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-2">
+                                            1. Campo Amplio
+                                        </label>
+                                        <div class="max-h-48 overflow-y-auto space-y-1.5 pr-1 structure-scrollbar">
+                                            <label v-for="amplio in unescoCatalogoAgrupado" :key="amplio.codigo_amplio"
+                                                class="flex items-start gap-2 p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-900 cursor-pointer text-xs">
+                                                <input type="checkbox" :value="amplio.codigo_amplio"
+                                                    v-model="selected_amplios"
+                                                    class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 mt-0.5">
+                                                <span class="text-gray-700 dark:text-gray-300 font-medium">({{
+                                                    amplio.codigo_amplio }}) {{ amplio.campo_amplio }}</span>
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <!-- Columna 2: Campos Específicos -->
+                                    <div
+                                        class="p-3 border border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/30 rounded-lg">
+                                        <label
+                                            class="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-2">
+                                            2. Campo Específico
+                                        </label>
+                                        <div v-if="unescoEspecificosFiltrados.length > 0"
+                                            class="max-h-48 overflow-y-auto space-y-1.5 pr-1 structure-scrollbar">
+                                            <label v-for="esp in unescoEspecificosFiltrados"
+                                                :key="esp.codigo_especifico"
+                                                class="flex items-start gap-2 p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-900 cursor-pointer text-xs">
+                                                <input type="checkbox" :value="esp.codigo_especifico"
+                                                    v-model="selected_especificos"
+                                                    class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 mt-0.5">
+                                                <span class="text-gray-600 dark:text-gray-400">({{ esp.codigo_especifico
+                                                    }}) {{ esp.campo_especifico }}</span>
+                                            </label>
+                                        </div>
+                                        <div v-else class="text-xs text-gray-400 italic p-2">Seleccione un Campo Amplio
+                                            para desplegar...</div>
+                                    </div>
+
+                                    <!-- Columna 3: Campos Detallados (Los que se guardan) -->
+                                    <div
+                                        class="p-3 border border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/30 rounded-lg">
+                                        <label
+                                            class="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-2">
+                                            3. Campo Detallado
+                                        </label>
+                                        <div v-if="unescoDetalladosFiltrados.length > 0"
+                                            class="max-h-48 overflow-y-auto space-y-1.5 pr-1 structure-scrollbar">
+                                            <label v-for="det in unescoDetalladosFiltrados" :key="det.id"
+                                                class="flex items-start gap-2 p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-900 cursor-pointer text-xs">
+                                                <input type="checkbox" :value="det.id" v-model="editForm.campos_unesco"
+                                                    class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 mt-0.5">
+                                                <span class="text-gray-600 dark:text-gray-400">({{ det.codigo }}) {{
+                                                    det.campo_detallado }}</span>
+                                            </label>
+                                        </div>
+                                        <div v-else class="text-xs text-gray-400 italic p-2">Seleccione un Campo
+                                            Específico para desplegar...</div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                        <div class="space-y-3 mt-6">
                             <div class="space-y-3">
                                 <div class="flex items-start gap-2.5">
                                     <span class="p-1 rounded-md bg-blue-50 text-blue-600 mt-0.5 dark:bg-blue-950/40 dark:text-blue-400">
@@ -2759,6 +2934,22 @@
                                         <p><strong>Página Web:</strong> <a v-if="empresaBuscada.url" :href="empresaBuscada.url" target="_blank" class="text-blue-500 hover:underline">{{ empresaBuscada.url }}</a><span v-else>N/A</span></p>
                                         <p class="md:col-span-2"><strong>Órgano Ejecutor:</strong> Dirección de Investigación UTLVTE</p>
                                     </div>
+                                    <div class="mt-5 p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
+                                        <label class="flex items-center gap-3 cursor-pointer text-gray-800 dark:text-gray-200 font-medium">
+                                            <input type="checkbox" v-model="esVerificableEmpresa" class="w-5 h-5 text-brand-600 rounded focus:ring-brand-500">
+                                            ¿La colaboración con esta institución es verificable?
+                                        </label>
+                                        
+                                        <div v-if="esVerificableEmpresa" class="mt-4 animate-fade-in-up">
+                                            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Adjuntar Documento de Respaldo (PDF)</label>
+                                            <input 
+                                                type="file" 
+                                                accept=".pdf" 
+                                                @change="seleccionarArchivoEmpresa"
+                                                class="block w-full text-sm text-gray-600 dark:text-gray-400 file:mr-4 file:py-2.5 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-brand-100 file:text-brand-700 hover:file:bg-brand-200 dark:file:bg-brand-900/30 dark:file:text-brand-400 transition-all cursor-pointer border border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-2"
+                                            />
+                                        </div>
+                                    </div>
                                     <div class="mt-4 flex justify-end">
                                         <button @click="agregarEmpresaSeleccionada" type="button" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-lg shadow transition-colors">
                                             Añadir Institución
@@ -2783,6 +2974,21 @@
                                                 <span v-if="empresa.ruc === '0860000830001'" class="ml-2 px-2 py-0.5 text-xs bg-blue-100 text-blue-700 rounded-full">Aporte Interno</span>
                                                 <span v-else class="ml-2 px-2 py-0.5 text-xs bg-green-100 text-green-700 rounded-full">Aporte Externo</span>
                                             </p>
+                                            <div v-if="empresa.es_verificable" class="mt-2 flex items-center gap-3">
+                                                <!-- Visualizar PDF guardado en BD -->
+                                                <a v-if="empresa.archivo" :href="getPdfUrlInstitucion(empresa.archivo)" target="_blank" class="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline flex items-center gap-1">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                                    Ver Documento
+                                                </a>
+                                                <span v-if="empresa.archivoObj" class="text-xs text-orange-600 dark:text-orange-400 font-medium">📄 Archivo pendiente por guardar</span>
+                                                
+                                                <!-- Botón para actualizar el documento en el listado -->
+                                                <label class="text-xs text-gray-600 dark:text-gray-300 cursor-pointer hover:text-brand-600 flex items-center gap-1 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+                                                    {{ empresa.archivo ? 'Actualizar PDF' : 'Adjuntar PDF' }}
+                                                    <input type="file" class="hidden" accept=".pdf" @change="(e) => actualizarArchivoLista(e, index, 'FINANCIAMIENTO')">
+                                                </label>
+                                            </div>
                                         </div>
                                         <button @click="quitarEmpresa(index, 'FINANCIAMIENTO')" type="button" class="px-3 py-1 bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50 rounded-lg text-sm font-semibold transition-colors">
                                             Quitar
@@ -2825,6 +3031,16 @@
                                         <p><strong>Página Web:</strong> <a v-if="redBuscada.url" :href="redBuscada.url" target="_blank" class="text-blue-500 hover:underline">{{ redBuscada.url }}</a><span v-else>N/A</span></p>
                                         <p class="md:col-span-2"><strong>Órgano Ejecutor:</strong> Dirección de Investigación UTLVTE</p>
                                     </div>
+                                    <div class="mt-5 p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
+                                        <label class="flex items-center gap-3 cursor-pointer text-gray-800 dark:text-gray-200 font-medium">
+                                            <input type="checkbox" v-model="esVerificableRed" class="w-5 h-5 text-brand-600 rounded">
+                                            ¿La colaboración con esta red es verificable?
+                                        </label>
+                                        <div v-if="esVerificableRed" class="mt-4 animate-fade-in-up">
+                                            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Adjuntar Documento (PDF)</label>
+                                            <input type="file" accept=".pdf" @change="seleccionarArchivoRed" class="block w-full text-sm text-gray-600 border border-dashed border-gray-300 p-2 rounded-lg file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-brand-100 file:text-brand-700"/>
+                                        </div>
+                                    </div>
                                     <div class="mt-4 flex justify-end">
                                         <button @click="agregarRed" type="button" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-lg shadow transition-colors">Añadir Red</button>
                                     </div>
@@ -2849,6 +3065,17 @@
                                                     <span v-if="red.pais !== 'ECUADOR'" class="ml-2 px-2 py-0.5 text-xs bg-blue-100 text-blue-700 rounded-full">Red de carácter internacional</span>
                                                     <span v-else class="ml-2 px-2 py-0.5 text-xs bg-green-100 text-green-700 rounded-full">Red de carácter nacional</span>
                                                 </p>
+                                                <div v-if="red.es_verificable" class="mt-2 flex items-center gap-3">
+                                                    <a v-if="red.archivo" :href="getPdfUrlInstitucion(red.archivo)" target="_blank" class="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline flex items-center gap-1">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                                        Ver Documento
+                                                    </a>
+                                                    <span v-if="red.archivoObj" class="text-xs text-orange-600 font-medium">Archivo pendiente</span>
+                                                    <label class="text-xs text-gray-600 cursor-pointer hover:text-brand-600 bg-gray-100 px-2 py-1 rounded">
+                                                        {{ red.archivo ? 'Actualizar PDF' : 'Adjuntar PDF' }}
+                                                        <input type="file" class="hidden" accept=".pdf" @change="(e) => actualizarArchivoLista(e, index, 'RED_INVESTIGACION')">
+                                                    </label>
+                                                </div>
                                             </div>
 
                                             <button @click="quitarEmpresa(index, 'RED_INVESTIGACION')" type="button"
@@ -3094,6 +3321,70 @@
                                     </button>
                                 </div>
                             </div>
+                            <div class="space-y-2">
+                                <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Estado del Proyecto CASES<span class="text-red-500">*</span></label>
+                                
+                                <div class="grid grid-cols-3 gap-3">
+                                    <!-- Opcion 1: Nuevo -->
+                                    <button type="button" 
+                                        @click="editForm.proyect_estado_cases = 'FINALIZADO'"
+                                        :class="editForm.proyect_estado_cases === 'FINALIZADO' 
+                                            ? 'border-brand-500 bg-brand-50 dark:bg-brand-900/30 text-brand-700 dark:text-brand-300 ring-1 ring-brand-500 shadow-sm' 
+                                            : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'"
+                                        class="flex items-center justify-center py-2 px-3 border rounded-xl transition-all duration-200 outline-none">
+                                        <div class="flex items-center gap-2">
+                                            <svg v-if="editForm.proyect_estado_cases === 'FINALIZADO'" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                            <span class="font-semibold text-sm">FINALIZADO</span>
+                                        </div>
+                                    </button>
+
+                                    <!-- Opcion 2: En ejecución -->
+                                    <button type="button" 
+                                        @click="editForm.proyect_estado_cases = 'EN CIERRE'"
+                                        :class="editForm.proyect_estado_cases === 'EN CIERRE' 
+                                            ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 ring-1 ring-blue-500 shadow-sm' 
+                                            : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'"
+                                        class="flex items-center justify-center py-2 px-3 border rounded-xl transition-all duration-200 outline-none">
+                                        <div class="flex items-center gap-2">
+                                            <svg v-if="editForm.proyect_estado_cases === 'EN CIERRE'" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                            <span class="font-semibold text-sm">EN CIERRE </span>
+                                        </div>
+                                    </button>
+                                    <button type="button" 
+                                        @click="editForm.proyect_estado_cases = 'EN EJECUCION'"
+                                        :class="editForm.proyect_estado_cases === 'EN EJECUCION' 
+                                            ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 ring-1 ring-purple-500 shadow-sm' 
+                                            : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'"
+                                        class="flex items-center justify-center py-2 px-3 border rounded-xl transition-all duration-200 outline-none">
+                                        <div class="flex items-center gap-2">
+                                            <svg v-if="editForm.proyect_estado_cases === 'EN EJECUCION'" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                            <span class="font-semibold text-sm text-center leading-tight">EN EJECUCION</span>
+                                        </div>
+                                    </button>
+                                    <button type="button" 
+                                        @click="editForm.proyect_estado_cases = 'DETENIDO'"
+                                        :class="editForm.proyect_estado_cases === 'DETENIDO' 
+                                            ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 ring-1 ring-purple-500 shadow-sm' 
+                                            : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'"
+                                        class="flex items-center justify-center py-2 px-3 border rounded-xl transition-all duration-200 outline-none">
+                                        <div class="flex items-center gap-2">
+                                            <svg v-if="editForm.proyect_estado_cases === 'DETENIDO'" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                            <span class="font-semibold text-sm text-center leading-tight">DETENIDO</span>
+                                        </div>
+                                    </button>
+                                    <button type="button" 
+                                        @click="editForm.proyect_estado_cases = 'CANCELADO'"
+                                        :class="editForm.proyect_estado_cases === 'CANCELADO' 
+                                            ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 ring-1 ring-purple-500 shadow-sm' 
+                                            : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'"
+                                        class="flex items-center justify-center py-2 px-3 border rounded-xl transition-all duration-200 outline-none">
+                                        <div class="flex items-center gap-2">
+                                            <svg v-if="editForm.proyect_estado_cases === 'CANCELADO'" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                            <span class="font-semibold text-sm text-center leading-tight">CANCELADO</span>
+                                        </div>
+                                    </button>
+                                </div>
+                            </div>
 
                             <!-- Fecha de Inicio (Mínimo: Fecha de Presentación) -->
                             <div class="space-y-1">
@@ -3104,8 +3395,7 @@
                                     @change="validarFechas"
                                     class="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none transition">
                             </div>
-
-                            <!-- Fecha de Fin (Restringida por Vue de 3 a 5 años) -->
+                             <!-- Fecha de Fin (Restringida por Vue de 3 a 5 años) -->
                             <div class="space-y-1">
                                 <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Fecha de Finalización <span class="text-red-500">*</span></label>
                                 <input type="date" 
@@ -3116,6 +3406,28 @@
                                     @change="validarFechas"
                                     class="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none transition disabled:opacity-50 disabled:cursor-not-allowed">
                                 <span v-if="!editForm.fechainicio" class="text-xs text-orange-500">Seleccione primero la fecha de inicio</span>
+                            </div>
+
+                            <!-- Fecha de Inicio (Mínimo: Fecha de Presentación) -->
+                            <div class="space-y-1">
+                                <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Fecha de Inicio Real<span class="text-red-500">*</span></label>
+                                <input type="date" 
+                                    v-model="editForm.fechainicio_real" 
+                                    :min="editForm.proyect_fecha_pres"
+                                    @change="validarFechas"
+                                    class="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none transition">
+                            </div>
+
+                            <div class="space-y-1">
+                                <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Fecha de Finalización Real <span class="text-red-500">*</span></label>
+                                <input type="date" 
+                                    v-model="editForm.fechafin_real" 
+                                    :min="limitesFechaFinReal.min"
+                                    :max="limitesFechaFinReal.max"
+                                    :disabled="!editForm.fechainicio_real"
+                                    @change="validarFechas"
+                                    class="w-full px-4 py-2 border border-gray-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-brand-500 outline-none transition disabled:opacity-50 disabled:cursor-not-allowed">
+                                <span v-if="!editForm.fechainicio_real" class="text-xs text-orange-500">Seleccione primero la fecha de inicio</span>
                             </div>
 
                             <!-- Duración en Meses (Automático y de solo lectura) -->
@@ -5177,6 +5489,12 @@ export default {
             idus: 0,
             baseUrl: "/inves",
             filteredarray: [],
+            stats: {
+                TP: 0,
+                TPyRF: 0,
+                TPyCI: 0,
+                TPyCN: 0
+            },
             botonCargando: null,
             UsuarioInfo: {},
             searchQuery: "",
@@ -5252,6 +5570,9 @@ export default {
             lineasCatalogo: [],
             sublineasCatalogo: [],
             unescoCatalogo: [],
+            unescoCatalogoAgrupado: [],
+            selected_amplios: [],
+            selected_especificos: [],
             tip_proyectCatalogo: [],
             zonasCatalogo: [],
             detallesZonasCatalogo: [],
@@ -5268,6 +5589,10 @@ export default {
             buscandoEmpresa: false,
             buscandoRed: false,
             empresasAgregadas: [],
+            esVerificableEmpresa: false, 
+            archivoEmpresaObj: null, 
+            esVerificableRed: false, 
+            archivoRedObj: null,
             redesInvestigacion: [],
             tieneRedesInvestigacion: false,
             searchRedQuery: '',
@@ -5296,6 +5621,7 @@ export default {
                 id_convocatoria: '',
                 sublineas_investigacion: [],
                 unesco_areas: [],
+                campos_unesco: [],
                 id_tip_invi_proy: '',
                 proyect_cobertura: '',
                 id_zona_plan: '',
@@ -5310,9 +5636,12 @@ export default {
                 aportes_inst: [],
                 proyect_fecha_pres: '',
                 fechainicio: '',
+                fechainicio_real: '',
                 fechafin: '',
+                fechafin_real: '',
                 proyect_duracion_mes: '',
                 proyect_estado: '',
+                proyect_estado_cases: '',
                 proyect_desc_situ_act: '',
                 proyect_diag_probl: '',
                 proyec_result_invest: '',
@@ -5553,6 +5882,45 @@ export default {
         document.removeEventListener('click', this.cerrarMenuContextual);
     },
     computed: {
+        porcentajeIP() {
+            if (this.stats.TP === 0) return 0;
+            const suma = this.stats.TPyRF + this.stats.TPyCI + this.stats.TPyCN;
+            const ip = 100 * (suma / this.stats.TP);
+            return parseFloat(ip.toFixed(2)); // Redondea a 2 decimales
+        },
+        escalaIndicador() {
+            const ip = this.porcentajeIP;
+            
+            if (ip >= 40) {
+                return {
+                    label: 'Satisfactorio',
+                    bgClass: 'bg-green-50 dark:bg-green-900/20 border border-green-200',
+                    textClass: 'text-green-700 dark:text-green-400',
+                    barClass: 'bg-green-500'
+                };
+            } else if (ip >= 26) {
+                return {
+                    label: 'Cuasi Satisfactorio',
+                    bgClass: 'bg-blue-50 dark:bg-blue-900/20 border border-blue-200',
+                    textClass: 'text-blue-700 dark:text-blue-400',
+                    barClass: 'bg-blue-500'
+                };
+            } else if (ip >= 13) {
+                return {
+                    label: 'Poco Satisfactorio',
+                    bgClass: 'bg-amber-50 dark:bg-amber-900/20 border border-amber-200',
+                    textClass: 'text-amber-700 dark:text-amber-500',
+                    barClass: 'bg-amber-500'
+                };
+            } else {
+                return {
+                    label: 'Deficiente',
+                    bgClass: 'bg-red-50 dark:bg-red-900/20 border border-red-200',
+                    textClass: 'text-red-700 dark:text-red-400',
+                    barClass: 'bg-red-500'
+                };
+            }
+        },
         integrantesFiltrados() {
             if (!this.filtroIntegrante) return this.proyectoSeleccionado.invi_detalle_integrante;
             return this.proyectoSeleccionado.invi_detalle_integrante.filter(i => {
@@ -5591,6 +5959,25 @@ export default {
                 return item.tipo_area === 'Área específica de conocimiento' && 
                        this.editForm.unesco_areas.includes(item.sau_pdid);
             });
+        },
+        unescoEspecificosFiltrados() {
+            let especificos = [];
+            this.unescoCatalogoAgrupado.forEach(amplio => {
+                if (this.selected_amplios.includes(amplio.codigo_amplio)) {
+                    especificos = especificos.concat(amplio.especificos);
+                }
+            });
+            return especificos;
+        },
+        // Retorna todos los campos detallados de los campos específicos que estén seleccionados
+        unescoDetalladosFiltrados() {
+            let detallados = [];
+            this.unescoEspecificosFiltrados.forEach(esp => {
+                if (this.selected_especificos.includes(esp.codigo_especifico)) {
+                    detallados = detallados.concat(esp.detallados);
+                }
+            });
+            return detallados;
         },
         // 1. Filtrar Provincias según la Zona única
         provinciasDisponibles() {
@@ -5700,6 +6087,23 @@ export default {
                 max: maxDate.toISOString().split('T')[0]
             };
         },
+        limitesFechaFinReal() {
+            if (!this.editForm.fechainicio_real) {
+                return { min: '', max: '' };
+            }
+            // Creamos objetos Date basados en la fecha de inicio
+            const minDate = new Date(this.editForm.fechainicio_real);
+            const maxDate = new Date(this.editForm.fechainicio_real);
+            
+            // Sumamos 3 años para el mínimo y 5 años para el máximo
+            minDate.setFullYear(minDate.getFullYear() + 3);
+            maxDate.setFullYear(maxDate.getFullYear() + 5);
+
+            return {
+                min: minDate.toISOString().split('T')[0], // Formato YYYY-MM-DD
+                max: maxDate.toISOString().split('T')[0]
+            };
+        },
         /*filteredAsignaturas() {
             if (!this.searchAsignatura) {
                 return this.asignaturasDisponibles;
@@ -5711,12 +6115,12 @@ export default {
             );
         },*/
         aniosProyecto() {
-            if (!this.editForm.fechainicio || !this.editForm.fechafin) {
+            if (!this.editForm.fechainicio_real || !this.editForm.fechafin_real) {
                 return [{ id: 'Primer Año', label: 'Primer Año', anio: new Date().getFullYear() }];
             }
 
-            const anioInicio = new Date(this.editForm.fechainicio).getFullYear();
-            const anioFin = new Date(this.editForm.fechafin).getFullYear();
+            const anioInicio = new Date(this.editForm.fechainicio_real).getFullYear();
+            const anioFin = new Date(this.editForm.fechafin_real).getFullYear();
             const anos = [];
 
             const nombresAnio = ['Primer Año', 'Segundo Año', 'Tercer Año', 'Cuarto Año', 'Quinto Año'];
@@ -6283,6 +6687,9 @@ export default {
 
                 const data = response.data?.data || [];
                 this.filteredarray = data
+                if (response.data?.stats) {
+                    this.stats = response.data.stats;
+                }
                 const pagination = response.data?.pagination || {};
                 this.currentPage = pagination.current_page || 1;
                 this.lastPage = pagination.last_page || 1;
@@ -6401,6 +6808,24 @@ export default {
             this.buscandoRed = true;
             this.debouncedBuscarRed(query);
         },
+        seleccionarArchivoEmpresa(event) {
+            this.archivoEmpresaObj = event.target.files[0] || null;
+        },
+        seleccionarArchivoRed(event) {
+            this.archivoRedObj = event.target.files[0] || null;
+        },
+        actualizarArchivoLista(event, index, tipo) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            if (tipo === 'FINANCIAMIENTO') {
+                this.empresasAgregadas[index].archivoObj = file;
+                this.empresasAgregadas[index].es_verificable = true; // Por si suben archivo sin haber marcado
+            } else {
+                this.redesInvestigacion[index].archivoObj = file;
+                this.redesInvestigacion[index].es_verificable = true;
+            }
+        },
         debouncedBuscarEmpresa: debounce(async function(query) {
             try {
                 // Modifica esta ruta para que coincida con la que creaste en web.php / api.php
@@ -6437,19 +6862,41 @@ export default {
                 this.buscandoRed = false;
             }
         }, 600),
+        getPdfUrlInstitucion(archivo) {
+            if (!archivo) return null;
+
+            // Si ya es una URL completa
+            if (archivo.startsWith('http://') || archivo.startsWith('https://')) {
+                return archivo;
+            }
+
+            // Remueve '/api' al final del baseURL para apuntar a la carpeta public del backend
+            // Asegúrate de tener tu instancia de Axios importada como 'API' o ajusta el nombre
+            const rootURL = (API.defaults.baseURL || '').replace(/\/api\/?$/, '');
+            
+            return `${rootURL}/Documentos/Investigacion/ArchivosInstituciones/${archivo}`;
+        },
         async agregarEmpresaSeleccionada() {
             if (!this.empresaBuscada) return;
 
             const yaEnFinanciamiento = this.empresasAgregadas.some(emp => emp.idempresa === this.empresaBuscada.idempresa);
-            
             if (yaEnFinanciamiento) {
                 mostraralertas2('Esta institución ya ha sido añadida al proyecto.', 'warning');
                 return;
             }
 
-            let tipoAsignado = 'FINANCIAMIENTO';
+            if (this.esVerificableEmpresa && !this.archivoEmpresaObj) {
+                mostraralertas2('Debes adjuntar el PDF de respaldo si marcas como verificable.', 'warning');
+                return;
+            }
 
-            // Si también es red de investigación, preguntamos
+            let tipoAsignado = 'FINANCIAMIENTO';
+            const datosExtra = {
+                es_verificable: this.esVerificableEmpresa,
+                archivoObj: this.archivoEmpresaObj, // Guardado local hasta hacer click en Guardar Edición
+                archivo: null // Nombre final que devolverá el backend
+            };
+
             if (this.empresaBuscada.es_red_investigacion == 1) {
                 const result = await Swal.fire({
                     title: 'Red de Investigación Detectada',
@@ -6457,7 +6904,7 @@ export default {
                     icon: 'question',
                     showCancelButton: true,
                     confirmButtonColor: '#3085d6',
-                    cancelButtonColor: '#6b7280', // Color gris para que parezca una opción secundaria
+                    cancelButtonColor: '#6b7280',
                     confirmButtonText: 'Sí, añadir a ambos',
                     cancelButtonText: 'No, solo financiamiento'
                 });
@@ -6465,40 +6912,65 @@ export default {
                 if (result.isConfirmed) {
                     tipoAsignado = 'AMBOS';
                     this.tieneRedesInvestigacion = true;
-                    
-                    // Verificamos si no estaba ya en redes antes de agregarla visualmente abajo
                     const yaEnRed = this.redesInvestigacion.some(emp => emp.idempresa === this.empresaBuscada.idempresa);
                     if (!yaEnRed) {
-                        this.redesInvestigacion.push({ ...this.empresaBuscada, tipo_participacion: tipoAsignado });
+                        this.redesInvestigacion.push({ ...this.empresaBuscada, tipo_participacion: tipoAsignado, ...datosExtra });
                     }
                 }
             }
             
-            // La agregamos visualmente a la lista de financiamiento (arriba)
-            this.empresasAgregadas.push({ ...this.empresaBuscada, tipo_participacion: tipoAsignado });
+            this.empresasAgregadas.push({ ...this.empresaBuscada, tipo_participacion: tipoAsignado, ...datosExtra });
             
-            // Limpiamos el buscador
+            // Limpiar Modal Search
             this.searchEmpresaQuery = '';
             this.empresaBuscada = null;
             this.empresaNoEncontrada = false;
-            
+            this.esVerificableEmpresa = false;
+            this.archivoEmpresaObj = null;
             mostraralertas2('Institución añadida correctamente.', 'success');
         },
         agregarRed() {
             if (!this.redBuscada) return;
-            
             if (this.redesInvestigacion.some(emp => emp.idempresa === this.redBuscada.idempresa)) {
                 mostraralertas2('Esta red ya ha sido añadida.', 'warning');
                 return;
             }
+            if (this.esVerificableRed && !this.archivoRedObj) {
+                mostraralertas2('Debes adjuntar el PDF de respaldo si marcas como verificable.', 'warning');
+                return;
+            }
             
-            this.redesInvestigacion.push({...this.redBuscada, tipo_participacion: 'RED_INVESTIGACION'});
+            this.redesInvestigacion.push({
+                ...this.redBuscada, 
+                tipo_participacion: 'RED_INVESTIGACION',
+                es_verificable: this.esVerificableRed,
+                archivoObj: this.archivoRedObj,
+                archivo: null
+            });
             this.searchRedQuery = '';
             this.redBuscada = null;
+            this.esVerificableRed = false;
+            this.archivoRedObj = null;
+        },
+        async uploadArchivoInstitucion(fileObj, oldFilename = null) {
+            const formData = new FormData();
+            formData.append('file', fileObj);
+            if (oldFilename) formData.append('old_filename', oldFilename);
+
+            try {
+                // Ajustar URL según las rutas de tu API en api.php o web.php
+                const response = await API.post(`${this.baseUrl}/uploadArchivoInstitucion`, formData, {
+                    headers: { 'Content-Type': 'multipart/form-data' }
+                });
+                return response.data; // Retorna { status: true, filename: '...', url: '...' }
+            } catch (error) {
+                console.error("Error subiendo PDF institución", error);
+                return null;
+            }
         },
         // 4. Quitar empresa de la tabla
         quitarEmpresa(index, tipo) {
-            if (tipoTabla === 'FINANCIAMIENTO') {
+            if (tipo === 'FINANCIAMIENTO') {
                 const empresa = this.empresasAgregadas[index];
                 this.empresasAgregadas.splice(index, 1);
                 
@@ -6772,13 +7244,13 @@ export default {
             }
 
             // 2. Calcular los meses basados estrictamente en AÑOS (Inclusivo)
-            if (this.editForm.fechainicio && this.editForm.fechafin) {
-                const f1 = new Date(this.editForm.fechainicio);
-                const f2 = new Date(this.editForm.fechafin);
+            if (this.editForm.fechainicio_real && this.editForm.fechafin_real) {
+                const f1 = new Date(this.editForm.fechainicio_real);
+                const f2 = new Date(this.editForm.fechafin_real);
 
                 // Validar que el año final no sea anterior al año inicial
                 if (f2.getFullYear() < f1.getFullYear()) {
-                    this.editForm.fechafin = '';
+                    this.editForm.fechafin_real = '';
                     this.editForm.proyect_duracion_mes = 0;
                     return;
                 }
@@ -6834,6 +7306,7 @@ export default {
                 this.lineasCatalogo = data.lineas_catalogo || [];
                 this.sublineasCatalogo = data.sublineas_catalogo || [];
                 this.unescoCatalogo = data.unesco_catalogo || [];
+                this.unescoCatalogoAgrupado = data.campo_det_unesco_catalogo_agrupado || [];
                 this.tip_proyectCatalogo = data.tip_proyect_catalogo || [];
                 this.zonasCatalogo = data.zonas_catalogo || [];
                 this.detallesZonasCatalogo = data.detalles_zonas_catalogo || [];
@@ -6988,6 +7461,7 @@ export default {
                     id_convocatoria: data.proyecto.id_convocatoria || '',
                     sublineas_investigacion: [],
                     unesco_areas: data.unesco_seleccionadas || [],
+                    campos_unesco: data.campo_det_unesco_seleccionadas || [],
                     id_tip_invi_proy: data.proyecto.id_tip_invi_proy || '',
                     proyect_cobertura: data.proyecto.proyect_cobertura || '',
                     id_zona_plan: data.cobertura_guardada?.id_zona_plan || '',
@@ -7002,9 +7476,12 @@ export default {
                     aportes_inst: data.aportes_inst || [],
                     proyect_fecha_pres: data.proyecto.proyect_fecha_pres || '',
                     fechainicio: data.proyecto.fechainicio || '',
+                    fechainicio_real: data.proyecto.fechainicio_real || '',
                     fechafin: data.proyecto.fechafin || '',
+                    fechafin_real: data.proyecto.fechafin_real || '',
                     proyect_duracion_mes: data.proyecto.proyect_duracion_mes || '',
                     proyect_estado: data.proyecto.proyect_estado || '',
+                    proyect_estado_cases: data.proyecto.proyect_estado_cases || '',
                     proyect_desc_situ_act: data.proyecto.proyect_desc_situ_act || '',
                     proyect_diag_probl: data.proyecto.proyect_diag_probl || '',
                     proyec_result_invest: data.proyecto.proyec_result_invest || '',
@@ -7052,6 +7529,22 @@ export default {
                         : null
 
                 };
+                // Reset de estado UI
+                this.selected_amplios = [];
+                this.selected_especificos = [];
+
+                // Pre-marcar los padres basados en los campos detallados ya guardados
+                // para que las columnas aparezcan abiertas automáticamente.
+                if (data.campo_det_unesco_data && data.campo_det_unesco_data.length > 0) {
+                    data.campo_det_unesco_data.forEach(item => {
+                        if (!this.selected_amplios.includes(item.codigo_amplio)) {
+                            this.selected_amplios.push(item.codigo_amplio);
+                        }
+                        if (!this.selected_especificos.includes(item.codigo_especifico)) {
+                            this.selected_especificos.push(item.codigo_especifico);
+                        }
+                    });
+                }
                 if (this.aniosProyecto.length > 0) {
                     this.anioSeleccionadoTab = this.aniosProyecto[0].id;
                 }
@@ -7950,22 +8443,36 @@ export default {
                 mostraralertas2('La duración del proyecto debe ser obligatoriamente entre 3 y 5 años (36 a 60 meses).', 'error');
                 return;
             }
-            // 1. Unimos todas las empresas de ambas tablas
             const todasLasEmpresas = [
                 ...this.empresasAgregadas, 
                 ...(this.tieneRedesInvestigacion ? this.redesInvestigacion : [])
             ];
 
-            // 2. Eliminamos duplicados basados en 'idempresa' y formateamos para el backend
+            // Subir archivos físicamente antes de guardar la data de la DB
+            for (let i = 0; i < todasLasEmpresas.length; i++) {
+                let emp = todasLasEmpresas[i];
+                if (emp.es_verificable && emp.archivoObj instanceof File) {
+                    const uploadResp = await this.uploadArchivoInstitucion(emp.archivoObj, emp.archivo);
+                    if (uploadResp && uploadResp.filename) {
+                        emp.archivo = uploadResp.filename; // Asignar el nombre generado
+                        emp.archivoObj = null; // Limpiar el file temporal
+                    } else {
+                        mostraralertas2(`Error subiendo archivo para ${emp.empresacorta}`, 'error');
+                        this.guardando = false;
+                        return;
+                    }
+                }
+            }
             const empresasUnicas = Array.from(
                 new Map(todasLasEmpresas.map(emp => [
                     emp.idempresa, 
                     {
                         idempresa: emp.idempresa,
-                        tipo_participacion: emp.tipo_participacion
+                        tipo_participacion: emp.tipo_participacion,
+                        es_verificable: emp.es_verificable ? 1 : 0,
+                        archivo: emp.archivo
                     }
-                ]))
-                .values()
+                ])).values()
             );
             this.guardando = true;
             try {

@@ -842,12 +842,8 @@ export default {
         String(this.objetoeditar.actividad || '').trim() !== '' &&
         String(this.objetoeditar.fechafin || '').trim() !== '' &&
         String(this.objetoeditar.tipoinstitucion || '').trim() !== '' &&
-        String(this.objetoeditar.pais || '').trim() !== '' &&
         String(this.objetoeditar.mision || '').trim() !== '' &&
-        String(this.objetoeditar.vision || '').trim() !== '' &&
-        this.objetoeditar.estado_empr !== null &&
-        this.objetoeditar.es_red_investigacion !== null &&
-        this.objetoeditar.estado_empr !== undefined
+        String(this.objetoeditar.vision || '').trim() !== '' 
       );
     },
   },

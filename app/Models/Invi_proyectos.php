@@ -175,6 +175,22 @@ class Invi_proyectos extends Model
     {
         return $this->hasMany(Invi_detalle_programa::class, 'proyect_id', 'proyect_id');
     }
+    public function invi_detalle_alcance_territorial()
+    {
+        return $this->hasMany(Invi_detalle_alcance_territorial::class, 'proyect_id', 'proyect_id');
+    }
+    public function invi_detalle_fuente_finan()
+    {
+        return $this->hasMany(Invi_detalle_fuente_finan::class, 'proyect_id', 'proyect_id');
+    }
+    public function invi_detalle_param_cumpl()
+    {
+        return $this->hasMany(Invi_detalle_param_cumpl::class, 'proyect_id', 'proyect_id');
+    }
+    public function invi_detalle_result_verifi()
+    {
+        return $this->hasMany(Invi_detalle_result_verifi::class, 'proyect_id', 'proyect_id');
+    }
 
 
 }

@@ -6,6 +6,12 @@ use App\Models\Bitacora;
 use App\Models\Carreras;
 use App\Models\Invi_programa;
 use App\Models\Invi_detalle_programa;
+use App\Models\Invi_alcance_territorial;
+use App\Models\Invi_fuente_finan;
+use App\Models\Invi_param_cumpl;
+use App\Models\Invi_detalle_alcance_territorial;
+use App\Models\Invi_detalle_fuente_finan;
+use App\Models\Invi_detalle_param_cumpl;
 use App\Models\informacionpersonal;
 use App\Models\InformacionPersonalD;
 use App\Models\Invi_deta_inte;
@@ -260,6 +266,9 @@ class Invi_proyectosController extends Controller
             'invi_detalle_cobe.provincias',
             'invi_detalle_cobe.cantones',
             'invi_detalle_cobe.parroquias',
+            'invi_detalle_alcance_territorial',
+            'invi_detalle_fuente_finan',
+            'invi_detalle_param_cumpl',
             'invi_obj_proyectos.invi_indicadores',
             'invi_obj_proyectos.invi_metas',
             'invi_obj_proyectos.invi_supuestos',
@@ -405,6 +414,16 @@ class Invi_proyectosController extends Controller
         $programaSeleccionado = $proyecto->invi_detalle_programa->first();
         $id_programa_seleccionado = $programaSeleccionado ? $programaSeleccionado->id_programa : null;
         $convocatoriasCatalogo = Invi_convocatoria::where('estado', 1)->where('tipo_convocatoria', 'INVESTIGACIÓN')->get();
+        // Solo traemos los que tienen estado 1 (Activos)
+        $alcancesCatalogo = Invi_alcance_territorial::where('estado', 1)->get();
+        $alcanceSeleccionado = $proyecto->invi_detalle_alcance_territorial->first();
+        $alcance_id_seleccionado = $alcanceSeleccionado ? $alcanceSeleccionado->alcance_id : null;
+        $fuentefinaCatalogo = Invi_fuente_finan::where('estado', 1)->get();
+        $fuentefinaSeleccionado = $proyecto->invi_detalle_fuente_finan->first();
+        $id_fuente_finan_seleccionado = $fuentefinaSeleccionado ? $fuentefinaSeleccionado->id_fuente_finan : null;
+        $paramsCatalogo = Invi_param_cumpl::where('estado', 1)->get();
+        $paramsCumpSeleccionado = $proyecto->invi_detalle_param_cumpl->first();
+        $id_param_cumpl_seleccionado = $paramsCumpSeleccionado ? $paramsCumpSeleccionado->id_param_cumpl : null;
         $lineasCatalogo = Invi_linea_investigacion::where('estado_lin_investiga', 1)->get();
         $sublineasCatalogo = Invi_sub_linea_inves::all();
         // NUEVO: Sublíneas que el proyecto ya tiene guardadas
@@ -798,6 +817,12 @@ class Invi_proyectosController extends Controller
             'programas_catalogo' => $programasCatalogo,
             'id_programa_seleccionado' => $id_programa_seleccionado,
             'convocatorias_catalogo' => $convocatoriasCatalogo,
+            'alcances_catalogo' => $alcancesCatalogo,
+            'alcance_id_seleccionado' => $alcance_id_seleccionado,
+            'fuente_finan_catalogo' => $fuentefinaCatalogo,
+            'id_fuente_finan_seleccionado' => $id_fuente_finan_seleccionado,
+            'paramsCatalogo' => $paramsCatalogo,
+            'id_param_cumpl_seleccionado' => $id_param_cumpl_seleccionado,
             'lineas_catalogo' => $lineasCatalogo,
             'sublineas_catalogo' => $sublineasCatalogo,
             'sublineas_seleccionadas' => $sublineasSeleccionadas,
@@ -1214,6 +1239,133 @@ class Invi_proyectosController extends Controller
                 Invi_detalle_programa::insert([
                     'proyect_id' => $id,
                     'id_programa' => $request->id_programa
+                ]);
+            }
+            if ($request->has('nuevos_alcances') && is_array($request->nuevos_alcances)) {
+                foreach ($request->nuevos_alcances as $nuevoNombre) {
+                    $nombreLimpio = trim($nuevoNombre);
+                    // Validar duplicados ignorando mayúsculas/minúsculas
+                    $existeCat = Invi_alcance_territorial::whereRaw('LOWER(nombre) = ?', [strtolower($nombreLimpio)])->first();
+                    if (!$existeCat) {
+                        Invi_alcance_territorial::create([
+                            'nombre' => $nombreLimpio,
+                            'estado' => 1
+                        ]);
+                    }
+                }
+            }
+            if ($request->has('nuevos_finan') && is_array($request->nuevos_finan)) {
+                foreach ($request->nuevos_finan as $nuevoNombre) {
+                    $nombreLimpio = trim($nuevoNombre);
+                    // Validar duplicados ignorando mayúsculas/minúsculas
+                    $existeCat = Invi_fuente_finan::whereRaw('LOWER(nombre) = ?', [strtolower($nombreLimpio)])->first();
+                    if (!$existeCat) {
+                        Invi_fuente_finan::create([
+                            'nombre' => $nombreLimpio,
+                            'estado' => 1
+                        ]);
+                    }
+                }
+            }
+            if ($request->has('nuevos_params') && is_array($request->nuevos_params)) {
+                foreach ($request->nuevos_params as $nuevoNombre) {
+                    $nombreLimpio = trim($nuevoNombre);
+                    // Validar duplicados ignorando mayúsculas/minúsculas
+                    $existeCat = Invi_param_cumpl::whereRaw('LOWER(nombre) = ?', [strtolower($nombreLimpio)])->first();
+                    if (!$existeCat) {
+                        Invi_param_cumpl::create([
+                            'nombre' => $nombreLimpio,
+                            'estado' => 1
+                        ]);
+                    }
+                }
+            }
+            // =========================================================
+            Invi_detalle_alcance_territorial::where('proyect_id', $id)->delete();
+            
+            if ($request->filled('alcance_territorial')) {
+                $inputAlcance = $request->alcance_territorial;
+                $alcance_id = null;
+
+                if (is_numeric($inputAlcance)) {
+                    $alcance_id = $inputAlcance;
+                } else {
+                    $nombreLimpio = trim($inputAlcance);
+                    // Buscar si existe (ignorando mayúsculas/minúsculas)
+                    $alcanceExistente = Invi_alcance_territorial::whereRaw('LOWER(nombre) = ?', [strtolower($nombreLimpio)])->first();
+                    
+                    if ($alcanceExistente) {
+                        $alcance_id = $alcanceExistente->alcance_id; 
+                    } else {
+                        $nuevoAlcance = Invi_alcance_territorial::create([
+                            'nombre' => $nombreLimpio,
+                            'estado' => 1
+                        ]);
+                        $alcance_id = $nuevoAlcance->alcance_id;
+                    }
+                }
+
+                Invi_detalle_alcance_territorial::create([
+                    'proyect_id' => $id,
+                    'alcance_id' => $alcance_id
+                ]);
+            }
+            Invi_detalle_fuente_finan::where('proyect_id', $id)->delete();
+            
+            if ($request->filled('fuente_finan')) {
+                $inputFuenteFina = $request->fuente_finan;
+                $id_fuente_finan = null;
+
+                if (is_numeric($inputFuenteFina)) {
+                    $id_fuente_finan = $inputFuenteFina;
+                } else {
+                    $nombreLimpio = trim($inputFuenteFina);
+                    // Buscar si existe (ignorando mayúsculas/minúsculas)
+                    $fuentefinaExistente = Invi_fuente_finan::whereRaw('LOWER(nombre) = ?', [strtolower($nombreLimpio)])->first();
+                    
+                    if ($fuentefinaExistente) {
+                        $id_fuente_finan = $fuentefinaExistente->id_fuente_finan; 
+                    } else {
+                        $nuevoFuenteFina = Invi_fuente_finan::create([
+                            'nombre' => $nombreLimpio,
+                            'estado' => 1
+                        ]);
+                        $id_fuente_finan = $nuevoFuenteFina->id_fuente_finan;
+                    }
+                }
+
+                Invi_detalle_fuente_finan::create([
+                    'proyect_id' => $id,
+                    'id_fuente_finan' => $id_fuente_finan
+                ]);
+            }
+            Invi_detalle_param_cumpl::where('proyect_id', $id)->delete();
+            
+            if ($request->filled('params_cumpli')) {
+                $inputParams = $request->params_cumpli;
+                $id_param_cumpl = null;
+
+                if (is_numeric($inputParams)) {
+                    $id_param_cumpl = $inputParams;
+                } else {
+                    $nombreLimpio = trim($inputParams);
+                    // Buscar si existe (ignorando mayúsculas/minúsculas)
+                    $paramscumpliExistente = Invi_param_cumpl::whereRaw('LOWER(nombre) = ?', [strtolower($nombreLimpio)])->first();
+                    
+                    if ($paramscumpliExistente) {
+                        $id_param_cumpl = $paramscumpliExistente->id_param_cumpl; 
+                    } else {
+                        $nuevoParams = Invi_param_cumpl::create([
+                            'nombre' => $nombreLimpio,
+                            'estado' => 1
+                        ]);
+                        $id_param_cumpl = $nuevoParams->id_param_cumpl;
+                    }
+                }
+
+                Invi_detalle_param_cumpl::create([
+                    'proyect_id' => $id,
+                    'id_param_cumpl' => $id_param_cumpl
                 ]);
             }
             Invi_detalle_lin_inves::where('proyect_id', $id)->delete();

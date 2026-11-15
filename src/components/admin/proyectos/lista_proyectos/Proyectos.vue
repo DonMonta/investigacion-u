@@ -2446,6 +2446,91 @@
                                     </div>
                                 </div>
                             </div>
+                            <!-- Separador visual opcional -->
+                            <hr class="border-gray-200 dark:border-gray-800 my-4">
+
+                            <!-- Componente Alcance Territorial -->
+                            <div class="space-y-3">
+                                <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                                    Alcance Territorial: <span class="text-red-500">*</span>
+                                </label>
+                                
+                                <div class="flex flex-wrap gap-2.5">
+                                    <!-- Lista de alcances -->
+                                    <button 
+                                        type="button"
+                                        v-for="alcance in alcancesCatalogo" 
+                                        :key="alcance.alcance_id"
+                                        @click="editForm.alcance_territorial = alcance.alcance_id"
+                                        class="px-4 py-2 rounded-full text-xs font-semibold transition-all duration-200 shadow-sm border"
+                                        :class="editForm.alcance_territorial === alcance.alcance_id 
+                                            ? 'bg-indigo-600 border-indigo-600 text-white shadow-indigo-200 dark:shadow-indigo-900/50' 
+                                            : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-indigo-300 dark:bg-gray-900 dark:border-gray-700 dark:text-gray-300 dark:hover:border-indigo-500'">
+                                        {{ alcance.nombre }}
+                                    </button>
+                                    
+                                    <!-- Botón Añadir Nuevo -->
+                                    <button 
+                                        type="button"
+                                        @click="abrirModalNuevoAlcance"
+                                        class="px-4 py-2 rounded-full text-xs font-semibold transition-all duration-200 border-2 border-dashed border-indigo-300 text-indigo-600 hover:bg-indigo-50 dark:border-indigo-700 dark:text-indigo-400 dark:hover:bg-indigo-900/30 flex items-center gap-1">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                        Añadir Nuevo
+                                    </button>
+                                </div>
+                            </div>
+                            <!-- Modal Nuevo Alcance Territorial -->
+                            <div v-if="showAlcanceModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm transition-opacity">
+                                <!-- Se amplió de max-w-sm a max-w-md para dar más espacio -->
+                                <div class="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all">
+                                    
+                                    <!-- Cabecera -->
+                                    <div class="px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center bg-gray-50/50 dark:bg-gray-900/50">
+                                        <h3 class="text-base font-bold text-gray-800 dark:text-gray-100">Nuevo Alcance Territorial</h3>
+                                        <button @click="showAlcanceModal = false" class="text-gray-400 hover:text-red-500 transition-colors rounded-lg p-1 hover:bg-red-50 dark:hover:bg-red-900/20">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                        </button>
+                                    </div>
+                                    
+                                    <!-- Cuerpo -->
+                                    <div class="p-6 space-y-5">
+                                        <!-- Callout Informativo CACES -->
+                                        <div class="flex items-start gap-3 p-3 rounded-lg bg-blue-50 border border-blue-100 dark:bg-blue-900/20 dark:border-blue-800/50">
+                                            <svg class="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                            <p class="text-xs text-blue-800 dark:text-blue-300 leading-relaxed">
+                                                <strong class="font-semibold block mb-0.5">Dato requerido para el CACES</strong>
+                                                Este alcance define el impacto territorial del proyecto y será reportado oficialmente. Asegúrese de que el nombre ingresado sea claro 
+                                                y sean los que estén en el instructivo de carga masiva vigente(Ej. <em>Cantonal, Parroquial, Interprovincial</em>).
+                                            </p>
+                                        </div>
+
+                                        <!-- Input Mejorado -->
+                                        <div>
+                                            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Nombre del Alcance:</label>
+                                            <!-- Se añadió padding (p-3) y text-base para hacerlo más amplio y cómodo de escribir -->
+                                            <input type="text" v-model="nuevoAlcanceTexto" 
+                                                placeholder="Ej. Cantonal, Parroquial..."
+                                                class="w-full p-3 text-base rounded-xl border border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:bg-gray-800 dark:border-gray-700 dark:text-white transition-shadow"
+                                                @keyup.enter="guardarNuevoAlcance"
+                                                autofocus>
+                                        </div>
+                                        
+                                        <!-- Botones -->
+                                        <div class="flex justify-end gap-3 pt-2">
+                                            <button @click="showAlcanceModal = false" class="px-5 py-2.5 text-sm font-semibold text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 transition-colors">
+                                                Cancelar
+                                            </button>
+                                            <button @click="guardarNuevoAlcance" class="px-5 py-2.5 text-sm font-semibold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 shadow-md shadow-indigo-200 dark:shadow-none transition-all active:scale-95 flex items-center gap-2">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                                Añadir y Seleccionar
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                </div>
+                            </div>
                         </div>
                         <div class="p-5 border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm bg-white dark:bg-gray-950 space-y-6 mt-4">
     
@@ -4514,6 +4599,247 @@
                                 </table>
                             </div>
                         </div>
+                        <!-- Separador visual -->
+                        <hr class="border-gray-200 dark:border-gray-700 my-6">
+
+                        <!-- Componente Fuente de Financiamiento -->
+                        <div class="space-y-4">
+                            <label class="flex items-center gap-2 text-sm font-bold text-slate-800 dark:text-slate-200">
+                                <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                Fuente de Financiamiento CACES: <span class="text-rose-500">*</span>
+                            </label>
+                            
+                            <!-- Bloque informativo sobre la importancia del dato -->
+                            <div class="flex items-start gap-3 p-3.5 rounded-lg bg-emerald-50 border border-emerald-100 dark:bg-emerald-900/20 dark:border-emerald-800/50 shadow-sm">
+                                <svg class="w-5 h-5 text-emerald-600 dark:text-emerald-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <p class="text-xs text-emerald-800 dark:text-emerald-300 leading-relaxed">
+                                    <strong class="font-bold block mb-1 text-sm text-emerald-900 dark:text-emerald-200">¿Por qué es importante este dato?</strong>
+                                    Es un parámetro obligatorio para el <strong>Modelo de Evaluación Institucional del CACES</strong>. Permite reportar y evidenciar formalmente el origen de los recursos económicos destinados a la investigación (ej. fondos internos, externos, concursables), lo cual impacta directamente en los indicadores de transparencia y asignación presupuestaria de la institución.
+                                </p>
+                            </div>
+                            
+                            <!-- Diseño en Grid -->
+                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                                <!-- Lista de Fuentes -->
+                                <button 
+                                    type="button"
+                                    v-for="fuente in fuentefinanCatalogo" 
+                                    :key="fuente.id_fuente_finan"
+                                    @click="editForm.fuente_finan = fuente.id_fuente_finan"
+                                    class="px-4 py-3 rounded-lg text-xs font-medium text-left transition-all duration-200 border-2"
+                                    :class="editForm.fuente_finan === fuente.id_fuente_finan 
+                                        ? 'bg-emerald-50 border-emerald-500 text-emerald-800 shadow-sm dark:bg-emerald-900/30 dark:border-emerald-500 dark:text-emerald-100' 
+                                        : 'bg-white border-gray-100 text-gray-600 hover:border-emerald-200 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300 dark:hover:border-emerald-700'">
+                                    {{ fuente.nombre }}
+                                </button>
+                                
+                                <!-- Botón Añadir Nuevo -->
+                                <button 
+                                    type="button"
+                                    @click="abrirModalNuevoFinan"
+                                    class="px-4 py-3 rounded-lg text-xs font-semibold text-center transition-all duration-200 border-2 border-dashed border-gray-300 text-gray-500 hover:text-emerald-600 hover:border-emerald-400 hover:bg-emerald-50 dark:border-gray-600 dark:text-gray-400 dark:hover:text-emerald-400 dark:hover:border-emerald-600 dark:hover:bg-gray-800 flex flex-col items-center justify-center gap-1 min-h-[48px]">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                    <span>Registrar Nueva Fuente</span>
+                                </button>
+                            </div>
+                        </div>
+                        <!-- Modal Nueva Fuente de Financiamiento -->
+                        <div v-if="showFinanModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm transition-opacity">
+                            <div class="bg-white dark:bg-slate-900 rounded-xl shadow-2xl w-full max-w-lg overflow-hidden transform transition-all border border-slate-200 dark:border-slate-700">
+                                
+                                <!-- Cabecera -->
+                                <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
+                                    <h3 class="text-base font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                                        <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                                        Nueva Fuente de Financiamiento
+                                    </h3>
+                                    <button @click="showFinanModal = false" class="text-slate-400 hover:text-rose-500 transition-colors rounded-lg p-1 hover:bg-rose-50 dark:hover:bg-rose-900/20">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                    </button>
+                                </div>
+                                
+                                <!-- Cuerpo -->
+                                <div class="p-6 space-y-5">
+                                    <!-- Callout Informativo CACES -->
+                                    <div class="border-l-4 border-amber-500 bg-amber-50 dark:bg-amber-900/20 p-4 rounded-r-lg">
+                                        <div class="flex items-start gap-3">
+                                            <svg class="w-5 h-5 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                                            </svg>
+                                            <p class="text-xs text-amber-900 dark:text-amber-200 leading-relaxed">
+                                                <strong class="font-bold block text-sm mb-1">Nomenclatura Oficial CACES</strong>
+                                                De acuerdo a la <strong>Tabla 39: Fuente Financiamiento</strong> del modelo de evaluación[cite: 7], por favor intente usar términos estandarizados. 
+                                                Ejemplos: <em>"ASIGNACION REGULAR IES", "FONDOS CONCURSABLES NACIONALES", "FONDOS NO CONCURSABLES INTERNACIONALES"</em>[cite: 7].
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Nombre de la Fuente:</label>
+                                        <textarea 
+                                            v-model="nuevoFinanTexto" 
+                                            placeholder="Ej. ASIGNACION REGULAR IES..."
+                                            rows="1"
+                                            class="w-full p-3 text-sm uppercase rounded-lg border border-slate-300 shadow-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 dark:bg-slate-800 dark:border-slate-600 dark:text-white transition-all placeholder:normal-case resize-none overflow-hidden min-h-[46px]"
+                                            @input="autoResize"
+                                            @keydown.enter.prevent="guardarNuevoFinan"
+                                            autofocus>
+                                        </textarea>
+                                    </div>
+                                    
+                                    <!-- Botones -->
+                                    <div class="flex justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+                                        <button @click="showFinanModal = false" class="px-5 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-600 dark:hover:bg-slate-700 transition-colors">
+                                            Cancelar
+                                        </button>
+                                        <button @click="guardarNuevoFinan" class="px-5 py-2 text-sm font-bold text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 shadow-md shadow-emerald-200 dark:shadow-none transition-all active:scale-95">
+                                            Guardar Fuente
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                            </div>
+                        </div>
+                        <!-- Separador visual -->
+                        <hr class="border-gray-200 dark:border-gray-700 my-8">
+
+                        <!-- Componente Parámetro de Cumplimiento -->
+                        <div class="space-y-4">
+                            <label class="flex items-center gap-2 text-sm font-bold text-slate-800 dark:text-slate-200">
+                                <!-- Icono de Check/Métrica en Violeta -->
+                                <svg class="w-5 h-5 text-violet-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                Parámetro de Cumplimiento CACES: <span class="text-rose-500">*</span>
+                            </label>
+                            
+                            <!-- Bloque informativo -->
+                            <div class="flex items-start gap-3 p-4 rounded-xl bg-violet-50 border border-violet-100 dark:bg-violet-900/20 dark:border-violet-800/50 shadow-sm">
+                                <svg class="w-6 h-6 text-violet-600 dark:text-violet-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <p class="text-xs text-violet-800 dark:text-violet-300 leading-relaxed">
+                                    <strong class="font-bold block mb-1 text-sm text-violet-900 dark:text-violet-200">Requerimiento de Evaluación Institucional</strong>
+                                    Este parámetro clasifica el tipo de gasto o inversión del proyecto según el modelo del CACES. Es vital para el cálculo de indicadores de investigación. Por favor, seleccione un valor estandarizado de la <strong>Tabla 40</strong> (ej. <em>"GASTO NACIONAL BRUTO I+D+I"</em> o relaciones como <em>"GASTO EXTERNO/GASTO INTERNO"</em>)[cite: 8].
+                                </p>
+                            </div>
+                            
+                            <!-- Diseño en Lista Vertical (Ideal para textos largos de la Tabla 40) -->
+                            <div class="flex flex-col gap-3 mt-4">
+                                <!-- Lista de Parámetros -->
+                                <label 
+                                    v-for="param in paramsCatalogo" 
+                                    :key="param.id_param_cumpl"
+                                    class="relative flex items-center justify-between p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 group"
+                                    :class="editForm.params_cumpli === param.id_param_cumpl 
+                                        ? 'bg-violet-50 border-violet-500 shadow-md dark:bg-violet-900/30 dark:border-violet-500' 
+                                        : 'bg-white border-slate-200 hover:border-violet-300 hover:bg-slate-50 dark:bg-slate-800 dark:border-slate-700 dark:hover:border-violet-700'">
+                                    
+                                    <div class="flex items-center gap-4 w-full">
+                                        <!-- Custom Radio Button -->
+                                        <div class="flex-shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors"
+                                            :class="editForm.params_cumpli === param.id_param_cumpl ? 'border-violet-500' : 'border-slate-300 dark:border-slate-600 group-hover:border-violet-400'">
+                                            <div class="w-2.5 h-2.5 rounded-full transition-transform duration-200"
+                                                :class="editForm.params_cumpli === param.id_param_cumpl ? 'bg-violet-500 scale-100' : 'bg-transparent scale-0'">
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Texto del Parámetro -->
+                                        <span class="text-sm font-semibold transition-colors uppercase"
+                                            :class="editForm.params_cumpli === param.id_param_cumpl ? 'text-violet-900 dark:text-violet-100' : 'text-slate-600 dark:text-slate-300'">
+                                            {{ param.nombre }}
+                                        </span>
+                                    </div>
+
+                                    <!-- Input real oculto para accesibilidad -->
+                                    <input 
+                                        type="radio" 
+                                        name="parametro_cumplimiento" 
+                                        :value="param.id_param_cumpl" 
+                                        v-model="editForm.params_cumpli"
+                                        class="hidden">
+                                </label>
+                                
+                                <!-- Botón Añadir Nuevo -->
+                                <button 
+                                    type="button"
+                                    @click="abrirModalNuevoParam"
+                                    class="mt-2 flex items-center justify-center gap-2 p-4 rounded-xl border-2 border-dashed border-slate-300 bg-transparent text-slate-500 hover:text-violet-700 hover:border-violet-400 hover:bg-violet-50 dark:border-slate-600 dark:text-slate-400 dark:hover:text-violet-400 dark:hover:border-violet-500 dark:hover:bg-slate-800 transition-all font-semibold text-sm w-full">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                    </svg>
+                                    Registrar Nuevo Parámetro
+                                </button>
+                            </div>
+                        </div>
+                        <!-- Modal Nuevo Parámetro de Cumplimiento -->
+                        <div v-if="showParamModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm transition-opacity">
+                            <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden transform transition-all border border-slate-200 dark:border-slate-700">
+                                
+                                <!-- Cabecera -->
+                                <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
+                                    <h3 class="text-base font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                                        <svg class="w-5 h-5 text-violet-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                        </svg>
+                                        Nuevo Parámetro de Cumplimiento
+                                    </h3>
+                                    <button @click="showParamModal = false" class="text-slate-400 hover:text-rose-500 transition-colors rounded-lg p-1 hover:bg-rose-50 dark:hover:bg-rose-900/20">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                                
+                                <!-- Cuerpo -->
+                                <div class="p-6 space-y-5">
+                                    <!-- Callout Informativo CACES -->
+                                    <div class="border-l-4 border-violet-500 bg-violet-50 dark:bg-violet-900/20 p-4 rounded-r-lg">
+                                        <div class="flex items-start gap-3">
+                                            <svg class="w-5 h-5 text-violet-600 dark:text-violet-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                            <p class="text-xs text-violet-900 dark:text-violet-200 leading-relaxed">
+                                                <strong class="font-bold block text-sm mb-1">Nomenclatura Oficial (Tabla 40)</strong>
+                                                Asegúrese de escribir el valor exactamente como aparece en la normativa. Ejemplos permitidos[cite: 8]:<br>
+                                                • <em>COSTOS SALARIALES PERSONAL I+D+I</em><br>
+                                                • <em>GASTO NACIONAL BRUTO I+D+I</em><br>
+                                                • <em>COSTOS SALARIALES PERSONAL I+D+I/GASTO EXTERNO</em>
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <!-- Textarea Auto-ajustable -->
+                                    <div>
+                                        <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Valor del Parámetro:</label>
+                                        <textarea 
+                                            v-model="nuevoParamTexto" 
+                                            placeholder="Ej. GASTO INTERNO BRUTO I+D+I..."
+                                            rows="1"
+                                            class="w-full p-3 text-sm uppercase rounded-xl border border-slate-300 shadow-sm focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 dark:bg-slate-800 dark:border-slate-600 dark:text-white transition-all placeholder:normal-case resize-none overflow-hidden min-h-[46px] leading-relaxed"
+                                            @input="autoResizeParam"
+                                            @keydown.enter.prevent="guardarNuevoParam"
+                                            autofocus>
+                                        </textarea>
+                                    </div>
+                                    
+                                    <!-- Botones -->
+                                    <div class="flex justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+                                        <button @click="showParamModal = false" class="px-5 py-2.5 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-xl hover:bg-slate-50 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-600 dark:hover:bg-slate-700 transition-colors">
+                                            Cancelar
+                                        </button>
+                                        <button @click="guardarNuevoParam" class="px-5 py-2.5 text-sm font-bold text-white bg-violet-600 rounded-xl hover:bg-violet-700 shadow-md shadow-violet-200 dark:shadow-none transition-all active:scale-95">
+                                            Guardar Parámetro
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                            </div>
+                        </div>
                     </div>
                     <div v-else-if="activeTab === 'viabiliadad_sos'" class="space-y-8 animate-fade-in-up">
                         <div class="mb-4 p-4 bg-green-50 dark:bg-gray-800 rounded-lg border-l-4 border-green-500 flex gap-4">
@@ -5565,6 +5891,15 @@ export default {
             carrerasCatalogo: [],
             dominiosCatalogo: [],
             programasCatalogo: [],
+            alcancesCatalogo: [],       // Lista de alcances del backend
+            showAlcanceModal: false,    // Controla la visibilidad del modal
+            nuevoAlcanceTexto: '',
+            fuentefinanCatalogo: [],
+            showFinanModal: false,
+            nuevoFinanTexto: '',
+            paramsCatalogo: [],
+            showParamModal: false,
+            nuevoParamTexto: '',
             convocatoriasCatalogo: [],
             dominioRecomendadoId: '',
             lineasCatalogo: [],
@@ -5618,6 +5953,12 @@ export default {
                 id_carr_priori: '',
                 dominios_humanisticos: [],
                 id_programa: null,
+                alcance_territorial: null,
+                nuevos_alcances: [],
+                fuente_finan: null,
+                nuevos_finan: [],
+                params_cumpli: null,
+                nuevos_params: [],
                 id_convocatoria: '',
                 sublineas_investigacion: [],
                 unesco_areas: [],
@@ -7302,6 +7643,9 @@ export default {
                 this.facultadesCatalogo = data.facultades_catalogo || [];
                 this.dominiosCatalogo = data.dominios_catalogo || [];
                 this.programasCatalogo = data.programas_catalogo || [];
+                this.alcancesCatalogo = data.alcances_catalogo || [];
+                this.fuentefinanCatalogo = data.fuente_finan_catalogo || [];
+                this.paramsCatalogo = data.paramsCatalogo || [];
                 this.convocatoriasCatalogo = data.convocatorias_catalogo || [];
                 this.lineasCatalogo = data.lineas_catalogo || [];
                 this.sublineasCatalogo = data.sublineas_catalogo || [];
@@ -7457,6 +7801,12 @@ export default {
                     //Dominios académicos
                     dominios_humanisticos: data.dominios_seleccionados || [],
                     id_programa: data.id_programa_seleccionado || null,
+                    alcance_territorial: data.alcance_id_seleccionado || null,
+                    nuevos_alcances: [],
+                    fuente_finan: data.id_fuente_finan_seleccionado || null,
+                    nuevos_finan: [],
+                    params_cumpli: data.id_param_cumpl_seleccionado || null,
+                    nuevos_params: [],
                     //No. Convocatoria
                     id_convocatoria: data.proyecto.id_convocatoria || '',
                     sublineas_investigacion: [],
@@ -7558,6 +7908,163 @@ export default {
                 this.cargandoEdicion = false;
                 this.botonCargando = null;
             }
+        },
+        abrirModalNuevoAlcance() {
+            this.nuevoAlcanceTexto = '';
+            this.showAlcanceModal = true;
+        },
+        
+        guardarNuevoAlcance() {
+            const texto = this.nuevoAlcanceTexto.trim();
+            if (!texto) {
+                mostraralertas2('Debe ingresar un nombre válido.', 'error');
+                return;
+            }
+
+            // VALIDACIÓN DE DUPLICADOS EN FRONTEND (ignora mayúsculas/minúsculas)
+            const existe = this.alcancesCatalogo.find(
+                a => a.nombre.toLowerCase() === texto.toLowerCase()
+            );
+
+            if (existe) {
+                mostraralertas2(`El alcance "${existe.nombre}" ya existe.`, 'warning');
+                // Si ya existe, simplemente lo seleccionamos y cerramos el modal
+                this.editForm.alcance_territorial = existe.alcance_id;
+                this.showAlcanceModal = false;
+                return;
+            }
+            
+            // Si no existe, simulamos su creación temporal
+            const idTemporal = texto; 
+            
+            // 1. Mostrar en los botones visuales (chips)
+            this.alcancesCatalogo.push({
+                alcance_id: idTemporal,
+                nombre: texto
+            });
+
+            // 2. Guardar en el array para enviar al backend (para que se creen en la BD)
+            this.editForm.nuevos_alcances.push(texto);
+
+            // 3. Autoseleccionar el último
+            this.editForm.alcance_territorial = idTemporal;
+            this.showAlcanceModal = false;
+            
+            mostraralertas2('Alcance añadido. Se guardará permanentemente al actualizar el proyecto.', 'success');
+        },
+        autoResize(event) {
+            const textarea = event.target;
+            // Resetea la altura para recalcular correctamente si se borra texto
+            textarea.style.height = 'auto'; 
+            // Asigna la nueva altura basada en el contenido (scrollHeight)
+            textarea.style.height = textarea.scrollHeight + 'px';
+        },
+        abrirModalNuevoFinan() {
+            this.nuevoFinanTexto = '';
+            this.showFinanModal = true;
+            
+            // (Opcional) Resetear la altura visual del textarea al abrir el modal si ya existe en el DOM
+            this.$nextTick(() => {
+                const textarea = this.$el.querySelector('textarea[placeholder*="ASIGNACION"]');
+                if (textarea) {
+                    textarea.style.height = 'auto';
+                }
+            });
+        },
+        guardarNuevoFinan() {
+            // Convertimos a mayúsculas si se desea seguir el estándar de la imagen
+            const texto = this.nuevoFinanTexto.trim().toUpperCase();
+            
+            if (!texto) {
+                mostraralertas2('Debe ingresar un nombre para la fuente de financiamiento.', 'error');
+                return;
+            }
+
+            // VALIDACIÓN DE DUPLICADOS EN FRONTEND (ignorando case)
+            const existe = this.fuentefinanCatalogo.find(
+                f => f.nombre.toLowerCase() === texto.toLowerCase()
+            );
+
+            if (existe) {
+                mostraralertas2(`La fuente "${existe.nombre}" ya existe en el sistema.`, 'warning');
+                this.editForm.fuente_finan = existe.id_fuente_finan;
+                this.showFinanModal = false;
+                return;
+            }
+            
+            // Simular ID usando el texto (el backend procesará esto)
+            const idTemporal = texto; 
+            
+            // 1. Mostrar visualmente en el catálogo
+            this.fuentefinanCatalogo.push({
+                id_fuente_finan: idTemporal,
+                nombre: texto
+            });
+
+            // 2. Apilar en el arreglo a enviar al backend
+            this.editForm.nuevos_finan.push(texto);
+
+            // 3. Autoseleccionar
+            this.editForm.fuente_finan = idTemporal;
+            this.showFinanModal = false;
+            
+            mostraralertas2('Fuente añadida temporalmente. No olvide actualizar el proyecto.', 'success');
+        },
+        abrirModalNuevoParam() {
+            this.nuevoParamTexto = '';
+            this.showParamModal = true;
+            
+            // Reiniciar altura del textarea visualmente si ya existe
+            this.$nextTick(() => {
+                const textarea = this.$el.querySelector('textarea[placeholder*="GASTO INTERNO"]');
+                if (textarea) {
+                    textarea.style.height = 'auto';
+                }
+            });
+        },
+        autoResizeParam(event) {
+            const textarea = event.target;
+            textarea.style.height = 'auto'; 
+            textarea.style.height = textarea.scrollHeight + 'px';
+        },
+        guardarNuevoParam() {
+            // Convertimos a mayúsculas para cumplir con la Tabla 40 del CACES
+            const texto = this.nuevoParamTexto.trim().toUpperCase();
+            
+            if (!texto) {
+                mostraralertas2('Debe ingresar un nombre para el parámetro.', 'error');
+                return;
+            }
+
+            // 1. Validar duplicados visuales en el Front-end
+            const existe = this.paramsCatalogo.find(
+                p => p.nombre.toLowerCase() === texto.toLowerCase()
+            );
+
+            if (existe) {
+                mostraralertas2(`El parámetro "${existe.nombre}" ya está en la lista.`, 'warning');
+                this.editForm.params_cumpli = existe.id_param_cumpl;
+                this.showParamModal = false;
+                return;
+            }
+            
+            // 2. ID temporal con el texto (tu backend espera el texto en "params_cumpli" si no es número)
+            const idTemporal = texto; 
+            
+            // 3. Añadir a la lista visual de la interfaz
+            this.paramsCatalogo.push({
+                id_param_cumpl: idTemporal,
+                nombre: texto
+            });
+
+            // 4. Agregar al arreglo "nuevos_params" para que el backend lo registre en la tabla catálogo
+            this.editForm.nuevos_params.push(texto);
+
+            // 5. Seleccionarlo automáticamente
+            this.editForm.params_cumpli = idTemporal;
+            this.showParamModal = false;
+            
+            mostraralertas2('Parámetro agregado. Guarde los cambios del proyecto para confirmar.', 'success');
         },
         resetFormFinancia() {
             return {
@@ -8407,6 +8914,18 @@ export default {
             }
             if (!this.editForm.id_programa) {
                 mostraralertas2('Debe seleccionar un Programa Institucional.', 'error');
+                return;
+            }
+            if (!this.editForm.alcance_territorial) {
+                mostraralertas2('Debe seleccionar el alcance territorial obligatoriamente.', 'error');
+                return;
+            }
+            if (!this.editForm.fuente_finan) {
+                mostraralertas2('Debe seleccionar la fuente de financiamiento CACES obligatoriamente.', 'error');
+                return;
+            }
+            if (!this.editForm.params_cumpli) {
+                mostraralertas2('Debe seleccionar el parámetro de cumplimiento CACES obligatoriamente.', 'error');
                 return;
             }
             if (!this.editForm.id_convocatoria) {

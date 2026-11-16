@@ -497,6 +497,114 @@ class Invi_equipo_departController extends Controller
             ], 500);
         }
     }
+    public function getViceRecInfo(): JsonResponse
+    {
+        try {
+            // 1. Buscamos el integrante cuyo rol sea Director/Directora
+            $director = Invi_equipo_depart::with([
+                'informacionpersonald.titulos.nivel',
+                'equipo_roles'
+            ])
+                ->whereHas('equipo_roles', function ($query) {
+                    $query->where('nombre_rol', 'LIKE', '%Vicerrector%')
+                        ->where('estado_rol', 1)
+                        ->where('tipo_rol', 'LIKE', '%INVESTIGACIÓN%');
+                })
+                ->where('estado_equipo_dep', 1)
+                ->first();
+
+            if (!$director) {
+                return response()->json(['message' => 'Vicerrector no encontrado'], 404);
+            }
+
+            $persona = $director->informacionpersonald;
+            $rol = $director->equipo_roles;
+
+            // 2. Lógica de Género (M = Mujer, H = Hombre)
+            $esMujer = strtoupper($persona->GeneroPer) === 'F';
+
+            $labels = [
+                'pronombre'  => $esMujer ? 'Ella' : 'Él',
+                'articulo'   => $esMujer ? 'la' : 'el',
+                'titulo_rol' => $esMujer ? 'Directora' : 'Director',
+                'texto_bienvenida' => $esMujer
+                    ? "Ella es la Directora de la Dirección de INVESTIGACIÓN con la Sociedad Actualmente"
+                    : "Él es el Director de la Dirección de INVESTIGACIÓN con la Sociedad Actualmente"
+            ];
+
+            // 3. Procesar títulos académicos de forma inteligente filtrando por nv_numnivel
+            $tituloGrado = $persona->titulos->first(function ($titulo) {
+                return optional($titulo->nivel)->nv_numnivel == 3; // TERCER NIVEL
+            });
+            
+            $tituloPosgrado = $persona->titulos->first(function ($titulo) {
+                return optional($titulo->nivel)->nv_numnivel == 4; // CUARTO NIVEL
+            });
+
+            $prefijoNombre = '';
+            $sufijoNombre = '';
+
+            // A. Definir el PREFIJO (basado únicamente en el título de 3er nivel)
+            if ($tituloGrado) {
+                $textoGrado = mb_strtolower($tituloGrado->ad_titulo);
+
+                if (str_contains($textoGrado, 'licencia')) {
+                    $prefijoNombre = $esMujer ? 'Lcda.' : 'Lcdo.';
+                } else {
+                    // Si es ingeniería u otro de 3er nivel, va "Ing." por defecto
+                    $prefijoNombre = 'Ing.';
+                }
+            } else {
+                // Respaldo en caso de que no existan títulos de 3er nivel en la BD
+                $prefijoNombre = $esMujer ? 'Sra.' : 'Sr.';
+            }
+
+            // B. Definir el SUFIJO (basado únicamente en el título de 4to nivel)
+            if ($tituloPosgrado) {
+                $textoPosgrado = mb_strtolower($tituloPosgrado->ad_titulo);
+
+                if (str_contains($textoPosgrado, 'phd') || str_contains($textoPosgrado, 'doctorado') || str_contains($textoPosgrado, 'doctor')) {
+                    $sufijoNombre = ', PhD';
+                } elseif (str_contains($textoPosgrado, 'msc') || str_contains($textoPosgrado, 'science') || str_contains($textoPosgrado, 'ciencias')) {
+                    $sufijoNombre = ', MSc.';
+                } else {
+                    // Para Magíster, Mgtr, Maestría u otros de 4to nivel por defecto
+                    $sufijoNombre = ', Mgtr.';
+                }
+            }
+
+            // Construcción final: Prefijo + Nombres + Apellidos + Sufijo
+            $nombreCompletoConTitulo = "{$prefijoNombre} {$persona->NombInfPer} {$persona->ApellInfPer}{$sufijoNombre}";
+
+            // 4. Separar las funciones por renglones/saltos de línea para el Owl Carousel
+            $funcionesArray = [];
+            if (!empty($rol->funciones_rol)) {
+                $funcionesArray = array_filter(
+                    explode("\n", str_replace("\r", "", $rol->funciones_rol)),
+                    'trim'
+                );
+                $funcionesArray = array_values($funcionesArray);
+            }
+
+            // 5. Retornar la respuesta estructurada
+            return response()->json([
+                'ci'              => $persona->CIInfPer,
+                'nombre_completo' => $nombreCompletoConTitulo,
+                'email'           => $persona->mailInst ?? 'utelvt.edu.ec',
+                'telefono'        => $persona->Telf1InfPer ?? $persona->CelularInfPer ?? 'S/N',
+                'detalle_rol'     => $rol->detalle_rol,
+                'funciones'       => $funcionesArray,
+                'genero_labels'   => $labels,
+                'titulo_grado'    => $tituloGrado ? $tituloGrado->ad_titulo : null,
+                'titulo_posgrado' => $tituloPosgrado ? $tituloPosgrado->ad_titulo : null,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Error al procesar la solicitud',
+                'details' => $e->getMessage()
+            ], 500);
+        }
+    }
     public function getTeamInfo(): JsonResponse
     {
         try {

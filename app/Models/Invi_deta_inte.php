@@ -22,7 +22,9 @@ class Invi_deta_inte extends Model
         'idCarr',
         'anexo_integrante',
         'anexo_integrante2',
-        'estado'
+        'estado',
+        'id_grupo',
+        'es_coordinador'
     ];
     public function invi_proyectos()
     {
@@ -47,5 +49,9 @@ class Invi_deta_inte extends Model
     public function compromisos()
     {
         return $this->hasMany(Invi_compromiso::class, 'id_deta_invi_proyect', 'id_deta_invi_proyect');
+    }
+    public function grupo_investigacion()
+    {
+        return $this->belongsTo(Invi_grupos_investigacion::class, 'id_grupo', 'id_grupo');
     }
 }

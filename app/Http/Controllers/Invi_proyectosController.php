@@ -9,9 +9,11 @@ use App\Models\Invi_detalle_programa;
 use App\Models\Invi_alcance_territorial;
 use App\Models\Invi_fuente_finan;
 use App\Models\Invi_param_cumpl;
+use App\Models\Invi_result_verificables;
 use App\Models\Invi_detalle_alcance_territorial;
 use App\Models\Invi_detalle_fuente_finan;
 use App\Models\Invi_detalle_param_cumpl;
+use App\Models\Invi_detalle_result_verifi;
 use App\Models\informacionpersonal;
 use App\Models\InformacionPersonalD;
 use App\Models\Invi_deta_inte;
@@ -23,6 +25,7 @@ use App\Models\Subsistemas_pei;
 use App\Models\Invi_detalle_obj_pei;
 use App\Models\Plandne;
 use App\Models\Politicas_plandne;
+use App\Models\Politicas_pei;
 use App\Models\Invi_detalle_obj_pol_proyect;
 use App\Models\Agenda_ODS;
 use App\Models\ODS;
@@ -80,6 +83,7 @@ use App\Models\Invi_det_base_pat;
 use App\Models\Invi_base_pat;
 use App\Models\Obj_pol_plandne;
 use App\Models\Asignaturas;
+use App\Models\Invi_grupos_investigacion;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -269,6 +273,7 @@ class Invi_proyectosController extends Controller
             'invi_detalle_alcance_territorial',
             'invi_detalle_fuente_finan',
             'invi_detalle_param_cumpl',
+            'invi_detalle_result_verifi',
             'invi_obj_proyectos.invi_indicadores',
             'invi_obj_proyectos.invi_metas',
             'invi_obj_proyectos.invi_supuestos',
@@ -424,6 +429,9 @@ class Invi_proyectosController extends Controller
         $paramsCatalogo = Invi_param_cumpl::where('estado', 1)->get();
         $paramsCumpSeleccionado = $proyecto->invi_detalle_param_cumpl->first();
         $id_param_cumpl_seleccionado = $paramsCumpSeleccionado ? $paramsCumpSeleccionado->id_param_cumpl : null;
+        $resultVerifCatalogo = Invi_result_verificables::where('estado', 1)->get();
+        $resultVerifSeleccionado = $proyecto->invi_detalle_result_verifi->first();
+        $id_result_verificables_seleccionado = $resultVerifSeleccionado ? $resultVerifSeleccionado->id_result_verificables : null;
         $lineasCatalogo = Invi_linea_investigacion::where('estado_lin_investiga', 1)->get();
         $sublineasCatalogo = Invi_sub_linea_inves::all();
         // NUEVO: Sublíneas que el proyecto ya tiene guardadas
@@ -775,6 +783,7 @@ class Invi_proyectosController extends Controller
         $dominiosData = Invi_dom_huma::whereIn('id_dom_huma', $dominiosSeleccionados)->get();
         $objetivosPeiData = Objetivos_pei::whereIn('id_obj_pei', $preseleccionados)->get();
         $politicasData = Politicas_plandne::whereIn('id_pol_pladne', $politicasSeleccionadas)->get();
+        $peipoliticasData = Politicas_pei::whereIn('id_pol_pei', $polpeiSeleccionado)->get();
         $agendaOdsData = ODS::whereIn('id_ods', $odsSeleccionadas)->get();
         $objPolData = Politicas_plandne::with('objetivos_plandne')
                     ->whereIn('id_pol_pladne', $politicasSeleccionadas)
@@ -823,6 +832,8 @@ class Invi_proyectosController extends Controller
             'id_fuente_finan_seleccionado' => $id_fuente_finan_seleccionado,
             'paramsCatalogo' => $paramsCatalogo,
             'id_param_cumpl_seleccionado' => $id_param_cumpl_seleccionado,
+            'resultVerifCatalogo' => $resultVerifCatalogo,
+            'id_result_verificables_seleccionado' => $id_result_verificables_seleccionado,
             'lineas_catalogo' => $lineasCatalogo,
             'sublineas_catalogo' => $sublineasCatalogo,
             'sublineas_seleccionadas' => $sublineasSeleccionadas,
@@ -872,6 +883,7 @@ class Invi_proyectosController extends Controller
             'unesco_data' => $unescoData,
             'objetivos_pei_data' => $objetivosPeiData,
             'politicas_data' => $politicasData,
+            'pei_politicas_data' => $peipoliticasData,
             'agenda_ods_data' => $agendaOdsData,
             'objetivos_politicas_data' => $objPolData,
             'convocatoria_data' => $convocatoriaData,
@@ -889,6 +901,509 @@ class Invi_proyectosController extends Controller
     public function store(Request $request)
     {
 
+    }
+    public function exportarParticipantesCACES(Request $request, $id)
+    {
+        try {
+            // Recibimos las opciones seleccionadas por el usuario
+            $tipoNombre = $request->query('tipo_nombre', 'nombre'); 
+            $tipoGrupo = $request->query('tipo_grupo', 'nombre'); 
+            
+            $proyecto = Invi_proyectos::with(['invi_detalle_integrante' => function($query) {
+                $query->where('estado', 1);
+            }, 'invi_detalle_integrante.grupo_investigacion'])->findOrFail($id);
+            
+            $nombreProyecto = $tipoNombre === 'titulo' ? $proyecto->proyect_titulo : $proyecto->proyect_nombre;
+            
+            $fileName = 'Matriz_CACES_' . ($proyecto->proyect_cod ?? 'S_N') . '.csv';
+            
+            $headers = [
+                "Content-type"        => "text/csv; charset=UTF-8",
+                "Content-Disposition" => "attachment; filename={$fileName}",
+                "Pragma"              => "no-cache",
+                "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
+                "Expires"             => "0"
+            ];
+            
+            $columns = [
+                'CODIGO_IES', 
+                'CODIGO', 
+                'NOMBRE', 
+                'TIPO_PROYECTO', 
+                'TIPO_PARTICIPANTE', 
+                'IDENTIFICACION_CODIGO', 
+                'HORAS', 
+                'GRUPO_INVESTIGACION'
+            ];
+            
+            // Usamos $tipoGrupo en el scope del callback
+            $callback = function() use ($proyecto, $columns, $nombreProyecto, $tipoGrupo) {
+                $file = fopen('php://output', 'w');
+                
+                fputs($file, $bom = (chr(0xEF) . chr(0xBB) . chr(0xBF)));
+                fputcsv($file, $columns, ';');
+                
+                foreach ($proyecto->invi_detalle_integrante as $int) {
+                    
+                    $tipoParticipante = '';
+                    $cedula = '';
+                    
+                    if (!empty($int->ciinfper_doc)) {
+                        $tipoParticipante = 'DOCENTE';
+                        $cedula = $int->ciinfper_doc;
+                    } elseif (!empty($int->ciinfper_est)) {
+                        $tipoParticipante = 'ESTUDIANTE';
+                        $cedula = $int->ciinfper_est;
+                    }
+
+                    // TRUCO PARA EXCEL: Añadimos un tab (\t) al final. 
+                    // Esto fuerza a Excel a leerlo como texto manteniendo el cero inicial.
+                    if (!empty($cedula)) {
+                        $cedula = $cedula . "\t";
+                    }
+
+                    // LÓGICA DEL GRUPO: Acrónimo o Nombre Completo
+                    $nombreGrupoFinal = '';
+                    if ($int->grupo_investigacion) {
+                        if ($tipoGrupo === 'acronimo' && !empty($int->grupo_investigacion->acronimo)) {
+                            $nombreGrupoFinal = strtoupper(trim($int->grupo_investigacion->acronimo));
+                        } else {
+                            $nombreGrupoFinal = strtoupper(trim($int->grupo_investigacion->nombre_grupo));
+                        }
+                    }
+                    
+                    $row = [
+                        '1012',                                   
+                        $proyecto->proyect_cod ?? '',             
+                        strtoupper($nombreProyecto ?? ''),        
+                        'INVESTIGACION E INNOVACION',             
+                        $tipoParticipante,                        
+                        $cedula,                                  
+                        '',                                       
+                        $nombreGrupoFinal                              
+                    ];
+                    
+                    fputcsv($file, $row, ';');
+                }
+                
+                fclose($file);
+            };
+            
+            return response()->stream($callback, 200, $headers);
+
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Error al generar CSV: ' . $e->getMessage()], 500);
+        }
+    }
+    public function exportarParticipantesCACESGeneral(Request $request)
+    {
+        try {
+            $tipoNombre = $request->query('tipo_nombre', 'nombre');
+            $tipoGrupo = $request->query('tipo_grupo', 'nombre');
+            $searchQuery = $request->query('search_query');
+            $idConvocatoria = $request->query('id_convocatoria');
+
+            // Construir la consulta principal (con las mismas relaciones)
+            $query = Invi_proyectos::with(['invi_detalle_integrante' => function($q) {
+                $q->where('estado', 1);
+            }, 'invi_detalle_integrante.grupo_investigacion'])
+            ->where('proyect_tipo', 'INVESTIGACIÓN');
+
+            // Aplicar filtros exactos de tu método index
+            if (!empty($searchQuery)) {
+                $query->where('proyect_cod', 'LIKE', "%{$searchQuery}%");
+            }
+            if (!empty($idConvocatoria)) {
+                $query->where('id_convocatoria', $idConvocatoria);
+            }
+
+            $fileName = 'Matriz_Proyectos-Participantes_CACES_' . date('Y_m_d_His') . '.csv';
+
+            $headers = [
+                "Content-type"        => "text/csv; charset=UTF-8",
+                "Content-Disposition" => "attachment; filename={$fileName}",
+                "Pragma"              => "no-cache",
+                "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
+                "Expires"             => "0"
+            ];
+
+            $columns = [
+                'CODIGO_IES', 
+                'CODIGO', 
+                'NOMBRE', 
+                'TIPO_PROYECTO', 
+                'TIPO_PARTICIPANTE', 
+                'IDENTIFICACION_CODIGO', 
+                'HORAS', 
+                'GRUPO_INVESTIGACION'
+            ];
+
+            $callback = function() use ($query, $columns, $tipoNombre, $tipoGrupo) {
+                $file = fopen('php://output', 'w');
+                
+                fputs($file, $bom = (chr(0xEF) . chr(0xBB) . chr(0xBF)));
+                fputcsv($file, $columns, ';');
+                
+                // Procesar la data en bloques (chunks) para no saturar memoria
+                $query->chunk(100, function($proyectos) use ($file, $tipoNombre, $tipoGrupo) {
+                    foreach ($proyectos as $proyecto) {
+                        $nombreProyecto = $tipoNombre === 'titulo' 
+                            ? (!empty($proyecto->proyect_titulo) ? $proyecto->proyect_titulo : $proyecto->proyect_nombre) 
+                            : $proyecto->proyect_nombre;
+
+                        foreach ($proyecto->invi_detalle_integrante as $int) {
+                            $tipoParticipante = '';
+                            $cedula = '';
+
+                            if (!empty($int->ciinfper_doc)) {
+                                $tipoParticipante = 'DOCENTE';
+                                $cedula = $int->ciinfper_doc;
+                            } elseif (!empty($int->ciinfper_est)) {
+                                $tipoParticipante = 'ESTUDIANTE';
+                                $cedula = $int->ciinfper_est;
+                            }
+
+                            if (!empty($cedula)) {
+                                $cedula = $cedula . "\t";
+                            }
+
+                            $nombreGrupoFinal = '';
+                            if ($int->grupo_investigacion) {
+                                if ($tipoGrupo === 'acronimo' && !empty($int->grupo_investigacion->acronimo)) {
+                                    $nombreGrupoFinal = strtoupper(trim($int->grupo_investigacion->acronimo));
+                                } else {
+                                    $nombreGrupoFinal = strtoupper(trim($int->grupo_investigacion->nombre_grupo));
+                                }
+                            }
+                            
+                            $row = [
+                                '1012',
+                                $proyecto->proyect_cod ?? '',
+                                strtoupper($nombreProyecto ?? ''),
+                                'INVESTIGACION E INNOVACION',
+                                $tipoParticipante,
+                                $cedula,
+                                '',
+                                $nombreGrupoFinal
+                            ];
+                            
+                            fputcsv($file, $row, ';');
+                        }
+                    }
+                });
+                
+                fclose($file);
+            };
+
+            return response()->stream($callback, 200, $headers);
+
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Error al generar CSV: ' . $e->getMessage()], 500);
+        }
+    }
+    public function exportarPresupuestoCACESGeneral(Request $request)
+    {
+        try {
+            $tipoNombre = $request->query('tipo_nombre', 'nombre');
+            $searchQuery = $request->query('search_query');
+            $idConvocatoria = $request->query('id_convocatoria');
+
+            // Consultar proyectos e incluir la relación de presupuesto
+            $query = Invi_proyectos::with('invi_detalle_presu_proy')
+                ->where('proyect_tipo', 'INVESTIGACIÓN');
+
+            // Aplicar filtros de la vista
+            if (!empty($searchQuery)) {
+                $query->where('proyect_cod', 'LIKE', "%{$searchQuery}%");
+            }
+            if (!empty($idConvocatoria)) {
+                $query->where('id_convocatoria', $idConvocatoria);
+            }
+
+            $fileName = 'Matriz_Presupuesto_CACES_' . date('Y_m_d_His') . '.csv';
+
+            $headers = [
+                "Content-type"        => "text/csv; charset=UTF-8",
+                "Content-Disposition" => "attachment; filename={$fileName}",
+                "Pragma"              => "no-cache",
+                "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
+                "Expires"             => "0"
+            ];
+
+            // Columnas según requerimiento exacto
+            $columns = [
+                'CODIGO_IES', 
+                'CODIGO', 
+                'NOMBRE', 
+                'ANIO', 
+                'PRESUPUESTO_PLANIFICADO', 
+                'PRESUPUESTO_EJECUTADO'
+            ];
+
+            $callback = function() use ($query, $columns, $tipoNombre) {
+                $file = fopen('php://output', 'w');
+                
+                fputs($file, $bom = (chr(0xEF) . chr(0xBB) . chr(0xBF)));
+                fputcsv($file, $columns, ';');
+                
+                // Procesar la data en bloques de 100
+                $query->chunk(100, function($proyectos) use ($file, $tipoNombre) {
+                    foreach ($proyectos as $proyecto) {
+                        // 1. Determinar el nombre a usar
+                        $nombreProyecto = $tipoNombre === 'titulo' 
+                            ? (!empty($proyecto->proyect_titulo) ? $proyecto->proyect_titulo : $proyecto->proyect_nombre) 
+                            : $proyecto->proyect_nombre;
+
+                        // 2. Calcular Presupuesto Planificado sumando el campo total_presupuesto de los detalles
+                        $presupuestoPlanificado = 0;
+                        if ($proyecto->invi_detalle_presu_proy->isNotEmpty()) {
+                            $presupuestoPlanificado = $proyecto->invi_detalle_presu_proy->sum('total_presupuesto');
+                        }
+
+                        // Reemplazar la coma decimal si es necesario para evitar conflictos en Excel
+                        $presupuestoPlanificadoStr = number_format($presupuestoPlanificado, 2, '.', '');
+
+                        // 3. Crear Fila
+                        $row = [
+                            '1012',                         // CODIGO_IES
+                            $proyecto->proyect_cod ?? '',   // CODIGO
+                            strtoupper($nombreProyecto ?? ''), // NOMBRE
+                            '',                             // ANIO (En blanco según solicitud)
+                            $presupuestoPlanificadoStr,     // PRESUPUESTO_PLANIFICADO
+                            ''                              // PRESUPUESTO_EJECUTADO (En blanco según solicitud)
+                        ];
+                        
+                        fputcsv($file, $row, ';');
+                    }
+                });
+                
+                fclose($file);
+            };
+
+            return response()->stream($callback, 200, $headers);
+
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Error al generar CSV Presupuesto: ' . $e->getMessage()], 500);
+        }
+    }
+    public function exportarProyectosCACES(Request $request)
+    {
+        try {
+            $tipoNombre = $request->query('tipo_nombre', 'nombre');
+            $searchQuery = $request->query('search_query');
+            $idConvocatoria = $request->query('id_convocatoria');
+
+            // Consultar proyectos e incluir todas las relaciones necesarias para el mapeo
+            $query = Invi_proyectos::with([
+                'invi_detalle_programa.invi_programa',
+                'invi_obj_proyectos',
+                'invi_detalle_lin_inves.sublineas_investigacion.linea_investigacion',
+                'invi_detalle_fac_proy.facultades_priori',
+                'invi_detalle_fac_proy.facultades',
+                'invi_detalle_integrante.funciones',
+                'invi_detalle_integrante.informacionPersonalD',
+                'invi_detalle_campo_unesco.campo_detallado',
+                'invi_detalle_alcance_territorial.invi_alcance_territorial',
+                'invi_det_impactos_esperados.invi_impactos',
+                'invi_detalle_fuente_finan.invi_fuente_finan',
+                'invi_detalle_param_cumpl.invi_param_cumpl',
+                'invi_detalle_inst_proy.praempresas'
+            ])->where('proyect_tipo', 'INVESTIGACIÓN');
+
+            // Filtros
+            if (!empty($searchQuery)) {
+                $query->where('proyect_cod', 'LIKE', "%{$searchQuery}%");
+            }
+            if (!empty($idConvocatoria)) {
+                $query->where('id_convocatoria', $idConvocatoria);
+            }
+
+            $fileName = 'Matriz_Proyectos_CACES_' . date('Y_m_d_His') . '.csv';
+            $headers = [
+                "Content-type"        => "text/csv; charset=UTF-8",
+                "Content-Disposition" => "attachment; filename={$fileName}",
+                "Pragma"              => "no-cache",
+                "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
+                "Expires"             => "0"
+            ];
+
+            // Columnas según requerimiento CACES en el orden del documento
+            $columns = [
+                'CODIGO_IES', 'CODIGO', 'NOMBRE', 'TIPO_PROYECTO', 'PROGRAMA', 'OBJETIVO', 'ESTADO',
+                'LINEA_INVESTIGACION', 'FACULTAD_ENTIDAD_RESPONABLE', 'FECHA_INICIO', 'FECHA_FIN_PLANEADO',
+                'FECHA_FIN_REAL', 'COORDINADOR_DIRECTOR', 'CORREO_ELECTRONICO_COORDINADOR', 'TELEFONO_COORDINADOR',
+                'CAMPO_DETALLADO', 'ALCANCE TERRITORIAL', 'IMPACTO_SOCIAL', 'IMPACTO_CIENTIFICO',
+                'IMPACTO_ECONOMICO', 'IMPACTO_POLITICO', 'OTRO_IMPACTO', 'INVESTIGADORES_ACREDITADOS_MINEDEC',
+                'FUENTE_FINANCIAMIENTO', 'DESCRIPCION_ACTIVIDAD_I+D', 'PARAMETRO_CUMPLIMIENTO', 'GRUPO_GASTO',
+                'ITEM', 'COOPERACIÓN', 'RED', 'RESULTADOS_VERIFICABLES', 'IMPACTO_AMBIENTAL'
+            ];
+
+            $callback = function() use ($query, $columns, $tipoNombre) {
+                $file = fopen('php://output', 'w');
+                fputs($file, $bom = (chr(0xEF) . chr(0xBB) . chr(0xBF))); // UTF-8 BOM
+                fputcsv($file, $columns, ';');
+                
+                $query->chunk(100, function($proyectos) use ($file, $tipoNombre) {
+                    foreach ($proyectos as $proyecto) {
+                        
+                        // 1. Datos Base
+                        $nombreProyecto = $tipoNombre === 'titulo' 
+                            ? (!empty($proyecto->proyect_titulo) ? $proyecto->proyect_titulo : $proyecto->proyect_nombre) 
+                            : $proyecto->proyect_nombre;
+
+                        // 2. Fechas (Formato dd/mm/aaaa)[cite: 12]
+                        $fechaInicio = $proyecto->fechainicio_real ? Carbon::parse($proyecto->fechainicio_real)->format('d/m/Y') : '';
+                        $fechaFinPlan = $proyecto->fechafin ? Carbon::parse($proyecto->fechafin)->format('d/m/Y') : '';
+                        $fechaFinReal = $proyecto->fechafin_real ? Carbon::parse($proyecto->fechafin_real)->format('d/m/Y') : '';
+
+                        // 3. Obtener relaciones 1 a 1 / Mapeos directos
+                        $programa = $proyecto->invi_detalle_programa->first()?->invi_programa?->nombre_programa ?? '';
+                        
+                        $objetivoGen = $proyecto->invi_obj_proyectos->where('tipo_obj_proy', 'general')->first();
+                        $objetivo = $objetivoGen ? $objetivoGen->detalle_obj_proy : '';
+
+                        $lineaInv = $proyecto->invi_detalle_lin_inves->first()?->sublineas_investigacion?->linea_investigacion?->nombre_lin ?? '';
+
+                        // Facultad Prioritaria o principal[cite: 15]
+                        $facultadSiglas = '';
+                        $facPriori = $proyecto->invi_detalle_fac_proy->whereNotNull('id_facultad_priori')->first();
+                        if ($facPriori && $facPriori->facultades_priori) {
+                            $facultadSiglas = $facPriori->facultades_priori->siglas;
+                        } elseif ($proyecto->invi_detalle_fac_proy->first() && $proyecto->invi_detalle_fac_proy->first()->facultades) {
+                            $facultadSiglas = $proyecto->invi_detalle_fac_proy->first()->facultades->siglas;
+                        }
+
+                        // 4. Coordinador/Director[cite: 13, 15]
+                        $coordNombre = ''; $coordCorreo = ''; $coordTelf = '';
+                        $director = $proyecto->invi_detalle_integrante->first(function($inte) {
+                            return $inte->es_coordinador == 1 || ($inte->funciones && stripos($inte->funciones->nombre_funcion, 'DIRECTOR') !== false);
+                        });
+                        if ($director && $director->informacionPersonalD) {
+                            $infoDir = $director->informacionPersonalD;
+                            $coordNombre = trim($infoDir->NombInfPer . ' ' . $infoDir->ApellInfPer);
+                            $coordCorreo = $infoDir->mailInst ?? $infoDir->mailPer;
+                            $coordTelf = $infoDir->CelularInfPer ?? $infoDir->Telf1InfPer;
+                        }
+
+                        // 5. Detalles adicionales
+                        $campoDet = $proyecto->invi_detalle_campo_unesco->first()?->campo_detallado?->codigo ?? '';
+                        $alcanceTerritorial = $proyecto->invi_detalle_alcance_territorial->first()?->invi_alcance_territorial?->nombre ?? '';
+                        $fuenteFinan = $proyecto->invi_detalle_fuente_finan->first()?->invi_fuente_finan?->nombre ?? '';
+                        $paramCumpl = $proyecto->invi_detalle_param_cumpl->first()?->invi_param_cumpl?->nombre ?? '';
+
+                        // 6. Impactos[cite: 13, 14, 15]
+                        $impSoc = ''; $impCie = ''; $impEco = ''; $impPol = ''; $impAmb = ''; $impOtro = '';
+
+                        foreach ($proyecto->invi_det_impactos_esperados as $impacto) {
+                            $descImp = $impacto->descripcion_general;
+                            
+                            // Evaluamos directamente el ID del impacto basado en tu tabla invi_impactos
+                            switch ($impacto->id_impactos) {
+                                case 1: // 1: Impacto económico
+                                    $impEco = $descImp;
+                                    break;
+                                case 2: // 2: Impacto social
+                                    $impSoc = $descImp;
+                                    break;
+                                case 3: // 3: Impacto político
+                                    $impPol = $descImp;
+                                    break;
+                                case 4: // 4: Impacto científico
+                                    $impCie = $descImp;
+                                    break;
+                                case 5: // 5: Impacto ambiental
+                                    $impAmb = $descImp;
+                                    break;
+                                case 6: // 6: Otros impactos
+                                    $impOtro = $descImp;
+                                    break;
+                            }
+                        }
+
+                        // 7. Cooperación y Red (Nacional, Internacional, Ambos, No Aplica)[cite: 13, 15]
+                        $cooperacion = 'NO APLICA';
+                        $red = 'NO APLICA';
+                        $hasNacCoop = false; $hasIntCoop = false;
+                        $hasNacRed = false; $hasIntRed = false;
+
+                        foreach ($proyecto->invi_detalle_inst_proy as $inst) {
+                            if (!$inst->praempresas) continue;
+                            
+                            $pais = strtoupper($inst->praempresas->pais);
+                            $esRed = $inst->praempresas->es_red_investigacion == 1;
+
+                            if ($esRed) {
+                                if ($pais === 'ECUADOR') $hasNacRed = true;
+                                else $hasIntRed = true;
+                            } else {
+                                if ($pais === 'ECUADOR') $hasNacCoop = true;
+                                else $hasIntCoop = true;
+                            }
+                        }
+
+                        // Determinar resultado Cooperación
+                        if ($hasNacCoop && $hasIntCoop) $cooperacion = 'INTERNACIONAL Y NACIONAL';
+                        elseif ($hasNacCoop) $cooperacion = 'NACIONAL';
+                        elseif ($hasIntCoop) $cooperacion = 'INTERNACIONAL';
+
+                        // Determinar resultado Red
+                        if ($hasNacRed && $hasIntRed) $red = 'INTERNACIONAL Y NACIONAL';
+                        elseif ($hasNacRed) $red = 'NACIONAL';
+                        elseif ($hasIntRed) $red = 'INTERNACIONAL';
+
+                        // Crear la fila asegurando el orden del array $columns
+                        $row = [
+                            '1012',                                             // CODIGO_IES
+                            $proyecto->proyect_cod ?? '',                       // CODIGO[cite: 12]
+                            strtoupper($nombreProyecto ?? ''),                  // NOMBRE[cite: 12]
+                            $proyecto->proyect_tipo ?? '',                      // TIPO_PROYECTO[cite: 12]
+                            strtoupper($programa),                              // PROGRAMA[cite: 12]
+                            $objetivo,                                          // OBJETIVO[cite: 12]
+                            $proyecto->proyect_estado_cases ?? '',              // ESTADO (Instrucción explícita)[cite: 12, 15]
+                            $lineaInv,                                          // LINEA_INVESTIGACION[cite: 12]
+                            $facultadSiglas,                                    // FACULTAD_ENTIDAD_RESPONABLE[cite: 12]
+                            $fechaInicio,                                       // FECHA_INICIO (Instrucción explícita)[cite: 12, 15]
+                            $fechaFinPlan,                                      // FECHA_FIN_PLANEADO (Instrucción explícita)[cite: 12, 15]
+                            $fechaFinReal,                                      // FECHA_FIN_REAL (Instrucción explícita)[cite: 12, 15]
+                            strtoupper($coordNombre),                           // COORDINADOR_DIRECTOR[cite: 13]
+                            $coordCorreo,                                       // CORREO_ELECTRONICO_COORDINADOR[cite: 13]
+                            $coordTelf,                                         // TELEFONO_COORDINADOR[cite: 13]
+                            $campoDet,                                          // CAMPO_DETALLADO[cite: 13]
+                            $alcanceTerritorial,                                // ALCANCE TERRITORIAL[cite: 13]
+                            $impSoc,                                            // IMPACTO_SOCIAL[cite: 13]
+                            $impCie,                                            // IMPACTO_CIENTIFICO[cite: 13]
+                            $impEco,                                            // IMPACTO_ECONOMICO[cite: 13]
+                            $impPol,                                            // IMPACTO_POLITICO[cite: 13]
+                            $impOtro,                                           // OTRO_IMPACTO[cite: 13]
+                            '',                                                 // INVESTIGADORES_ACREDITADOS_MINEDEC (Instrucción explícita)[cite: 13]
+                            $fuenteFinan,                                       // FUENTE_FINANCIAMIENTO[cite: 13]
+                            $proyecto->proyect_descrip_act_i_d ?? '',           // DESCRIPCION_ACTIVIDAD_I+D (Instrucción explícita)[cite: 13, 15]
+                            $paramCumpl,                                        // PARAMETRO_CUMPLIMIENTO[cite: 13]
+                            'PUBLICA',                                          // GRUPO_GASTO (Instrucción explícita)[cite: 13]
+                            'PUBLICA',                                          // ITEM (Instrucción explícita)[cite: 13]
+                            $cooperacion,                                       // COOPERACIÓN[cite: 13]
+                            $red,                                               // RED[cite: 13]
+                            $proyecto->proyec_result_invest ?? '',              // RESULTADOS_VERIFICABLES (Fallback a campo general si aplica)[cite: 14, 15]
+                            $impAmb                                             // IMPACTO_AMBIENTAL[cite: 14]
+                        ];
+                        
+                        // Limpiar saltos de línea para el CSV
+                        $row = array_map(function($val) {
+                            return str_replace(["\r", "\n"], " ", $val ?? '');
+                        }, $row);
+
+                        fputcsv($file, $row, ';');
+                    }
+                });
+                
+                fclose($file);
+            };
+
+            return response()->stream($callback, 200, $headers);
+
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Error al generar CSV Proyectos: ' . $e->getMessage()], 500);
+        }
     }
     public function uploadArchivoInstitucion(Request $request){
         $request->validate([
@@ -943,6 +1458,7 @@ class Invi_proyectosController extends Controller
             'invi_detalle_integrante.informacionPersonalD',
             'invi_detalle_integrante.informacionpersonal',
             'invi_detalle_integrante.compromisos',
+            'invi_detalle_integrante.grupo_investigacion',
             'invi_detalle_integrante.informacionPersonalD.titulos.nivel'
         ])->findOrFail($id);
 
@@ -1258,8 +1774,8 @@ class Invi_proyectosController extends Controller
                 foreach ($request->nuevos_finan as $nuevoNombre) {
                     $nombreLimpio = trim($nuevoNombre);
                     // Validar duplicados ignorando mayúsculas/minúsculas
-                    $existeCat = Invi_fuente_finan::whereRaw('LOWER(nombre) = ?', [strtolower($nombreLimpio)])->first();
-                    if (!$existeCat) {
+                    $existeFuen = Invi_fuente_finan::whereRaw('LOWER(nombre) = ?', [strtolower($nombreLimpio)])->first();
+                    if (!$existeFuen) {
                         Invi_fuente_finan::create([
                             'nombre' => $nombreLimpio,
                             'estado' => 1
@@ -1271,9 +1787,22 @@ class Invi_proyectosController extends Controller
                 foreach ($request->nuevos_params as $nuevoNombre) {
                     $nombreLimpio = trim($nuevoNombre);
                     // Validar duplicados ignorando mayúsculas/minúsculas
-                    $existeCat = Invi_param_cumpl::whereRaw('LOWER(nombre) = ?', [strtolower($nombreLimpio)])->first();
-                    if (!$existeCat) {
+                    $existeParms = Invi_param_cumpl::whereRaw('LOWER(nombre) = ?', [strtolower($nombreLimpio)])->first();
+                    if (!$existeParms) {
                         Invi_param_cumpl::create([
+                            'nombre' => $nombreLimpio,
+                            'estado' => 1
+                        ]);
+                    }
+                }
+            }
+            if ($request->has('nuevos_resultverif') && is_array($request->nuevos_resultverif)) {
+                foreach ($request->nuevos_resultverif as $nuevoNombre) {
+                    $nombreLimpio = trim($nuevoNombre);
+                    // Validar duplicados ignorando mayúsculas/minúsculas
+                    $existeRF = Invi_result_verificables::whereRaw('LOWER(nombre) = ?', [strtolower($nombreLimpio)])->first();
+                    if (!$existeRF) {
+                        Invi_result_verificables::create([
                             'nombre' => $nombreLimpio,
                             'estado' => 1
                         ]);
@@ -1366,6 +1895,35 @@ class Invi_proyectosController extends Controller
                 Invi_detalle_param_cumpl::create([
                     'proyect_id' => $id,
                     'id_param_cumpl' => $id_param_cumpl
+                ]);
+            }
+            Invi_detalle_result_verifi::where('proyect_id', $id)->delete();
+            
+            if ($request->filled('result_verif')) {
+                $inputResultVer = $request->result_verif;
+                $id_result_verificables = null;
+
+                if (is_numeric($inputResultVer)) {
+                    $id_result_verificables = $inputResultVer;
+                } else {
+                    $nombreLimpio = trim($inputResultVer);
+                    // Buscar si existe (ignorando mayúsculas/minúsculas)
+                    $resultverifExistente = Invi_result_verificables::whereRaw('LOWER(nombre) = ?', [strtolower($nombreLimpio)])->first();
+                    
+                    if ($resultverifExistente) {
+                        $id_result_verificables = $resultverifExistente->id_result_verificables; 
+                    } else {
+                        $nuevoRF = Invi_result_verificables::create([
+                            'nombre' => $nombreLimpio,
+                            'estado' => 1
+                        ]);
+                        $id_result_verificables = $nuevoRF->id_result_verificables;
+                    }
+                }
+
+                Invi_detalle_result_verifi::create([
+                    'proyect_id' => $id,
+                    'id_result_verificables' => $id_result_verificables
                 ]);
             }
             Invi_detalle_lin_inves::where('proyect_id', $id)->delete();
@@ -2246,6 +2804,74 @@ class Invi_proyectosController extends Controller
                 ->where('NombCarr', 'NOT LIKE', '%TRABAJO DE INTEGRACIÓN CURRICULAR%')
                 ->get(),
         ]);
+    }
+    public function getGruposProyecto($proyect_id)
+    {
+        $grupos = Invi_grupos_investigacion::where('proyect_id', $proyect_id)
+                    ->where('estado', 1)
+                    ->get();
+        return response()->json(['grupos' => $grupos]);
+    }
+    public function asignarGrupoIntegrantes(Request $request)
+    {
+        DB::beginTransaction();
+        try {
+            $proyect_id = $request->proyect_id;
+            $integrantesIds = $request->integrantes_ids; // Array de IDs de detalle integrante
+            $grupoDatos = $request->grupo_datos; // Array con {id_grupo, es_nuevo, nombre_grupo, acronimo}
+            $coordinadorId = $request->coordinador_id;
+
+            $idGrupo = $grupoDatos['id_grupo'];
+
+            // 1. Si es un grupo nuevo, lo creamos
+            if ($grupoDatos['es_nuevo']) {
+                $nuevoGrupo = Invi_grupos_investigacion::create([
+                    'proyect_id' => $proyect_id,
+                    'nombre_grupo' => strtoupper(trim($grupoDatos['nombre_grupo'])),
+                    'acronimo' => strtoupper(trim($grupoDatos['acronimo'])),
+                    'estado' => 1
+                ]);
+                $idGrupo = $nuevoGrupo->id_grupo;
+            }
+
+            // 2. Limpiamos cualquier asignación de grupo previa de los integrantes seleccionados (Opcional, depende tu regla de negocio. Aquí asumo que lo sobreescribe)
+            // 3. Asignar el grupo y marcar al coordinador
+            foreach ($integrantesIds as $idDetalle) {
+                $integrante = Invi_deta_inte::findOrFail($idDetalle);
+                $esCoordinador = ($idDetalle == $coordinadorId) ? 1 : 0;
+                
+                $integrante->update([
+                    'id_grupo' => $idGrupo,
+                    'es_coordinador' => $esCoordinador
+                ]);
+            }
+
+            DB::commit();
+
+            // --- Registro en Bitácora ---
+            try {
+                $user = Auth::user();
+                $nombreGrupoLog = $grupoDatos['nombre_grupo'] ?? 'ID: ' . $idGrupo;
+                Bitacora::create([
+                    'bt_usuario'     => $user->ciinfper,
+                    'bt_fechahora'   => Carbon::now(),
+                    'bt_accion'      => "ASIGNACIÓN DE GRUPO DE INVESTIGACIÓN",
+                    'bt_ippc'        => $request->ip(),
+                    'bt_observacion' => "USUARIO: {$user->NombUsu} asignó " . count($integrantesIds) . " integrantes al grupo {$nombreGrupoLog}.",
+                ]);
+            } catch (\Exception $ex) {
+                Log::error("Error bitácora en asignarGrupoIntegrantes: " . $ex->getMessage());
+            }
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Integrantes asignados al grupo correctamente.'
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => 'Error al asignar: ' . $e->getMessage()], 500);
+        }
     }
 
     public function inhabilitar(Request $request)

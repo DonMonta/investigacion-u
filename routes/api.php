@@ -223,6 +223,7 @@ Route::prefix('inves')->group(function () {
         Route::get('getEstudiantesIndProyectosInvestigacion/{id}', [Invi_proyectosController::class, 'getEstIndvProyectosInvestigacion']);
         Route::get('getResponsablesIndInfo/{id}', [Invi_responsableController::class, 'getResponsablesIndInfo']);
         Route::get('getdirectinv', [Invi_equipo_departController::class, 'getDirectorInfo']);
+        Route::get('getvicerect', [Invi_equipo_departController::class, 'getViceRecInfo']);
         Route::get('getCarrerasFacultad/{idfacultad}', [DirectorCarrerasController::class, 'ObtCarrerasFacultad']);
         Route::get('obtnercarreraindv/{id}', [DirectorCarrerasController::class, 'obtnercarreraindv']);
 
@@ -312,6 +313,15 @@ Route::prefix('inves')->group(function () {
         Route::post('subir_archivo_anexo_darbaja', [Invi_proyectosController::class, 'uploadArchivoDarBaja']);
         //Definición de endpoint para guardar/reemplazar un integrante (modo nuevo o reemplazo)
         Route::post('integrantes/guardar', [Invi_proyectosController::class, 'guardarCambios']);
+        //Definción de endpoint para obtener los grupos de investigación de un proyecto
+        Route::get('proyectos/{id}/grupos', [Invi_proyectosController::class, 'getGruposProyecto']);
+        //Definición de endpoint para generar un reporte de participantes en formato CACES
+        Route::get('proyectos/{id}/exportar-caces', [Invi_proyectosController::class, 'exportarParticipantesCACES']);
+        Route::get('proyectos/exportar-caces-general', [Invi_proyectosController::class, 'exportarParticipantesCACESGeneral']);
+        Route::get('proyectos/exportar-caces-presupuesto', [Invi_proyectosController::class, 'exportarPresupuestoCACESGeneral']);
+        Route::get('proyectos/exportar-caces-proyectos', [Invi_proyectosController::class, 'exportarProyectosCACES']);
+        //Definición de endpoint para asignar un grupo de investigación a un integrante de un proyecto
+        Route::post('integrantes/asignar-grupo', [Invi_proyectosController::class, 'asignarGrupoIntegrantes']);
         //Definición de endpoint para obtener las estadísticas de proyectos y integrantes
         Route::get('dashboard/stats', [Invi_proyectosController::class, 'getStats']);
         //Definición de endpoint para obtener la foto del docente

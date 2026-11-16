@@ -8,14 +8,14 @@ use Illuminate\Database\Eloquent\Model;
 class Invi_detalle_result_verifi extends Model
 {
     protected $table = 'invi_detalle_result_verifi';
-    protected $primaryKey = 'id_det_fuen_fin';
+    protected $primaryKey = 'id_det_result_verifi';
     public $incrementing = true;
     protected $keyType = 'int';
     public $timestamps = false;
 
     protected $fillable = [
         'proyect_id',
-        'id_fuente_finan'
+        'id_result_verificables'
     ];
     
     public function invi_result_verificables()

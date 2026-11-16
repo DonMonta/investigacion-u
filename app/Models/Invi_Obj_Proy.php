@@ -16,7 +16,7 @@ class Invi_Obj_Proy extends Model
     protected $fillable = [
         'proyect_id',
         'detalle_obj_proy',
-        'tipo_obj_proy'
+        'tipo_obj_proy'//General o Especifico
     ];
     public function invi_proyecto()
     {

@@ -116,6 +116,27 @@
                         </option>
                     </select>
                 </div>
+                <div class="flex flex-col sm:flex-row gap-2 mt-2 sm:mt-0 w-full sm:w-auto">
+                    <button @click="abrirModalCSVGeneral"
+                        class="w-full sm:w-auto flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-4 rounded-lg transition-all shadow-sm shadow-emerald-200 dark:shadow-none hover:shadow-md active:scale-95">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                        </svg>
+                        CSV Participantes CACES
+                    </button>
+                    <button @click="abrirModalCSVPresupuesto"
+                        class="w-full sm:w-auto flex items-center justify-center gap-2 bg-teal-600 hover:bg-teal-700 text-white font-bold py-2.5 px-4 rounded-lg transition-all shadow-sm shadow-teal-200">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        CSV Presupuesto
+                    </button>
+                    <!-- NUEVO BOTÓN: CSV Proyectos -->
+                    <button @click="abrirModalCSVProyectos"
+                        class="w-full sm:w-auto flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-4 rounded-lg transition-all shadow-sm shadow-indigo-200">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        CSV Proyectos
+                    </button>
+                </div>
+                
             </div>
         </div>
 
@@ -483,7 +504,7 @@
                                                 class="w-full border rounded-lg p-2 text-sm focus:ring-2 ring-blue-200 outline-none bg-white dark:bg-gray-800">
                                         </div>
                                     </div>    
-                                    <div v-if="formInt.reemplazado == 1 || modoNuevo" class="md:col-span-2">
+                                    <div v-if="formInt.reemplazado == 1 || modoNuevo || formInt.anexo_integrante2==null" class="md:col-span-2">
                                         <label class="block text-[10px] font-bold mb-1">Documento Respaldo (PDF)</label>
                                         <div @click="$refs.fileFoto.click()"
                                             class="relative flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-xl cursor-pointer transition-all"
@@ -574,7 +595,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="mt-6 flex justify-end gap-3" v-if="buscando">
+                                <div class="mt-6 flex justify-end gap-3">
                                     <button @click="guardarCambios" :disabled="enviando"
                                        class="bg-blue-700 text-white px-8 py-2 rounded-xl font-bold text-sm shadow-lg shadow-blue-100 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
                                         <span v-if="enviando">
@@ -604,7 +625,15 @@
                                 </button>
                             </div>
                         </div>
-                        <div class="flex justify-end mb-4">
+                        <div class="flex flex-wrap justify-end gap-3 mb-4">
+                            <button @click="abrirModalCSV"
+                                class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-lg transition-all shadow-sm shadow-emerald-200 dark:shadow-none hover:shadow-md active:scale-95">
+                                
+                                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                </svg>
+                                Generar Matriz CACES (CSV)
+                            </button>
                             <button @click="descargarTodosCompromisos()"
                                 :disabled="botonCargando === 'descarga_masiva'"
                                 class="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">
@@ -624,11 +653,37 @@
                                 Descarga Masiva de Anexos de Compromiso
                             </button>
                         </div>
-
+                        <!-- BARRA FLOTANTE DE ASIGNACIÓN A GRUPO -->
+                        <div v-if="integrantesSeleccionadosParaGrupo.length > 1" 
+                            class="mb-4 bg-indigo-50 border border-indigo-200 p-4 rounded-xl shadow-sm flex flex-col sm:flex-row justify-between items-center gap-4 animate-fadeIn">
+                            
+                            <div class="flex items-center gap-3">
+                                <div class="bg-indigo-600 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm">
+                                    {{ integrantesSeleccionadosParaGrupo.length }}
+                                </div>
+                                <p class="text-indigo-800 text-sm font-semibold">
+                                    ¿Desea añadir los <span class="font-bold">{{ integrantesSeleccionadosParaGrupo.length }}</span> integrantes seleccionados a un Grupo de Investigación?
+                                </p>
+                            </div>
+                            
+                            <div class="flex gap-2">
+                                <button @click="integrantesSeleccionadosParaGrupo = []" 
+                                    class="px-4 py-2 text-xs font-bold text-indigo-600 bg-white border border-indigo-200 rounded-lg hover:bg-indigo-100 transition-colors">
+                                    Cancelar
+                                </button>
+                                <button @click="abrirAsignacionGrupo" 
+                                    class="px-4 py-2 text-xs font-bold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 shadow-md shadow-indigo-200 transition-colors">
+                                    Confirmar e Iniciar Asignación
+                                </button>
+                            </div>
+                        </div>
                         <div class="overflow-x-auto">
                             <table class="min-w-full">
                                 <thead class="bg-gray-50 dark:bg-gray-800 text-[11px] uppercase text-gray-400">
                                     <tr>
+                                        <th class="p-3 text-center w-10">
+                                            <svg class="w-4 h-4 text-gray-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                                        </th>
                                         <th class="p-3 text-left">Cédula</th>
                                         <th class="p-3 text-left">Integrante</th>
                                         <th class="p-3 text-center">Horas</th>
@@ -645,7 +700,14 @@
                                 <tbody class="text-sm divide-y divide-gray-100 dark:divide-gray-800">
                                     <tr v-for="int in integrantesFiltrados" :key="int.id_deta_invi_proyect"
                                         class="hover:bg-gray-50/50 transition-colors">
-
+                                        <td class="p-3 text-center">
+                                            <div v-if="!int.funciones?.nombre_funcion.toLowerCase().includes('estudiante') && int.estado === 1 && int.funciones!=null">
+                                                <input type="checkbox" 
+                                                    :value="int" 
+                                                    v-model="integrantesSeleccionadosParaGrupo"
+                                                    class="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 cursor-pointer">
+                                            </div>
+                                        </td>
                                         <td class="p-3 font-mono text-xs text-gray-500">
                                             {{ int.ciinfper_doc || int.ciinfper_est }}
                                         </td>
@@ -657,6 +719,16 @@
                                                 {{ (int.informacion_personal_d || int.informacionpersonal)?.ApellInfPer
                                                 }}
                                             </p>
+                                            <!-- Badge del Grupo -->
+                                            <div v-if="int.id_grupo" class="mt-1 flex items-center gap-1">
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-indigo-100 text-indigo-800 border border-indigo-200" :title="int.grupo_investigacion?.nombre_grupo">
+                                                    <svg class="mr-1 h-3 w-3" fill="currentColor" viewBox="0 0 20 20"><path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"></path></svg>
+                                                    {{ int.grupo_investigacion?.acronimo || 'GRUPO' }}
+                                                </span>
+                                                <span v-if="int.es_coordinador" class="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                                                    COORD
+                                                </span>
+                                            </div>
                                         </td>
 
                                         <td class="p-3 text-center font-bold text-blue-600">
@@ -797,6 +869,317 @@
                             </table>
                         </div>
                     </div>
+                </div>
+            </div>
+            <!-- MODAL MULTI-STEP PARA ASIGNACIÓN DE GRUPO -->
+            <div v-if="showModalAsignarGrupo" class="fixed inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 z-[999999]">
+                <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col transform transition-all border border-slate-200 dark:border-slate-700">
+                    
+                    <!-- Header del Modal -->
+                    <div class="p-5 border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 flex justify-between items-center">
+                        <div class="flex items-center gap-3">
+                            <div class="p-2 bg-indigo-100 text-indigo-600 rounded-lg">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                            </div>
+                            <div>
+                                <h2 class="text-lg font-bold text-slate-800 dark:text-white">Conformar Grupo de Investigación</h2>
+                                <p class="text-xs text-slate-500 font-medium">{{ integrantesSeleccionadosParaGrupo.length }} Integrantes seleccionados</p>
+                            </div>
+                        </div>
+                        <button @click="showModalAsignarGrupo = false" class="text-slate-400 hover:text-rose-500 bg-white hover:bg-rose-50 p-2 rounded-xl transition-all shadow-sm">✕</button>
+                    </div>
+
+                    <div class="p-6">
+                        <!-- PASO 1: SELECCIONAR O CREAR GRUPO -->
+                        <div class="space-y-6">
+                            <!-- Selector de Grupos Existentes -->
+                            <div>
+                                <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 uppercase tracking-wide">1. Seleccione el Grupo del Proyecto</label>
+                                <select v-model="grupoForm.id_grupo" @change="verificarSiCreaGrupo" class="w-full border border-slate-300 rounded-xl p-3 text-sm focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-slate-800 dark:border-slate-700 dark:text-white outline-none transition-all">
+                                    <option :value="null">-- Seleccione un grupo existente --</option>
+                                    <option v-for="g in gruposDelProyecto" :key="g.id_grupo" :value="g.id_grupo">
+                                        {{ g.acronimo ? `[${g.acronimo}] ` : '' }}{{ g.nombre_grupo }}
+                                    </option>
+                                    <option value="NUEVO" class="font-bold text-indigo-600">➕ CREAR UN NUEVO GRUPO PARA ESTE PROYECTO</option>
+                                </select>
+                            </div>
+
+                            <!-- Formulario Crear Nuevo Grupo (Se muestra solo si selecciona "NUEVO") -->
+                            <div v-if="grupoForm.id_grupo === 'NUEVO'" class="p-5 border border-indigo-200 bg-indigo-50 dark:bg-indigo-900/20 dark:border-indigo-800 rounded-xl space-y-4 animate-fadeIn">
+                                <h4 class="text-xs font-bold text-indigo-800 uppercase flex items-center gap-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                                    Datos del Nuevo Grupo
+                                </h4>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-600 mb-1">Nombre Completo del Grupo <span class="text-rose-500">*</span></label>
+                                    <input type="text" v-model="grupoForm.nombre_grupo" placeholder="Ej: Comité de Auditoría Estratégica Integral" class="w-full border border-slate-300 rounded-lg p-2.5 text-sm uppercase outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-600 mb-1">Acrónimo (Opcional)</label>
+                                    <input type="text" v-model="grupoForm.acronimo" placeholder="Ej: CAEI" class="w-full border border-slate-300 rounded-lg p-2.5 text-sm uppercase outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500">
+                                </div>
+                            </div>
+
+                            <!-- PASO 2: ELEGIR AL COORDINADOR -->
+                            <div v-if="grupoForm.id_grupo" class="pt-4 border-t border-slate-200 dark:border-slate-700 animate-fadeIn">
+                                <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-3 uppercase tracking-wide">2. Designar al Coordinador del Grupo</label>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-48 overflow-y-auto pr-1">
+                                    <!-- Iteramos sobre los integrantes seleccionados -->
+                                    <label v-for="int in integrantesSeleccionadosParaGrupo" :key="int.id_deta_invi_proyect" 
+                                        class="flex items-center gap-3 p-3 border-2 rounded-xl cursor-pointer transition-all"
+                                        :class="grupoForm.coordinador_id === int.id_deta_invi_proyect ? 'border-amber-500 bg-amber-50 dark:bg-amber-900/20' : 'border-slate-200 hover:border-amber-300 bg-white dark:bg-slate-800'">
+                                        
+                                        <input type="radio" :value="int.id_deta_invi_proyect" v-model="grupoForm.coordinador_id" class="w-4 h-4 text-amber-600 focus:ring-amber-500">
+                                        
+                                        <div class="flex flex-col">
+                                            <span class="text-xs font-bold text-slate-800 dark:text-slate-200 leading-tight">
+                                                {{ (int.informacion_personal_d || int.informacionpersonal)?.NombInfPer }}
+                                                {{ (int.informacion_personal_d || int.informacionpersonal)?.ApellInfPer }}
+                                            </span>
+                                            <span class="text-[10px] text-slate-500 truncate">{{ int.funciones?.nombre_funcion }}</span>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="p-5 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 flex justify-end gap-3">
+                        <button @click="showModalAsignarGrupo = false" class="px-5 py-2.5 text-sm font-bold text-slate-600 bg-white border border-slate-300 rounded-xl hover:bg-slate-50 transition-colors">Cancelar</button>
+                        <button @click="guardarAsignacionGrupo" :disabled="!isGrupoFormValido || enviando"
+                            class="px-6 py-2.5 text-sm font-bold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 shadow-lg shadow-indigo-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+                            <span v-if="enviando">Procesando...</span>
+                            <span v-else>Confirmar y Asignar</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <!-- MODAL EXPORTAR CSV CACES -->
+            
+        </div>
+        <div v-if="showModalCSV"
+            class="fixed inset-0 flex items-center justify-center bg-slate-900/70 backdrop-blur-sm p-4 z-[999999]">
+            <div
+                class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all border border-slate-200 dark:border-slate-700">
+
+                <!-- Header -->
+                <div
+                    class="p-5 border-b border-slate-100 dark:border-slate-800 bg-emerald-50 dark:bg-emerald-900/20 flex justify-between items-center">
+                    <div class="flex items-center gap-3">
+                        <div
+                            class="p-2 bg-emerald-100 dark:bg-emerald-800 text-emerald-600 dark:text-emerald-300 rounded-lg">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                                </path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-bold text-slate-800 dark:text-white">Exportar Matriz Proyectos-Participantes CACES</h2>
+                            <p class="text-xs text-slate-500 font-medium">Configuración del reporte</p>
+                        </div>
+                    </div>
+                    <button @click="showModalCSV = false"
+                        class="text-slate-400 hover:text-rose-500 bg-white dark:bg-slate-800 hover:bg-rose-50 p-2 rounded-xl transition-all shadow-sm">✕</button>
+                </div>
+
+                <!-- Body -->
+                <div class="p-6 space-y-6">
+
+                    <!-- SECCIÓN 1: NOMBRE DEL PROYECTO -->
+                    <div>
+                        <p class="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">
+                            ¿Qué información desea usar para el <strong class="text-emerald-600">NOMBRE</strong> del
+                            proyecto?
+                        </p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <label class="flex items-start gap-3 p-3 border-2 rounded-xl cursor-pointer transition-all"
+                                :class="opcionNombreCSV === 'nombre' ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20' : 'border-slate-200 hover:border-emerald-300 bg-white dark:bg-slate-800'">
+                                <input type="radio" value="nombre" v-model="opcionNombreCSV" class="mt-1 w-4 h-4 text-emerald-600 focus:ring-emerald-500 cursor-pointer">
+                                <div>
+                                    <span class="block text-sm font-bold text-slate-800 dark:text-slate-200">Nombre del Proyecto</span>
+                                    <!-- Solo mostramos el nombre de ejemplo si es individual -->
+                                    <span v-if="!isExportacionGeneral" class="block text-xs text-slate-500 italic mt-0.5 break-words line-clamp-2">"{{ proyectoSeleccionado.proyect_nombre }}"</span>
+                                    <span v-else class="block text-xs text-slate-500 mt-0.5">Se utilizará el nombre base de cada proyecto en el reporte general.</span>
+                                </div>
+                            </label>
+
+                            <label class="flex items-start gap-3 p-3 border-2 rounded-xl cursor-pointer transition-all"
+                                :class="opcionNombreCSV === 'titulo' ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20' : 'border-slate-200 hover:border-emerald-300 bg-white dark:bg-slate-800'">
+                                <input type="radio" value="titulo" v-model="opcionNombreCSV" class="mt-1 w-4 h-4 text-emerald-600 focus:ring-emerald-500 cursor-pointer">
+                                <div>
+                                    <span class="block text-sm font-bold text-slate-800 dark:text-slate-200">Título del Proyecto</span>
+                                    <span v-if="!isExportacionGeneral" class="block text-xs text-slate-500 italic mt-0.5 break-words line-clamp-2">
+                                        "{{ proyectoSeleccionado.proyect_titulo ? proyectoSeleccionado.proyect_titulo : 'Sin título registrado' }}"
+                                    </span>
+                                    <span v-else class="block text-xs text-slate-500 mt-0.5">Se utilizará el título registrado (si existe) de cada proyecto.</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- SECCIÓN 2: NOMBRE DEL GRUPO -->
+                    <div>
+                        <p class="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">
+                            ¿Qué información desea usar para el <strong
+                                class="text-emerald-600">GRUPO_INVESTIGACION</strong>?
+                        </p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <label class="flex items-center gap-3 p-3 border-2 rounded-xl cursor-pointer transition-all"
+                                :class="opcionGrupoCSV === 'nombre' ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20' : 'border-slate-200 hover:border-emerald-300 bg-white dark:bg-slate-800'">
+                                <input type="radio" value="nombre" v-model="opcionGrupoCSV"
+                                    class="w-4 h-4 text-emerald-600 focus:ring-emerald-500 cursor-pointer">
+                                <span class="text-sm font-bold text-slate-800 dark:text-slate-200">Nombre
+                                    Completo</span>
+                            </label>
+
+                            <label class="flex items-center gap-3 p-3 border-2 rounded-xl cursor-pointer transition-all"
+                                :class="opcionGrupoCSV === 'acronimo' ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20' : 'border-slate-200 hover:border-emerald-300 bg-white dark:bg-slate-800'">
+                                <input type="radio" value="acronimo" v-model="opcionGrupoCSV"
+                                    class="w-4 h-4 text-emerald-600 focus:ring-emerald-500 cursor-pointer">
+                                <span class="text-sm font-bold text-slate-800 dark:text-slate-200">Solo el
+                                    Acrónimo</span>
+                            </label>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Footer -->
+                <div
+                    class="p-5 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 flex justify-end gap-3">
+                    <button @click="showModalCSV = false"
+                        class="px-5 py-2 text-sm font-bold text-slate-600 bg-white border border-slate-300 rounded-xl hover:bg-slate-50 transition-colors">Cancelar</button>
+                    <button @click="generarCSVCaces"
+                        :disabled="descargandoCSV || (!isExportacionGeneral && opcionNombreCSV === 'titulo' && !proyectoSeleccionado.proyect_titulo)"
+                        class="px-6 py-2 text-sm font-bold text-white bg-emerald-600 rounded-xl hover:bg-emerald-700 shadow-md shadow-emerald-200 dark:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+                        <span v-if="descargandoCSV" class="flex items-center gap-2">
+                            <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                    stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor"
+                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                </path>
+                            </svg>
+                            Descargando...
+                        </span>
+                        <span v-else>Generar CSV</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- MODAL: Exportar CSV Presupuesto -->
+        <div v-if="showModalCSVPresupuesto" class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto overflow-x-hidden bg-black/50 backdrop-blur-sm p-4">
+            <div class="relative w-full max-w-md rounded-2xl bg-white dark:bg-slate-900 shadow-2xl ring-1 ring-slate-200 dark:ring-slate-800">
+                
+                <!-- Header -->
+                <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 p-5">
+                    <h3 class="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                        <svg width="24" height="24" class="text-teal-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8V7m0 9v1m9-5a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        Matriz General Presupuesto
+                    </h3>
+                    <button @click="showModalCSVPresupuesto = false" class="rounded-full p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 transition-colors">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M18 6L6 18"></path><path d="M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+
+                <!-- Body -->
+                <div class="p-6 space-y-6">
+                    <div class="space-y-3">
+                        <h4 class="text-sm font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                            Campo a utilizar para NOMBRE:
+                        </h4>
+                        <div class="grid grid-cols-1 gap-3">
+                            <label class="flex items-start gap-3 p-3 border-2 rounded-xl cursor-pointer transition-all"
+                                :class="opcionNombreCSVPresupuesto === 'nombre' ? 'border-teal-500 bg-teal-50 dark:bg-teal-900/20' : 'border-slate-200 hover:border-teal-300 bg-white dark:bg-slate-800'">
+                                <input type="radio" value="nombre" v-model="opcionNombreCSVPresupuesto" class="mt-1 w-4 h-4 text-teal-600 focus:ring-teal-500 cursor-pointer">
+                                <div>
+                                    <span class="block text-sm font-bold text-slate-800 dark:text-slate-200">Nombre del Proyecto</span>
+                                    <span class="block text-xs text-slate-500 mt-0.5">Usar el campo base "proyect_nombre".</span>
+                                </div>
+                            </label>
+
+                            <label class="flex items-start gap-3 p-3 border-2 rounded-xl cursor-pointer transition-all"
+                                :class="opcionNombreCSVPresupuesto === 'titulo' ? 'border-teal-500 bg-teal-50 dark:bg-teal-900/20' : 'border-slate-200 hover:border-teal-300 bg-white dark:bg-slate-800'">
+                                <input type="radio" value="titulo" v-model="opcionNombreCSVPresupuesto" class="mt-1 w-4 h-4 text-teal-600 focus:ring-teal-500 cursor-pointer">
+                                <div>
+                                    <span class="block text-sm font-bold text-slate-800 dark:text-slate-200">Título del Proyecto</span>
+                                    <span class="block text-xs text-slate-500 mt-0.5">Usar el campo "proyect_titulo" (si no existe, usa nombre).</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <div class="flex items-center justify-end gap-3 border-t border-slate-100 dark:border-slate-800 p-5 bg-slate-50 dark:bg-slate-800/50 rounded-b-2xl">
+                    <button @click="showModalCSVPresupuesto = false" class="px-4 py-2.5 text-sm font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors">
+                        Cancelar
+                    </button>
+                    <button @click="generarCSVPresupuesto" :disabled="descargandoCSVPresupuesto"
+                        class="flex items-center gap-2 px-5 py-2.5 text-sm font-bold text-white bg-teal-600 rounded-lg hover:bg-teal-700 transition-all shadow-sm shadow-teal-200 disabled:opacity-70 disabled:cursor-not-allowed">
+                        <svg v-if="descargandoCSVPresupuesto" class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                        <svg v-else width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                        {{ descargandoCSVPresupuesto ? 'Generando...' : 'Generar CSV' }}
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- MODAL: Exportar CSV Proyectos -->
+        <div v-if="showModalCSVProyectos" class="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto overflow-x-hidden bg-black/50 backdrop-blur-sm p-4">
+            <div class="relative w-full max-w-md rounded-2xl bg-white dark:bg-slate-900 shadow-2xl ring-1 ring-slate-200 dark:ring-slate-800">
+                
+                <!-- Header -->
+                <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 p-5">
+                    <h3 class="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                        <svg width="24" height="24" class="text-indigo-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        Matriz General Proyectos
+                    </h3>
+                    <button @click="showModalCSVProyectos = false" class="rounded-full p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 transition-colors">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M18 6L6 18"></path><path d="M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+
+                <!-- Body -->
+                <div class="p-6 space-y-6">
+                    <div class="space-y-3">
+                        <h4 class="text-sm font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                            Campo a utilizar para NOMBRE:
+                        </h4>
+                        <div class="grid grid-cols-1 gap-3">
+                            <label class="flex items-start gap-3 p-3 border-2 rounded-xl cursor-pointer transition-all"
+                                :class="opcionNombreCSVProyectos === 'nombre' ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20' : 'border-slate-200 hover:border-indigo-300 bg-white dark:bg-slate-800'">
+                                <input type="radio" value="nombre" v-model="opcionNombreCSVProyectos" class="mt-1 w-4 h-4 text-indigo-600 focus:ring-indigo-500 cursor-pointer">
+                                <div>
+                                    <span class="block text-sm font-bold text-slate-800 dark:text-slate-200">Nombre del Proyecto</span>
+                                    <span class="block text-xs text-slate-500 mt-0.5">Usar el campo base "proyect_nombre".</span>
+                                </div>
+                            </label>
+
+                            <label class="flex items-start gap-3 p-3 border-2 rounded-xl cursor-pointer transition-all"
+                                :class="opcionNombreCSVProyectos === 'titulo' ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20' : 'border-slate-200 hover:border-indigo-300 bg-white dark:bg-slate-800'">
+                                <input type="radio" value="titulo" v-model="opcionNombreCSVProyectos" class="mt-1 w-4 h-4 text-indigo-600 focus:ring-indigo-500 cursor-pointer">
+                                <div>
+                                    <span class="block text-sm font-bold text-slate-800 dark:text-slate-200">Título del Proyecto</span>
+                                    <span class="block text-xs text-slate-500 mt-0.5">Usar el campo "proyect_titulo" (si no existe, usa nombre).</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <div class="flex items-center justify-end gap-3 border-t border-slate-100 dark:border-slate-800 p-5 bg-slate-50 dark:bg-slate-800/50 rounded-b-2xl">
+                    <button @click="showModalCSVProyectos = false" class="px-4 py-2.5 text-sm font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors">
+                        Cancelar
+                    </button>
+                    <button @click="generarCSVProyectos" :disabled="descargandoCSVProyectos"
+                        class="flex items-center gap-2 px-5 py-2.5 text-sm font-bold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-all shadow-sm shadow-indigo-200 disabled:opacity-70 disabled:cursor-not-allowed">
+                        <svg v-if="descargandoCSVProyectos" class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                        <svg v-else width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                        {{ descargandoCSVProyectos ? 'Generando...' : 'Generar CSV' }}
+                    </button>
                 </div>
             </div>
         </div>
@@ -3538,6 +3921,144 @@
                                 </div>
                             </div>
                         </div>
+                        <!-- Separador visual -->
+                        <hr class="border-gray-200 dark:border-gray-700 my-8">
+
+                        <!-- Componente Resultados Verificables -->
+                        <div class="space-y-4">
+                            <label class="flex items-center gap-2 text-sm font-bold text-slate-800 dark:text-slate-200">
+                                <!-- Icono de Verificación en Azul -->
+                                <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                                </svg>
+                                Resultados Verificables CACES: <span class="text-rose-500">*</span>
+                            </label>
+                            
+                            <!-- Bloque informativo -->
+                            <div class="flex items-start gap-3 p-4 rounded-xl bg-blue-50 border border-blue-100 dark:bg-blue-900/20 dark:border-blue-800/50 shadow-sm">
+                                <svg class="w-6 h-6 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <p class="text-xs text-blue-800 dark:text-blue-300 leading-relaxed">
+                                    <strong class="font-bold block mb-1 text-sm text-blue-900 dark:text-blue-200">Justificación del Resultado</strong>
+                                    Este campo define el nivel de concreción del proyecto según el modelo del CACES. De acuerdo a la <strong>Tabla 46</strong>[cite: 9], debe reportar el estado de los entregables del proyecto seleccionando valores estandarizados (ej. <em>"TOTALES", "PARCIALES" o "SIN RESULTADO"</em>)[cite: 9].
+                                </p>
+                            </div>
+                            
+                            <!-- Diseño en Tarjetas de Estado (Borde izquierdo) -->
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
+                                <!-- Lista de Resultados -->
+                                <label 
+                                    v-for="res in resultVerifCatalogo" 
+                                    :key="res.id_result_verificables"
+                                    class="relative flex items-center p-3 rounded-lg border-y border-r border-l-4 cursor-pointer transition-all duration-200 group"
+                                    :class="editForm.result_verif === res.id_result_verificables 
+                                        ? 'bg-blue-50 border-y-blue-200 border-r-blue-200 border-l-blue-600 shadow-md dark:bg-blue-900/30 dark:border-y-blue-800 dark:border-r-blue-800 dark:border-l-blue-500' 
+                                        : 'bg-white border-y-slate-200 border-r-slate-200 border-l-slate-300 hover:border-l-blue-400 hover:bg-slate-50 dark:bg-slate-800 dark:border-y-slate-700 dark:border-r-slate-700 dark:border-l-slate-600 dark:hover:border-l-blue-500'">
+                                    
+                                    <div class="flex items-center gap-3 w-full">
+                                        <!-- Círculo Check -->
+                                        <div class="flex-shrink-0 w-4 h-4 rounded-full border flex items-center justify-center transition-colors"
+                                            :class="editForm.result_verif === res.id_result_verificables ? 'border-blue-600 bg-blue-600 dark:border-blue-500 dark:bg-blue-500' : 'border-slate-300 dark:border-slate-500'">
+                                            <svg class="w-3 h-3 text-white transition-opacity duration-200" 
+                                                :class="editForm.result_verif === res.id_result_verificables ? 'opacity-100' : 'opacity-0'" 
+                                                fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                                            </svg>
+                                        </div>
+                                        
+                                        <!-- Texto del Resultado -->
+                                        <span class="text-sm font-bold uppercase tracking-wide transition-colors"
+                                            :class="editForm.result_verif === res.id_result_verificables ? 'text-blue-900 dark:text-blue-100' : 'text-slate-600 dark:text-slate-300'">
+                                            {{ res.nombre }}
+                                        </span>
+                                    </div>
+
+                                    <!-- Input real oculto -->
+                                    <input 
+                                        type="radio" 
+                                        name="resultado_verificable" 
+                                        :value="res.id_result_verificables" 
+                                        v-model="editForm.result_verif"
+                                        class="hidden">
+                                </label>
+                                
+                                <!-- Botón Añadir Nuevo -->
+                                <button 
+                                    type="button"
+                                    @click="abrirModalNuevoResult"
+                                    class="flex items-center justify-center gap-2 p-3 rounded-lg border-2 border-dashed border-slate-300 bg-transparent text-slate-500 hover:text-blue-700 hover:border-blue-400 hover:bg-blue-50 dark:border-slate-600 dark:text-slate-400 dark:hover:text-blue-400 dark:hover:border-blue-500 dark:hover:bg-slate-800 transition-all font-semibold text-xs h-full min-h-[48px]">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                    </svg>
+                                    Nuevo Resultado
+                                </button>
+                            </div>
+                        </div>
+                        <!-- Modal Nuevo Resultado Verificable -->
+                        <div v-if="showResultModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm transition-opacity">
+                            <div class="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden transform transition-all border border-slate-200 dark:border-slate-700">
+                                
+                                <!-- Cabecera -->
+                                <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
+                                    <h3 class="text-base font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                                        <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                                        </svg>
+                                        Nuevo Resultado Verificable
+                                    </h3>
+                                    <button @click="showResultModal = false" class="text-slate-400 hover:text-rose-500 transition-colors rounded-lg p-1 hover:bg-rose-50 dark:hover:bg-rose-900/20">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                                
+                                <!-- Cuerpo -->
+                                <div class="p-6 space-y-5">
+                                    <!-- Callout Informativo CACES -->
+                                    <div class="border-l-4 border-blue-500 bg-blue-50 dark:bg-blue-900/20 p-4 rounded-r-lg">
+                                        <div class="flex items-start gap-3">
+                                            <svg class="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                            <p class="text-xs text-blue-900 dark:text-blue-200 leading-relaxed">
+                                                <strong class="font-bold block text-sm mb-1">Nomenclatura Oficial (Tabla 46)</strong>
+                                                Asegúrese de registrar únicamente los valores dictados por el CACES:<br>
+                                                • <em>TOTALES</em><br>
+                                                • <em>PARCIALES</em><br>
+                                                • <em>SIN RESULTADO</em><br>
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <!-- Textarea Auto-ajustable -->
+                                    <div>
+                                        <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Valor del Resultado:</label>
+                                        <textarea 
+                                            v-model="nuevoResultTexto" 
+                                            placeholder="Ej. TOTALES..."
+                                            rows="1"
+                                            class="w-full p-3 text-sm uppercase rounded-xl border border-slate-300 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:bg-slate-800 dark:border-slate-600 dark:text-white transition-all placeholder:normal-case resize-none overflow-hidden min-h-[46px] leading-relaxed"
+                                            @input="autoResizeResult"
+                                            @keydown.enter.prevent="guardarNuevoResult"
+                                            autofocus>
+                                        </textarea>
+                                    </div>
+                                    
+                                    <!-- Botones -->
+                                    <div class="flex justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+                                        <button @click="showResultModal = false" class="px-5 py-2.5 text-sm font-medium text-slate-600 bg-white border border-slate-300 rounded-xl hover:bg-slate-50 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-600 dark:hover:bg-slate-700 transition-colors">
+                                            Cancelar
+                                        </button>
+                                        <button @click="guardarNuevoResult" class="px-5 py-2.5 text-sm font-bold text-white bg-blue-600 rounded-xl hover:bg-blue-700 shadow-md shadow-blue-200 dark:shadow-none transition-all active:scale-95">
+                                            Guardar Resultado
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                            </div>
+                        </div>
                     </div>
                     <div v-else-if="activeTab === 'personalproyect'" class="space-y-6 animate-fade-in-up">
                        <div class="mb-4 p-5 bg-green-50 dark:bg-gray-800/80 rounded-xl border-l-4 border-green-500 flex flex-col sm:flex-row gap-5 items-start sm:items-center shadow-sm">
@@ -5876,6 +6397,26 @@ export default {
             archivoBajaName: '',
             cargandoBaja: false,
             enviando: false,
+            integrantesSeleccionadosParaGrupo: [], // Array de objetos integrante
+            showModalAsignarGrupo: false,
+            gruposDelProyecto: [], // Se llenará desde el backend
+            showModalCSV: false,
+            opcionNombreCSV: 'nombre', // Por defecto seleccionado "nombre"
+            opcionGrupoCSV: 'nombre',
+            descargandoCSV: false,
+            isExportacionGeneral: false,
+            showModalCSVPresupuesto: false,
+            opcionNombreCSVPresupuesto: 'nombre',
+            descargandoCSVPresupuesto: false,
+            showModalCSVProyectos: false,
+            opcionNombreCSVProyectos: 'nombre',
+            descargandoCSVProyectos: false,
+            grupoForm: {
+                id_grupo: null,
+                nombre_grupo: '',
+                acronimo: '',
+                coordinador_id: null
+            },
             // Variables para el modal de edición de proyecto
             showEditModal: false,
             activeTab: 'generales',
@@ -5900,6 +6441,9 @@ export default {
             paramsCatalogo: [],
             showParamModal: false,
             nuevoParamTexto: '',
+            resultVerifCatalogo: [],
+            showResultModal: false,
+            nuevoResultTexto: '',
             convocatoriasCatalogo: [],
             dominioRecomendadoId: '',
             lineasCatalogo: [],
@@ -5959,6 +6503,8 @@ export default {
                 nuevos_finan: [],
                 params_cumpli: null,
                 nuevos_params: [],
+                result_verif: null,
+                nuevos_resultverif: [],
                 id_convocatoria: '',
                 sublineas_investigacion: [],
                 unesco_areas: [],
@@ -6274,6 +6820,15 @@ export default {
                 const nombre = f.nombre_funcion.toUpperCase();
                 return !nombre.includes('DIRECTOR');
             });
+        },
+        isGrupoFormValido() {
+            if (!this.grupoForm.id_grupo) return false;
+            if (!this.grupoForm.coordinador_id) return false;
+            
+            if (this.grupoForm.id_grupo === 'NUEVO') {
+                return this.grupoForm.nombre_grupo.trim().length > 0;
+            }
+            return true;
         },
         lineasFiltradas() {
             if (!this.editForm.id_facultad_priori) return [];
@@ -6922,7 +7477,223 @@ export default {
             this.archivoBajaName = '';
             this.showModalBaja = true;
         },
+        async abrirAsignacionGrupo() {
+            if (this.integrantesSeleccionadosParaGrupo.length === 0) return;
+            
+            try {
+                // Limpiar form
+                this.grupoForm = {
+                    id_grupo: null,
+                    nombre_grupo: '',
+                    acronimo: '',
+                    coordinador_id: null
+                };
 
+                // Pedir al backend los grupos creados en este proyecto
+                const res = await API.get(`${this.baseUrl}/proyectos/${this.proyectoSeleccionado.proyect_id}/grupos`);
+                this.gruposDelProyecto = res.data.grupos || [];
+                
+                this.showModalAsignarGrupo = true;
+            } catch (error) {
+                mostraralertas2("Error al cargar grupos de investigación.", "error");
+            }
+        },
+
+        // --- 2. Método para resetear el form de creación si cambian de select ---
+        verificarSiCreaGrupo() {
+            if (this.grupoForm.id_grupo !== 'NUEVO') {
+                this.grupoForm.nombre_grupo = '';
+                this.grupoForm.acronimo = '';
+            }
+        },
+
+        // --- 3. Método Final para Guardar (Conecta con la API que te pasé) ---
+        async guardarAsignacionGrupo() {
+            if (!this.isGrupoFormValido) return;
+
+            this.enviando = true;
+
+            try {
+                const payload = {
+                    proyect_id: this.proyectoSeleccionado.proyect_id,
+                    // Mapeamos los IDs de los integrantes seleccionados
+                    integrantes_ids: this.integrantesSeleccionadosParaGrupo.map(int => int.id_deta_invi_proyect),
+                    coordinador_id: this.grupoForm.coordinador_id,
+                    grupo_datos: {
+                        id_grupo: this.grupoForm.id_grupo !== 'NUEVO' ? this.grupoForm.id_grupo : null,
+                        es_nuevo: this.grupoForm.id_grupo === 'NUEVO',
+                        nombre_grupo: this.grupoForm.nombre_grupo,
+                        acronimo: this.grupoForm.acronimo
+                    }
+                };
+
+                // Llamada al endpoint creado en tu controlador Laravel
+                const res = await API.post(`${this.baseUrl}/integrantes/asignar-grupo`, payload);
+
+                if (res.data.status) {
+                    mostraralertas2("Grupo asignado correctamente.", "success");
+                    
+                    this.showModalAsignarGrupo = false;
+                    this.integrantesSeleccionadosParaGrupo = []; // Limpiamos selección
+                    
+                    // Recargar los detalles del proyecto para que la tabla refleje los cambios (Aparecerá el badge GRUPO y COORD)
+                    await this.abrirDetallesProyecto(this.proyectoSeleccionado.proyect_id);
+                }
+            } catch (error) {
+                mostraralertas2(error.response?.data?.message || "Error al asignar grupo", "danger");
+            } finally {
+                this.enviando = false;
+            }
+        },
+        abrirModalCSV(proyecto) {
+            this.proyectoSeleccionado = proyecto; // Asegúrate de asignar el proyecto si no lo hacias
+            this.isExportacionGeneral = false;
+            this.opcionNombreCSV = 'nombre';
+            this.opcionGrupoCSV = 'nombre';
+            this.showModalCSV = true;
+        },
+
+        // NUEVO: Para descargas masivas generales
+        abrirModalCSVGeneral() {
+            this.isExportacionGeneral = true;
+            this.opcionNombreCSV = 'nombre';
+            this.opcionGrupoCSV = 'nombre';
+            this.showModalCSV = true;
+        },
+
+        async generarCSVCaces() {
+            this.descargandoCSV = true;
+            try {
+                let urlAPI = '';
+                let parametros = { 
+                    tipo_nombre: this.opcionNombreCSV,
+                    tipo_grupo: this.opcionGrupoCSV 
+                };
+
+                // Determinar a qué endpoint consultar
+                if (this.isExportacionGeneral) {
+                    urlAPI = `${this.baseUrl}/proyectos/exportar-caces-general`;
+                    // Enviamos los filtros activos en la vista
+                    parametros.search_query = this.searchQuery;
+                    parametros.id_convocatoria = this.selectedConvocatoria;
+                } else {
+                    urlAPI = `${this.baseUrl}/proyectos/${this.proyectoSeleccionado.proyect_id}/exportar-caces`;
+                }
+
+                const response = await API.get(urlAPI, {
+                    params: parametros,
+                    responseType: 'blob'
+                });
+                
+                const url = window.URL.createObjectURL(new Blob([response.data]));
+                const link = document.createElement('a');
+                link.href = url;
+
+                // Nombre dinámico del archivo
+                let nombreArchivo = '';
+                if (this.isExportacionGeneral) {
+                    const fecha = new Date().toISOString().split('T')[0];
+                    nombreArchivo = `Matriz_Proyectos-Participantes_CACES_${fecha}.csv`;
+                } else {
+                    const codigo = this.proyectoSeleccionado.proyect_cod || 'SIN_CODIGO';
+                    nombreArchivo = `Matriz_Proyectos-Participantes_CACES_${codigo}.csv`;
+                }
+
+                link.setAttribute('download', nombreArchivo);
+                
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                this.showModalCSV = false;
+                mostraralertas2("Matriz CSV generada con éxito.", "success");
+            } catch (error) {
+                console.error(error);
+                mostraralertas2("Error al generar el archivo CSV.", "error");
+            } finally {
+                this.descargandoCSV = false;
+            }
+        },
+        abrirModalCSVPresupuesto() {
+            this.opcionNombreCSVPresupuesto = 'nombre'; // valor por defecto
+            this.showModalCSVPresupuesto = true;
+        },
+
+        async generarCSVPresupuesto() {
+            this.descargandoCSVPresupuesto = true;
+            try {
+                const parametros = { 
+                    tipo_nombre: this.opcionNombreCSVPresupuesto,
+                    search_query: this.searchQuery,
+                    id_convocatoria: this.selectedConvocatoria
+                };
+
+                const response = await API.get(`${this.baseUrl}/proyectos/exportar-caces-presupuesto`, {
+                    params: parametros,
+                    responseType: 'blob'
+                });
+                
+                const url = window.URL.createObjectURL(new Blob([response.data]));
+                const link = document.createElement('a');
+                link.href = url;
+
+                const fecha = new Date().toISOString().split('T')[0];
+                const nombreArchivo = `Matriz_Presupuesto_CACES_${fecha}.csv`;
+
+                link.setAttribute('download', nombreArchivo);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                this.showModalCSVPresupuesto = false;
+                mostraralertas2("Matriz de Presupuesto generada con éxito.", "success");
+            } catch (error) {
+                console.error(error);
+                mostraralertas2("Error al generar el archivo CSV.", "error");
+            } finally {
+                this.descargandoCSVPresupuesto = false;
+            }
+        },
+        abrirModalCSVProyectos() {
+            this.opcionNombreCSVProyectos = 'nombre';
+            this.showModalCSVProyectos = true;
+        },
+
+        async generarCSVProyectos() {
+            this.descargandoCSVProyectos = true;
+            try {
+                const parametros = { 
+                    tipo_nombre: this.opcionNombreCSVProyectos,
+                    search_query: this.searchQuery,
+                    id_convocatoria: this.selectedConvocatoria
+                };
+
+                const response = await API.get(`${this.baseUrl}/proyectos/exportar-caces-proyectos`, {
+                    params: parametros,
+                    responseType: 'blob'
+                });
+                
+                const url = window.URL.createObjectURL(new Blob([response.data]));
+                const link = document.createElement('a');
+                link.href = url;
+
+                const fecha = new Date().toISOString().split('T')[0];
+                const nombreArchivo = `Matriz_Proyectos_CACES_${fecha}.csv`;
+
+                link.setAttribute('download', nombreArchivo);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                this.showModalCSVProyectos = false;
+                mostraralertas2("Matriz de Proyectos generada con éxito.", "success");
+            } catch (error) {
+                console.error(error);
+                mostraralertas2("Error al generar el archivo CSV.", "error");
+            } finally {
+                this.descargandoCSVProyectos = false;
+            }
+        },
         async guardarCambios() {
             // 1. Validaciones Previas
             if (!this.formInt.id_funcion || !this.formInt.idCarr) {
@@ -7646,6 +8417,7 @@ export default {
                 this.alcancesCatalogo = data.alcances_catalogo || [];
                 this.fuentefinanCatalogo = data.fuente_finan_catalogo || [];
                 this.paramsCatalogo = data.paramsCatalogo || [];
+                this.resultVerifCatalogo = data.resultVerifCatalogo || [];
                 this.convocatoriasCatalogo = data.convocatorias_catalogo || [];
                 this.lineasCatalogo = data.lineas_catalogo || [];
                 this.sublineasCatalogo = data.sublineas_catalogo || [];
@@ -7807,6 +8579,8 @@ export default {
                     nuevos_finan: [],
                     params_cumpli: data.id_param_cumpl_seleccionado || null,
                     nuevos_params: [],
+                    result_verif: data.id_result_verificables_seleccionado || null,
+                    nuevos_resultverif: [],
                     //No. Convocatoria
                     id_convocatoria: data.proyecto.id_convocatoria || '',
                     sublineas_investigacion: [],
@@ -8065,6 +8839,62 @@ export default {
             this.showParamModal = false;
             
             mostraralertas2('Parámetro agregado. Guarde los cambios del proyecto para confirmar.', 'success');
+        },
+        abrirModalNuevoResult() {
+            this.nuevoResultTexto = '';
+            this.showResultModal = true;
+            
+            // Reiniciar altura del textarea visualmente si ya existe
+            this.$nextTick(() => {
+                const textarea = this.$el.querySelector('textarea[placeholder*="TOTALES"]');
+                if (textarea) {
+                    textarea.style.height = 'auto';
+                }
+            });
+        },
+        autoResizeResult(event) {
+            const textarea = event.target;
+            textarea.style.height = 'auto'; 
+            textarea.style.height = textarea.scrollHeight + 'px';
+        },
+        guardarNuevoResult() {
+            // Convertimos a mayúsculas para igualar la Tabla 46
+            const texto = this.nuevoResultTexto.trim().toUpperCase();
+            
+            if (!texto) {
+                mostraralertas2('Debe ingresar un valor para el resultado verificable.', 'error');
+                return;
+            }
+
+            // 1. Validar duplicados visuales en el Front-end
+            const existe = this.resultVerifCatalogo.find(
+                r => r.nombre.toLowerCase() === texto.toLowerCase()
+            );
+
+            if (existe) {
+                mostraralertas2(`El resultado "${existe.nombre}" ya está en la lista.`, 'warning');
+                this.editForm.result_verif = existe.id_result_verificables;
+                this.showResultModal = false;
+                return;
+            }
+            
+            // 2. ID temporal con el texto (para que el backend lo cree si recibe texto)
+            const idTemporal = texto; 
+            
+            // 3. Añadir a la lista visual
+            this.resultVerifCatalogo.push({
+                id_result_verificables: idTemporal,
+                nombre: texto
+            });
+
+            // 4. Agregar al arreglo "nuevos_resultverif" para el Request
+            this.editForm.nuevos_resultverif.push(texto);
+
+            // 5. Seleccionarlo automáticamente en el form principal
+            this.editForm.result_verif = idTemporal;
+            this.showResultModal = false;
+            
+            mostraralertas2('Resultado agregado. Guarde los cambios del proyecto para confirmar.', 'success');
         },
         resetFormFinancia() {
             return {
@@ -8928,6 +9758,10 @@ export default {
                 mostraralertas2('Debe seleccionar el parámetro de cumplimiento CACES obligatoriamente.', 'error');
                 return;
             }
+            if (!this.editForm.result_verif) {
+                mostraralertas2('Debe seleccionar el resultado de verificación CACES obligatoriamente.', 'error');
+                return;
+            }
             if (!this.editForm.id_convocatoria) {
                 mostraralertas2('Debe seleccionar una convocatoria obligatoriamente.', 'error');
                 return;
@@ -9132,6 +9966,602 @@ export default {
             // Simplemente recarga la página actual de datos
             this.GetData(this.currentPage, this.searchQuery);
         },
+        async descargarcompromiso(cedula) {
+            this.botonCargando = 'compromiso_' + cedula;
+            try {
+                // 1. Buscar al integrante seleccionado
+                const integrante = this.integrantesFiltrados.find(
+                    i => i.ciinfper_doc === cedula || i.ciinfper_est === cedula
+                );
+
+                if (!integrante) {
+                    return mostraralertas2("No se encontró la información del integrante.", "warning");
+                }
+
+                // --- NUEVA LÓGICA: Validar si es estudiante o docente ---
+                const esEstudiante = integrante.ciinfper_est === cedula;
+                
+                // Variables dinámicas según el tipo de integrante
+                const numAnexo = esEstudiante ? 'ANEXO 8' : 'ANEXO 7';
+                const tituloFormato = esEstudiante 
+                    ? 'FORMATO DE ESTUDIANTES QUE DESEAN PARTICIPAR EN ' 
+                    : 'FORMATO DE PROFESORES QUE DESEAN PARTICIPAR EN ';
+                const labelInvestigador = esEstudiante 
+                    ? 'Nombre del/la Estudiante Investigador:' 
+                    : 'Nombre del Docente Investigador:';
+                const participacionTexto = esEstudiante ? 'ESTUDIANTE' : 'DOCENTE';
+
+                // 2. Llamada directa a la API
+                const idProyecto = this.proyectoSeleccionado?.proyect_id;
+                
+                if(!idProyecto) {
+                    return mostraralertas2("Error: No se ha seleccionado un proyecto válido.", "warning");
+                }
+
+                const response = await API.get(`${this.baseUrl}/getEdicionDatos/${idProyecto}`);
+                const data = response.data;
+                const proy = data.proyecto;
+
+                // 3. Inicializar jsPDF
+                const doc = new jsPDF('p', 'mm', 'a4');
+                const pageWidth = doc.internal.pageSize.getWidth();
+                const pageHeight = doc.internal.pageSize.getHeight();
+
+                const rutaImagenFondo = '/fondo2.png'; 
+
+                // SEPARAR EL DIBUJO: Solo el banner en hojas nuevas para evitar que se pise con los textos
+                const dibujarFondoBanner = () => {
+                    doc.addImage(rutaImagenFondo, 'PNG', 0, 0, pageWidth, pageHeight);
+                };
+
+                const dibujarTextosEncabezado = () => {
+                    doc.setFont("helvetica", "bold");
+                    doc.setFontSize(10);
+                    doc.setTextColor(0, 0, 0);
+                    
+                    let startY = 25; 
+                    
+                    // Textos dinámicos de acuerdo al rol
+                    doc.text(numAnexo, pageWidth / 2, startY + 20, { align: 'center' });
+                    doc.text(tituloFormato, pageWidth / 2, startY + 28, { align: 'center' });
+                    doc.text('INVESTIGACIONES', pageWidth / 2, startY + 33, { align: 'center' });
+                };
+
+                // Dibujar en la primera página
+                dibujarFondoBanner();
+                dibujarTextosEncabezado();
+
+                // Interceptar doc.addPage para asegurar que solo se repita el banner gráfico
+                const originalAddPage = doc.addPage.bind(doc);
+                doc.addPage = function() {
+                    originalAddPage();
+                    dibujarFondoBanner();
+                };
+
+                // 4. Mapear los datos desde las variables del backend para el PDF
+                const facultadesTxt = data.facultades_data?.map(f => f.siglas || f.siglas || f.siglas).join('\n') || 'N/A';
+                const carrerasTxt = data.carreras_data?.map(c => c.NombCarr || c.NombCarr || c.NombCarr).join('\n') || 'N/A';
+                const dominiosTxt = data.dominios_data?.map(dom => dom.detalle_dom_huma).join('\n') || 'N/A';
+
+                const objetivosTxt = data.objetivos_pei_data?.map(o => o.cod_obj+'. '+ o.detalle_obj).join('\n') || 'N/A';
+                const politicasTxt = data.pei_politicas_data?.map(p => p.nombre_pol+'\n '+ p.detalle_pol || 'Política').join('\n') || 'N/A';
+                const agendaTxt = data.agenda_ods_data?.map(a => a.cod_ods+'. '+ a.detalle_ods || 'Agenda').join('\n') || 'N/A';
+                const objplandeTxt = data.objetivos_politicas_data?.map(a => a.cod_obj_pol+'. '+ a.detalle_obj_pol || 'Obj').join('\n') || 'N/A';
+                const convocatoriaTxt = data.convocatoria_data?.map(c => c.num_convocatoria).join('\n') || 'N/A';
+                const lineaInvestigacion = data.lineas_data?.map(l => l.nombre_lin).join('\n') || 'N/A';
+                const sublineaInvestigacion = data.sublineas_data?.map(sl => sl.nombre_sublin).join('\n') || 'N/A';
+                const areaespecifica = data.unesco_data.filter(item => item.tipo_area === 'Área de conocimiento').map(item =>item.sau_id+' '+ item.sau_descripcion).join('\n') || 'N/A';
+                const subareaespecifica = data.unesco_data.filter(item => item.tipo_area === 'Subárea de conocimiento').map(item =>item.sau_id+' '+ item.sau_descripcion).join('\n') || 'N/A';
+                const especareaespecifica = data.unesco_data.filter(item => item.tipo_area === 'Área específica de conocimiento').map(item =>item.sau_id+' '+ item.sau_descripcion).join('\n') || 'N/A';
+                const tipoproyectTxt = data.tipproyectos_data?.map(t => t.detalle_invi_proyect).join('\n') || 'N/A';
+
+                const coberturaSeleccionada = (proy.proyect_cobertura || '').toLowerCase();
+                const checkLocal = coberturaSeleccionada.includes('local') ? 'X' : '  ';
+                const checkRegional = coberturaSeleccionada.includes('regional') ? 'X' : '  ';
+                const checkNacional = coberturaSeleccionada.includes('nacional') ? 'X' : '  ';
+                const checkInternacional = coberturaSeleccionada.includes('internacional') ? 'X' : '  ';
+
+                // --- ESTILOS MAGISTRALES PARA SIMULAR UNA SOLA CELDA SIN LÍNEA DIVISORIA ---
+                const lblStyle = { 
+                    fontStyle: 'bold', 
+                    halign: 'left',
+                    cellPadding: { top: 3, left: 3, right: 3, bottom: 0 }, 
+                    lineWidth: { top: 0.3, right: 0.3, bottom: 0, left: 0.3 } 
+                };
+                const valStyle = { 
+                    fontStyle: 'normal', 
+                    halign: 'left',
+                    cellPadding: { top: 1, left: 3, right: 3, bottom: 3 }, 
+                    lineWidth: { top: 0, right: 0.3, bottom: 0.3, left: 0.3 } 
+                };
+
+                // 5. Dibujar Tabla 1: ÚNICAMENTE EL TÍTULO "1. DATOS GENERALES"
+                autoTable(doc, {
+                    startY: 65,
+                    margin: { left: 15, right: 15 },
+                    theme: 'grid',
+                    body: [
+                        [{ content: '1. DATOS GENERALES', styles: { halign: 'center', fontStyle: 'bold', fillColor: [220, 220, 220], textColor: [0, 0, 0], fontSize: 10 } }]
+                    ],
+                    styles: { lineColor: [0, 0, 0], lineWidth: 0.3 }
+                });
+
+                // 6. Definir la estructura de la TABLA 2
+                const tablaDatosGenerales = [
+                    [{ content: 'Nombre (Español):', colSpan: 3, styles: lblStyle }],
+                    [{ content: proy.proyect_nombre || '', colSpan: 3, styles: valStyle }],
+                    
+                    [{ content: 'Título del proyecto (Español):', colSpan: 3, styles: lblStyle }],
+                    [{ content: proy.proyect_titulo || '', colSpan: 3, styles: valStyle }],
+                    
+                    [{ content: 'Misión Institucional:', colSpan: 3, styles: lblStyle }],
+                    [{ content: 'Formación integral de profesionales críticos, propositivos y humanistas, mediante un proceso educativo actual, articulado entre la docencia, la investigación y la vinculación con la sociedad, para el desarrollo sostenible de la sociedad, basados en la construcción adecuada de la cultura universal y ancestral ecuatoriana, la ciencia y la tecnología.' || '', colSpan: 3, styles: valStyle }],
+                    
+                    [{ content: 'Visión Institucional:', colSpan: 3, styles: lblStyle }],
+                    [{ content: 'Ser un referente a nivel nacional e internacional de excelencia académica, científica, tecnológica y cultural, que incide positivamente en el desarrollo equitativo e integral de la sociedad.' || '', colSpan: 3, styles: valStyle }],
+                    
+                    [{ content: 'Objetivos del Plan Estratégico Institucional:', colSpan: 3, styles: lblStyle }],
+                    [{ content: objetivosTxt, colSpan: 3, styles: valStyle }],
+                    
+                    [{ content: 'Políticas de investigación del Plan Estratégico institucional:', colSpan: 3, styles: lblStyle }],
+                    [{ content: politicasTxt, colSpan: 3, styles: valStyle }],
+                    
+                    [{ content: 'Agenda 2030 y los Objetivos de desarrollo sostenible una oportunidad para América Latina y el Caribe:', colSpan: 3, styles: lblStyle }],
+                    [{ content: agendaTxt, colSpan: 3, styles: valStyle }],
+                    
+                    [{ content: 'Objetivos del Plan de Desarrollo para el Nuevo Ecuador 2024 • 2025:', colSpan: 3, styles: lblStyle }],
+                    [{ content: objplandeTxt, colSpan: 3, styles: valStyle }],
+                    
+                    [
+                        { content: 'Nombre de Facultad/es:', styles: lblStyle },
+                        { content: 'Carrera/s:', styles: lblStyle },
+                        { content: 'Dominios académicos:', styles: lblStyle }
+                    ],
+                    [
+                        { content: facultadesTxt, styles: valStyle },
+                        { content: carrerasTxt, styles: valStyle },
+                        { content: dominiosTxt, styles: valStyle }
+                    ],
+                    
+                    [
+                        { content: 'No. Convocatoria:', styles: lblStyle },
+                        { content: 'Línea de Investigación:', styles: lblStyle },
+                        { content: 'Sublínea de Investigación:', styles: lblStyle }
+                    ],
+                    [
+                        { content: convocatoriaTxt, styles: valStyle },
+                        { content: lineaInvestigacion, styles: valStyle },
+                        { content: sublineaInvestigacion, styles: valStyle }
+                    ],
+                    
+                    [
+                        { content: 'Área Conocimiento UNESCO:', styles: lblStyle },
+                        { content: 'SubÁrea Conocimiento UNESCO:', styles: lblStyle },
+                        { content: 'SubÁrea Específica Conocimiento UNESCO:', styles: lblStyle }
+                    ],
+                    [
+                        { content: areaespecifica, styles: valStyle },
+                        { content: subareaespecifica, styles: valStyle },
+                        { content: especareaespecifica, styles: valStyle }
+                    ],
+                    
+                    [{ content: 'Tipo de proyecto de investigación:', colSpan: 3, styles: lblStyle }],
+                    [{ content: tipoproyectTxt, colSpan: 3, styles: valStyle }]
+                ];
+
+                // Dibujar Tabla 2 
+                autoTable(doc, {
+                    startY: doc.lastAutoTable.finalY + 4, 
+                    margin: { top: 45, left: 15, right: 15, bottom: 20 }, 
+                    theme: 'grid',
+                    body: tablaDatosGenerales,
+                    styles: { fontSize: 8, lineColor: [0, 0, 0], textColor: [0, 0, 0] } 
+                });
+                // 9. Calcular salto de página para la TABLA 4 (Firmas)
+                let finalY = doc.lastAutoTable.finalY + 10;
+                
+                if (finalY > pageHeight - 90) {
+                    doc.addPage();
+                    finalY = 45; 
+                }
+
+                let compromisosTexto = "Sin compromisos registrados.";
+                if (integrante.compromisos && integrante.compromisos.length > 0) {
+                    compromisosTexto = integrante.compromisos.map(c => `• ${c.detalle_compromiso}`).join('\n');
+                }
+                
+                let directorProy = '';
+                let ceduladirecto = '';
+                try {
+                    const resDir = await this.ObteneVicerect(proy.proyect_id);
+                    console.log("Respuesta del director:", resDir);
+                    if (resDir.data) {
+                        directorProy = resDir.data.nombre_completo;
+                        ceduladirecto = resDir.data.ci;
+                    }
+                } catch (e) { console.warn("No se pudo obtener director", e); }
+                let nombreIntegrante = '';
+                if(esEstudiante){
+                    nombreIntegrante = integrante.informacionpersonal.NombInfPer + ' ' + integrante.informacionpersonal.ApellInfPer + ' ' + integrante.informacionpersonal.ApellMatInfPer;
+                }else{
+                    nombreIntegrante = integrante.nombre_completo_titulo;
+                }
+                //const nombreDocente = integrante.nombre_completo_titulo || '_______________________';
+                const cedulaDocente = cedula;
+                const nombreDirector = directorProy || '_______________________'; 
+                
+                const formatearFecha = (fechaStr) => {
+                    if (!fechaStr) return '';
+                    const partes = fechaStr.split('-');
+                    if (partes.length === 3) {
+                        const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+                        const dia = parseInt(partes[2], 10);
+                        const mes = meses[parseInt(partes[1], 10) - 1];
+                        const anio = partes[0];
+                        return `${dia} de ${mes} de ${anio}`;
+                    }
+                    return fechaStr;
+                };
+
+                const fechaFormateada = formatearFecha(proy.proyect_fecha_pres);
+
+                // --- 2. OBTENER PROVINCIA SIN DUPLICADOS ---
+                let provincia = 'N/A';
+
+                if (Array.isArray(proy.invi_detalle_cobe)) {
+                    const provinciasMapeadas = proy.invi_detalle_cobe
+                        .map(cobe => cobe.provincias?.detalle || cobe.provincia?.detalle)
+                        .filter(Boolean);
+                    
+                    provincia = [...new Set(provinciasMapeadas)].join(', ') || 'N/A';
+
+                } else if (Array.isArray(proy.invi_detalle_cobe?.provincias)) {
+                    const provinciasMapeadas = proy.invi_detalle_cobe.provincias
+                        .map(p => p.detalle)
+                        .filter(Boolean);
+                        
+                    provincia = [...new Set(provinciasMapeadas)].join(', ') || 'N/A';
+
+                } else if (proy.invi_detalle_cobe?.provincias?.detalle) {
+                    provincia = proy.invi_detalle_cobe.provincias.detalle;
+                }
+                
+                // 10. Definir estructura de la TABLA 4 (Firmas dinámica)
+                const tablaFirmas = [
+                    // FILA 1: Título
+                    [{ content: '2. FIRMAS DE RESPONSABILIDAD', colSpan: 2, styles: { fontStyle: 'bold', fillColor: [220, 220, 220] } }],
+                    
+                    // FILA 2: Fecha y Docente/Estudiante
+                    [
+                        { content: `\n\nCiudad y Fecha:\n\n${provincia}, ${fechaFormateada}`, styles: { minCellHeight: 30, valign: 'middle', halign: 'center' } },
+                        { content: `DECLARO EL DESEO DE PARTICIPAR EN PROYECTOS DE INVESTIGACIÓN\n\n\n__________________________________\n${labelInvestigador} ${nombreIntegrante}\nC.I. ${cedulaDocente}`, styles: { minCellHeight: 30, valign: 'middle', halign: 'center' } }
+                    ],
+
+                    // FILA 3: Director (Se ajusta el borde según si hay o no compromisos más abajo)
+                    [
+                        { 
+                            content: `DECLARO QUE EL ${participacionTexto} PARTICIPARÁ EN PROYECTOS DE INVESTIGACIÓN\n\n\n__________________________________\n ${nombreDirector}\n Vicerrector de Investigación, Vinculación y Posgrado\nC.I. ${ceduladirecto}`, 
+                            colSpan: 2, 
+                            styles: { 
+                                minCellHeight: 40, 
+                                valign: 'top', 
+                                halign: 'center',
+                                // Si es estudiante (no lleva compromisos), el borde inferior debe cerrarse en 0.3. Si es docente, en 0 para unirse.
+                                lineWidth: { top: 0.3, right: 0.3, bottom: esEstudiante ? 0.3 : 0, left: 0.3 } 
+                            } 
+                        }
+                    ]
+                ];
+
+                // 10.1: Si NO es estudiante, agregamos la fila de compromisos
+                if (!esEstudiante) {
+                    tablaFirmas.push(
+                        // FILA 4: Compromisos (Se le quita el borde superior)
+                        [
+                            { 
+                                content: `NOTA: ME COMPROMETO AL FINAL DEL SEMESTRE A ENTREGAR:\n${compromisosTexto}`, 
+                                colSpan: 2, 
+                                styles: { 
+                                    minCellHeight: 15, 
+                                    valign: 'top', 
+                                    halign: 'left', 
+                                    cellPadding: 4,
+                                    lineWidth: { top: 0, right: 0.3, bottom: 0.3, left: 0.3 }
+                                } 
+                            }
+                        ]
+                    );
+                }
+
+                // 11. Dibujar Tabla Firmas
+                autoTable(doc, {
+                    startY: finalY,
+                    margin: { top: 45, left: 15, right: 15, bottom: 20 },
+                    theme: 'grid',
+                    body: tablaFirmas,
+                    styles: { fontSize: 8, cellPadding: 4, lineColor: [0, 0, 0], lineWidth: 0.3, textColor: [0, 0, 0] }
+                });
+
+                // 12. Descargar Documento (Nombre del archivo actualizado dinámicamente)
+                const nombreArchivo = `${numAnexo.replace(' ', '_')}_Compromiso_${cedula}.pdf`;
+                doc.save(nombreArchivo);
+
+            } catch (error) {
+                console.error(`Error al generar el PDF del Anexo:`, error);
+                mostraralertas2("Ocurrió un error al generar el PDF.", "error");
+            }finally {
+                // 2. Apagamos el spinner pase lo que pase (éxito o error)
+                this.botonCargando = null;
+            }
+        },
+        async descargarTodosCompromisos() {
+            
+            try {
+                this.botonCargando = 'descarga_masiva';
+                const idProyecto = this.proyectoSeleccionado?.proyect_id;
+                if(!idProyecto) {
+                    return mostraralertas2("Error: No se ha seleccionado un proyecto válido.", "warning");
+                }
+
+                // 1. Filtrar únicamente a los integrantes válidos (que tengan cédula y cumplan los requisitos)
+                const integrantesValidos = this.proyectoSeleccionado.invi_detalle_integrante.filter(int => {
+                    const cedula = int.ciinfper_doc || int.ciinfper_est;
+                    const tieneCompromisos = int.compromisos && int.compromisos.length > 0;
+                    const esEstudianteRol = int.funciones?.nombre_funcion === 'Estudiante del proyecto de investigación';
+                    return cedula && (tieneCompromisos || esEstudianteRol);
+                });
+
+                if (integrantesValidos.length === 0) {
+                    return mostraralertas2("No hay integrantes válidos con anexos de compromiso en este proyecto.", "warning");
+                }
+
+                // 2. Llamada a la API UNA SOLA VEZ para todos
+                const [responseDatos, resDir] = await Promise.all([
+                    API.get(`${this.baseUrl}/getEdicionDatos/${idProyecto}`),
+                    this.ObteneVicerect(idProyecto).catch(() => ({ data: { data: [] } }))
+                ]);
+                
+                const data = responseDatos.data;
+                const proy = data.proyecto;
+                
+                let directorProy = '';
+                let ceduladirecto = '';
+                if (resDir.data) {
+                    directorProy = resDir.data.nombre_completo;
+                    ceduladirecto = resDir.data.ci;
+                }
+
+                // 3. Mapear datos estáticos del proyecto (Fuera del bucle para optimizar rendimiento)
+                const facultadesTxt = data.facultades_data?.map(f => f.siglas || f.siglas || f.siglas).join('\n') || 'N/A';
+                const carrerasTxt = data.carreras_data?.map(c => c.NombCarr || c.NombCarr || c.NombCarr).join('\n') || 'N/A';
+                const dominiosTxt = data.dominios_data?.map(dom => dom.detalle_dom_huma).join('\n') || 'N/A';
+                const objetivosTxt = data.objetivos_pei_data?.map(o => o.cod_obj+'. '+ o.detalle_obj).join('\n') || 'N/A';
+                const politicasTxt = data.pei_politicas_data?.map(p => p.nombre_pol+'\n '+ p.detalle_pol || 'Política').join('\n') || 'N/A';
+                const agendaTxt = data.agenda_ods_data?.map(a => a.cod_ods+'. '+ a.detalle_ods || 'Agenda').join('\n') || 'N/A';
+                const objplandeTxt = data.objetivos_politicas_data?.map(a => a.cod_obj_pol+'. '+ a.detalle_obj_pol || 'Obj').join('\n') || 'N/A';
+                const convocatoriaTxt = data.convocatoria_data?.map(c => c.num_convocatoria).join('\n') || 'N/A';
+                const lineaInvestigacion = data.lineas_data?.map(l => l.nombre_lin).join('\n') || 'N/A';
+                const sublineaInvestigacion = data.sublineas_data?.map(sl => sl.nombre_sublin).join('\n') || 'N/A';
+                const areaespecifica = data.unesco_data.filter(item => item.tipo_area === 'Área de conocimiento').map(item =>item.sau_id+' '+ item.sau_descripcion).join('\n') || 'N/A';
+                const subareaespecifica = data.unesco_data.filter(item => item.tipo_area === 'Subárea de conocimiento').map(item =>item.sau_id+' '+ item.sau_descripcion).join('\n') || 'N/A';
+                const especareaespecifica = data.unesco_data.filter(item => item.tipo_area === 'Área específica de conocimiento').map(item =>item.sau_id+' '+ item.sau_descripcion).join('\n') || 'N/A';
+                const tipoproyectTxt = data.tipproyectos_data?.map(t => t.detalle_invi_proyect).join('\n') || 'N/A';
+
+                const coberturaSeleccionada = (proy.proyect_cobertura || '').toLowerCase();
+                const checkLocal = coberturaSeleccionada.includes('local') ? 'X' : '  ';
+                const checkRegional = coberturaSeleccionada.includes('regional') ? 'X' : '  ';
+                const checkNacional = coberturaSeleccionada.includes('nacional') ? 'X' : '  ';
+                const checkInternacional = coberturaSeleccionada.includes('internacional') ? 'X' : '  ';
+
+                const formatearFecha = (fechaStr) => {
+                    if (!fechaStr) return '';
+                    const partes = fechaStr.split('-');
+                    if (partes.length === 3) {
+                        const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+                        return `${parseInt(partes[2], 10)} de ${meses[parseInt(partes[1], 10) - 1]} de ${partes[0]}`;
+                    }
+                    return fechaStr;
+                };
+                const fechaFormateada = formatearFecha(proy.proyect_fecha_pres);
+
+                let provincia = 'N/A';
+                if (Array.isArray(proy.invi_detalle_cobe)) {
+                    const provMap = proy.invi_detalle_cobe.map(c => c.provincias?.detalle || c.provincia?.detalle).filter(Boolean);
+                    provincia = [...new Set(provMap)].join(', ') || 'N/A';
+                } else if (Array.isArray(proy.invi_detalle_cobe?.provincias)) {
+                    const provMap = proy.invi_detalle_cobe.provincias.map(p => p.detalle).filter(Boolean);
+                    provincia = [...new Set(provMap)].join(', ') || 'N/A';
+                } else if (proy.invi_detalle_cobe?.provincias?.detalle) {
+                    provincia = proy.invi_detalle_cobe.provincias.detalle;
+                }
+
+                // Estilos y Tablas Generales (Se definen una vez)
+                const lblStyle = { fontStyle: 'bold', halign: 'left', cellPadding: { top: 3, left: 3, right: 3, bottom: 0 }, lineWidth: { top: 0.3, right: 0.3, bottom: 0, left: 0.3 } };
+                const valStyle = { fontStyle: 'normal', halign: 'left', cellPadding: { top: 1, left: 3, right: 3, bottom: 3 }, lineWidth: { top: 0, right: 0.3, bottom: 0.3, left: 0.3 } };
+
+                const tablaDatosGenerales = [
+                    [{ content: 'Nombre (Español):', colSpan: 3, styles: lblStyle }],
+                    [{ content: proy.proyect_nombre || '', colSpan: 3, styles: valStyle }],
+                    [{ content: 'Título del proyecto (Español):', colSpan: 3, styles: lblStyle }],
+                    [{ content: proy.proyect_titulo || '', colSpan: 3, styles: valStyle }],
+                    [{ content: 'Misión Institucional:', colSpan: 3, styles: lblStyle }],
+                    [{ content: 'Formación integral de profesionales críticos, propositivos y humanistas, mediante un proceso educativo actual, articulado entre la docencia, la investigación y la vinculación con la sociedad, para el desarrollo sostenible de la sociedad, basados en la construcción adecuada de la cultura universal y ancestral ecuatoriana, la ciencia y la tecnología.' || '', colSpan: 3, styles: valStyle }],
+                    
+                    [{ content: 'Visión Institucional:', colSpan: 3, styles: lblStyle }],
+                    [{ content: 'Ser un referente a nivel nacional e internacional de excelencia académica, científica, tecnológica y cultural, que incide positivamente en el desarrollo equitativo e integral de la sociedad.' || '', colSpan: 3, styles: valStyle }],
+                    
+                    [{ content: 'Objetivos del Plan Estratégico Institucional:', colSpan: 3, styles: lblStyle }],
+                    [{ content: objetivosTxt, colSpan: 3, styles: valStyle }],
+                    [{ content: 'Políticas de investigación del Plan Estratégico institucional:', colSpan: 3, styles: lblStyle }],
+                    [{ content: politicasTxt, colSpan: 3, styles: valStyle }],
+                    [{ content: 'Agenda 2030 y los Objetivos de desarrollo sostenible una oportunidad para América Latina y el Caribe:', colSpan: 3, styles: lblStyle }],
+                    [{ content: agendaTxt, colSpan: 3, styles: valStyle }],
+                    [{ content: 'Objetivos del Plan de Desarrollo para el Nuevo Ecuador 2024 • 2025:', colSpan: 3, styles: lblStyle }],
+                    [{ content: objplandeTxt, colSpan: 3, styles: valStyle }],
+                    [
+                        { content: 'Nombre de Facultad/es:', styles: lblStyle },
+                        { content: 'Carrera/s:', styles: lblStyle },
+                        { content: 'Dominios académicos:', styles: lblStyle }
+                    ],
+                    [
+                        { content: facultadesTxt, styles: valStyle },
+                        { content: carrerasTxt, styles: valStyle },
+                        { content: dominiosTxt, styles: valStyle }
+                    ],
+                    [
+                        { content: 'No. Convocatoria:', styles: lblStyle },
+                        { content: 'Línea de Investigación:', styles: lblStyle },
+                        { content: 'Sublínea de Investigación:', styles: lblStyle }
+                    ],
+                    [
+                        { content: convocatoriaTxt, styles: valStyle },
+                        { content: lineaInvestigacion, styles: valStyle },
+                        { content: sublineaInvestigacion, styles: valStyle }
+                    ],
+                    [
+                        { content: 'Área Conocimiento UNESCO:', styles: lblStyle },
+                        { content: 'SubÁrea Conocimiento UNESCO:', styles: lblStyle },
+                        { content: 'SubÁrea Específica Conocimiento UNESCO:', styles: lblStyle }
+                    ],
+                    [
+                        { content: areaespecifica, styles: valStyle },
+                        { content: subareaespecifica, styles: valStyle },
+                        { content: especareaespecifica, styles: valStyle }
+                    ],
+                    [{ content: 'Tipo de proyecto de vinculación:', colSpan: 3, styles: lblStyle }],
+                    [{ content: tipoproyectTxt, colSpan: 3, styles: valStyle }]
+                ];
+
+                // 4. Inicializar jsPDF
+                const doc = new jsPDF('p', 'mm', 'a4');
+                const pageWidth = doc.internal.pageSize.getWidth();
+                const pageHeight = doc.internal.pageSize.getHeight();
+                const rutaImagenFondo = '/fondo2.png'; 
+
+                const dibujarFondoBanner = () => {
+                    doc.addImage(rutaImagenFondo, 'PNG', 0, 0, pageWidth, pageHeight);
+                };
+
+                const originalAddPage = doc.addPage.bind(doc);
+                doc.addPage = function() {
+                    originalAddPage();
+                    dibujarFondoBanner();
+                };
+
+                // -----------------------------------------------------------
+                // 5. BUCLE PRINCIPAL (ITERAR POR CADA INTEGRANTE)
+                // -----------------------------------------------------------
+                for (let i = 0; i < integrantesValidos.length; i++) {
+                    const integrante = integrantesValidos[i];
+                    
+                    const cedula = integrante.ciinfper_doc || integrante.ciinfper_est;
+                    const esEstudiante = integrante.ciinfper_est === cedula;
+                    
+                    const numAnexo = esEstudiante ? 'ANEXO 8' : 'ANEXO 7';
+                    const tituloFormato = esEstudiante 
+                        ? 'FORMATO DE ESTUDIANTES QUE DESEAN PARTICIPAR EN PROYECTOS DE' 
+                        : 'FORMATO DE PROFESORES QUE DESEAN PARTICIPAR EN PROYECTOS DE';
+                    const labelInvestigador = esEstudiante ? 'Nombre del/la Estudiante Investigador:' : 'Nombre del Docente Investigador:';
+                    const participacionTexto = esEstudiante ? 'ESTUDIANTE' : 'DOCENTE';
+
+                    let nombreIntegrante = esEstudiante 
+                        ? `${integrante.informacionpersonal.NombInfPer} ${integrante.informacionpersonal.ApellInfPer} ${integrante.informacionpersonal.ApellMatInfPer}` 
+                        : integrante.nombre_completo_titulo;
+                    
+                    let compromisosTexto = "Sin compromisos registrados.";
+                    if (integrante.compromisos && integrante.compromisos.length > 0) {
+                        compromisosTexto = integrante.compromisos.map(c => `• ${c.detalle_compromiso}`).join('\n');
+                    }
+
+                    // Si NO es el primero, añadimos una nueva página para separar el anexo del siguiente integrante
+                    if (i === 0) {
+                        dibujarFondoBanner();
+                    } else {
+                        doc.addPage(); 
+                    }
+
+                    // Dibujar Textos de Encabezado dinámicos
+                    doc.setFont("helvetica", "bold");
+                    doc.setFontSize(10);
+                    doc.setTextColor(0, 0, 0);
+                    let startY = 25; 
+                    doc.text(numAnexo, pageWidth / 2, startY + 20, { align: 'center' });
+                    doc.text(tituloFormato, pageWidth / 2, startY + 28, { align: 'center' });
+                    doc.text('INVESTIGACIONES', pageWidth / 2, startY + 33, { align: 'center' });
+
+                    // Tabla 1: Titulo
+                    autoTable(doc, {
+                        startY: 65, margin: { left: 15, right: 15 }, theme: 'grid',
+                        body: [[{ content: '1. DATOS GENERALES', styles: { halign: 'center', fontStyle: 'bold', fillColor: [220, 220, 220], textColor: [0, 0, 0], fontSize: 10 } }]],
+                        styles: { lineColor: [0, 0, 0], lineWidth: 0.3 }
+                    });
+
+                    // Tabla 2: Datos (Reutilizamos la variable)
+                    autoTable(doc, {
+                        startY: doc.lastAutoTable.finalY + 4, margin: { top: 45, left: 15, right: 15, bottom: 20 }, theme: 'grid',
+                        body: tablaDatosGenerales, styles: { fontSize: 8, lineColor: [0, 0, 0], textColor: [0, 0, 0] } 
+                    });
+
+                    // Control de salto de página para Firmas
+                    let finalY = doc.lastAutoTable.finalY + 10;
+                    if (finalY > pageHeight - 90) {
+                        doc.addPage();
+                        finalY = 45; 
+                    }
+
+                    // Tabla 4: Firmas Dinámicas
+                    const nombreDirector = directorProy || '_______________________'; 
+                    
+                    const tablaFirmas = [
+                        [{ content: '2. FIRMAS DE RESPONSABILIDAD', colSpan: 2, styles: { fontStyle: 'bold', fillColor: [220, 220, 220] } }],
+                        [
+                            { content: `\n\nCiudad y Fecha:\n\n${provincia}, ${fechaFormateada}`, styles: { minCellHeight: 30, valign: 'middle', halign: 'center' } },
+                            { content: `DECLARO EL DESEO DE PARTICIPAR EN PROYECTOS DE INVESTIGACIÓN\n\n\n__________________________________\n${labelInvestigador} ${nombreIntegrante}\nC.I. ${cedula}`, styles: { minCellHeight: 30, valign: 'middle', halign: 'center' } }
+                        ],
+                        [
+                            { 
+                                content: `DECLARO QUE EL ${participacionTexto} PARTICIPARÁ EN PROYECTOS DE INVESTIGACIÓN\n\n\n__________________________________\n ${nombreDirector}\n Vicerrector de Investigación, Vinculación y Posgrado\nC.I. ${ceduladirecto}`, 
+                                colSpan: 2, 
+                                styles: { 
+                                    minCellHeight: 40, valign: 'top', halign: 'center',
+                                    lineWidth: { top: 0.3, right: 0.3, bottom: esEstudiante ? 0.3 : 0, left: 0.3 } 
+                                } 
+                            }
+                        ]
+                    ];
+
+                    // Condicional: Compromisos si no es estudiante
+                    if (!esEstudiante) {
+                        tablaFirmas.push([
+                            { 
+                                content: `NOTA: ME COMPROMETO AL FINAL DEL SEMESTRE A ENTREGAR:\n${compromisosTexto}`, 
+                                colSpan: 2, 
+                                styles: { 
+                                    minCellHeight: 15, valign: 'top', halign: 'left', cellPadding: 4,
+                                    lineWidth: { top: 0, right: 0.3, bottom: 0.3, left: 0.3 }
+                                } 
+                            }
+                        ]);
+                    }
+
+                    // Dibujar Tabla de firmas
+                    autoTable(doc, {
+                        startY: finalY, margin: { top: 45, left: 15, right: 15, bottom: 20 }, theme: 'grid',
+                        body: tablaFirmas, styles: { fontSize: 8, cellPadding: 4, lineColor: [0, 0, 0], lineWidth: 0.3, textColor: [0, 0, 0] }
+                    });
+                }
+
+                // 6. Descargar el documento compilado final
+                const nombreArchivo = `Anexos7y8_Masivos_Compromisos_.pdf`;
+                doc.save(nombreArchivo);
+
+            } catch (error) {
+                console.error(`Error al generar el PDF masivo:`, error);
+                mostraralertas2("Ocurrió un error al generar la descarga masiva.", "error");
+            } finally {
+                this.botonCargando = null;
+            }
+        },
         async ObtenerCarr(id){
             const response = await API.get(`${this.baseUrl}/obtnercarreraindv/${id}`);
             return response.data.nombre_carrera;
@@ -9158,6 +10588,10 @@ export default {
         },
         async ObteneDirVin(id){
             const response = await API.get(`${this.baseUrl}/getdirectinv`);
+            return response;
+        },
+        async ObteneVicerect(id){
+            const response = await API.get(`${this.baseUrl}/getvicerect`);
             return response;
         },
         async abrirModalAreaTematica(id) {

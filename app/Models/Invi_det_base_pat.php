@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Invi_det_base_pat extends Model
 {
-    protected $table = 'Invi_det_base_pat';
+    protected $table = 'invi_det_base_pat';
     protected $primaryKey = 'id_det_base_pat';
     public $incrementing = true;
     protected $keyType = 'int';

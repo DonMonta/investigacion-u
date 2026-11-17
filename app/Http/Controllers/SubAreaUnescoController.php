@@ -22,7 +22,7 @@ class SubAreaUnescoController extends Controller
                 $pdid = trim($item->sau_pdid ?? '');
                 
                 // 1. Reparar la codificación (Corrige problemas como "GenÃ©ricos" -> "Genéricos")
-                $descripcion = mb_convert_encoding($item->sau_descripcion, 'ISO-8859-1', 'UTF-8');
+                $descripcion = mb_convert_encoding($item->sau_descripcion, 'UTF-8', 'ISO-8859-1');
                 
                 // Si la BD ya retorna bien en algunos casos, puedes dejar solo un trim() o usar:
                 // $descripcion = mb_detect_encoding($descripcion, 'UTF-8', true) ? $descripcion : utf8_encode($descripcion);

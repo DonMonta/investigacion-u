@@ -59,4 +59,13 @@ class Invi_actividades extends Model
     {
         return $this->hasMany(Invi_informe_actividades_docentes::class, 'id_actividades');
     }
+    public function grupos_responsables()
+    {
+        return $this->belongsToMany(
+            Invi_grupos_investigacion::class, 
+            'invi_grupo_actividad', // Nombre de la tabla pivote
+            'id_actividades',       // Llave foránea de este modelo en la tabla pivote
+            'id_grupo'              // Llave foránea del modelo relacionado en la tabla pivote
+        )->withPivot('id_grupo_act');
+    }
 }

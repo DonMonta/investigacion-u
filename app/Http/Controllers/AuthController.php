@@ -61,7 +61,7 @@ class AuthController extends Controller
             // --- INICIO DE REGISTRO EN BITÁCORA ---
             try {
                 Bitacora::create([
-                    'bt_usuario'     => $user->ciinfper,
+                    'bt_usuario'     => $user->NombUsu,
                     'bt_fechahora'   => Carbon::now(), // Fecha y hora actual
                     'bt_accion'      => 'INICIO DE SESIÓN INVESTIGACIÓN-DASHBOARD',
                     'bt_ippc'        => $request->ip(), // Obtiene la IP del dispositivo
@@ -80,7 +80,7 @@ class AuthController extends Controller
                 'mensaje' => 'Autenticación exitosa',
                 'token' => $token,
                 'token_type' => 'bearer',
-                'expires_in' => config('jwt.ttl') * 60,
+                'expires_in' => config('jwt.ttl') * 180,
                 'name' => $user->NombUsu,
                 'email' => $user->email,
                 'Role' => $user->idperfil,

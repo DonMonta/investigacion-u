@@ -1,49 +1,21 @@
-# ----------------------------------------------------------------------
-# 1. COMPRESIÓN GZIP (Vital para que los JSON pesados carguen rápido)
-# ----------------------------------------------------------------------
-<IfModule mod_deflate.c>
-    AddOutputFilterByType DEFLATE application/json
-    AddOutputFilterByType DEFLATE text/plain
-    AddOutputFilterByType DEFLATE text/html
-    AddOutputFilterByType DEFLATE text/xml
-    AddOutputFilterByType DEFLATE application/javascript
-    AddOutputFilterByType DEFLATE application/x-javascript
-</IfModule>
-
-# ----------------------------------------------------------------------
-# 2. SEGURIDAD Y OPTIMIZACIÓN DE ÍNDICES
-# ----------------------------------------------------------------------
-<IfModule mod_negotiation.c>
-    Options -MultiViews -Indexes
-</IfModule>
-
-# ----------------------------------------------------------------------
-# 3. REGLAS DE LARAVEL (Mantenemos tu lógica con mejoras)
-# ----------------------------------------------------------------------
 <IfModule mod_rewrite.c>
+    <IfModule mod_negotiation.c>
+        Options -MultiViews -Indexes
+    </IfModule>
+
     RewriteEngine On
-    RewriteBase /investigaback/
 
-    # Forzar que no haya barra final (Trailing Slashes)
-    RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteRule ^(.*)/$ $1 [L,R=301]
-
-    # Autorización (Vital para JWT / Bearer Tokens)
+    # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 
-    # El Front Controller de Laravel
+    # Redirect Trailing Slashes If Not A Folder...
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_URI} (.+)/$
+    RewriteRule ^ %1 [L,R=301]
+
+    # Send Requests To Front Controller...
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
-</IfModule>
-
-# ----------------------------------------------------------------------
-# 4. CONFIGURACIÓN DE CABECERAS (Opcional pero recomendado para APIs)
-# ----------------------------------------------------------------------
-<IfModule mod_headers.c>
-    # Evita que el navegador guarde en caché las respuestas de la API
-    Header set Cache-Control "no-cache, no-store, must-revalidate"
-    Header set Pragma "no-cache"
-    Header set Expires 0
 </IfModule>

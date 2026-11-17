@@ -20,6 +20,7 @@ use App\Models\Invi_deta_inte;
 use App\Models\Invi_funcion;
 use App\Models\Invi_proyectos;
 use App\Models\Objetivos_pei;
+use App\Models\Invi_grupo_actividad;
 use App\Models\Pei;
 use App\Models\Subsistemas_pei;
 use App\Models\Invi_detalle_obj_pei;
@@ -292,6 +293,7 @@ class Invi_proyectosController extends Controller
             'invi_obj_proyectos.invi_actividades.invi_actmedios_verificacion',
             'invi_obj_proyectos.invi_actividades.invi_actindicadores',
             'invi_obj_proyectos.invi_actividades.invi_actsupuestos',
+            'invi_obj_proyectos.invi_actividades.grupos_responsables',
             'invi_detalle_adqui.invi_adquisicion',
             'invi_detalle_financia.invi_rubros',
             'invi_det_impactos_esperados.invi_impactos',
@@ -441,7 +443,7 @@ class Invi_proyectosController extends Controller
         $unescoCatalogo = $unescoCatalogoRaw->map(function ($item) {
             $id = trim($item->sau_id);
             $pdid = trim($item->sau_pdid ?? '');
-            $descripcion = mb_convert_encoding($item->sau_descripcion, 'ISO-8859-1', 'UTF-8');
+            $descripcion = mb_convert_encoding($item->sau_descripcion, 'UTF-8', 'UTF-8, ISO-8859-1, Windows-1252');
             $descripcion_limpia = preg_replace('/^' . preg_quote($id, '/') . '\s*/', '', $descripcion);
 
             $longitud_id = strlen($id);
@@ -646,11 +648,11 @@ class Invi_proyectosController extends Controller
                 $tipoInf = strtoupper($integrante->informacionPersonalD->TipoInfPer ?? '');
 
                 // Excluimos personal administrativo (TipoInfPer == 'A' o id_funcion == 5)
-                if ($tipoInf !== 'A' && $idFuncion != 5) {
+                if ($tipoInf !== 'A') {
 
                     // Validamos funciones de Docentes (Director, Subdirector, Docente, Técnico)
                     // Usamos tanto el id_funcion como Str::startsWith para mayor seguridad
-                    if (Str::startsWith($nombreFuncion, ['Director', 'Subdirector', 'Docente', 'Técnico']) || in_array($idFuncion, [1, 2, 3, 4])) {
+                    if (Str::startsWith($nombreFuncion, ['Director', 'Subdirector', 'Investigador', 'Técnico']) || in_array($idFuncion, [7, 8, 9, 11])) {
                         $genero = strtoupper($integrante->informacionPersonalD->GeneroPer ?? '');
                         if ($genero === 'M') {
                             $num_doce_h++;
@@ -664,7 +666,7 @@ class Invi_proyectosController extends Controller
             // 2. ESTUDIANTES (Buscamos en informacionpersonal)
             if ($integrante->informacionpersonal) {
                 // Validamos funciones de Estudiantes (id_funcion == 6 o empieza con "Estudiante")
-                if (Str::startsWith($nombreFuncion, ['Estudiante']) || $idFuncion == 6) {
+                if (Str::startsWith($nombreFuncion, ['Estudiante']) || $idFuncion == 12) {
                     $genero = strtoupper($integrante->informacionpersonal->GeneroPer ?? '');
                     if ($genero === 'H') {
                         $num_est_h++;
@@ -804,6 +806,14 @@ class Invi_proyectosController extends Controller
         $camposDataSeleccionada = $camposRaw->whereIn('id', $camposSeleccionados)->values();
         $tipoproyectoData = Invi_tip_proyect::where('id_tip_invi_proy', $proyecto->id_tip_invi_proy)->get();
         //$asignaturasData = Asignaturas::whereIn('IdAsig', $asignaturasSeleccionadas)->get();
+        $grupos_investigacion = Invi_grupos_investigacion::with([
+            'integrantes.informacionPersonalD',
+            'integrantes.informacionpersonal',
+            'actividades',
+            'objetivos'
+        ])->where('proyect_id', $id)
+          ->where('estado', 1)
+          ->get();
 
         return response()->json([
             'proyecto' => $proyecto,
@@ -891,6 +901,7 @@ class Invi_proyectosController extends Controller
             'sublineas_data' => $sublineasData,
             'tipproyectos_data' => $tipoproyectoData,
             'zona_plan_data' => $zonaPlanData,
+            'grupos_investigacion' => $grupos_investigacion,
             //'asignaturas_data' => $asignaturasData,
         ]);
     }
@@ -1640,6 +1651,7 @@ class Invi_proyectosController extends Controller
             $proyecto->proyect_prototipos = $request->proyect_prototipos;
             $proyecto->proyect_reg_propin = $request->proyect_reg_propin;
             $proyecto->proyect_empr_spin = $request->proyect_empr_spin;
+            $proyecto->proyect_descrip_act_i_d = $request->proyect_descrip_act_i_d;
             $proyecto->proyect_otros = $request->proyect_otros;
             $proyecto->proyect_archivo = $request->proyect_archivo;
 
@@ -2215,7 +2227,19 @@ class Invi_proyectosController extends Controller
                     );
 
                     $ids_actividades_recibidas[] = $actividad->id_actividades;
+                    // Dentro del foreach que guarda actividades:
+                    Invi_grupo_actividad::where('id_actividades', $actividad->id_actividades)->delete();
 
+                    if (!empty($actData['grupos_responsables'])) {
+                        $gruposValidos = array_filter($actData['grupos_responsables'], function($val) {
+                            return !is_null($val) && is_numeric($val);
+                        });
+                        // sync() elimina los registros viejos y crea los nuevos automáticamente
+                        $actividad->grupos_responsables()->sync($gruposValidos);
+                    } else {
+                        // Si envían el arreglo vacío, elimina todas las relaciones
+                        $actividad->grupos_responsables()->detach();
+                    }              
                     // Subactividades
                     $actividad->invi_subactividad()->delete();
                     if (!empty($actData['invi_subactividad'])) {

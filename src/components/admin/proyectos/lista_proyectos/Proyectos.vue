@@ -4533,6 +4533,23 @@
                                     rows="4"
                                 ></textarea>
                             </div>
+                            <div class="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm transition-all hover:shadow-md mt-6">
+                                <label class="block text-lg font-bold text-gray-800 dark:text-gray-200 mb-1">
+                                    Descripción de Actividad I+D <span class="text-red-500">*</span>
+                                </label>
+                                <p class="text-sm text-gray-500 dark:text-gray-400 mb-3">
+                                    Detalle las actividades de Investigación y Desarrollo que se ejecutarán en el proyecto, según los parámetros requeridos para la matriz del CACES.
+                                </p>
+                                <textarea 
+                                    ref="descripActIDTextarea"
+                                    v-model="editForm.proyect_descrip_act_i_d" 
+                                    @input="ajustarAlturaTextarea"
+                                    @contextmenu.prevent="abrirMenuContextual($event, 'proyect_descrip_act_i_d')"
+                                    class="w-full p-4 text-sm bg-gray-50 dark:bg-gray-900/50 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 resize-none overflow-hidden text-justify transition-shadow" 
+                                    placeholder="Describa de manera clara y detallada la metodología, los procesos científicos o tecnológicos y las actividades de I+D que enmarcan la ejecución del proyecto..."
+                                    rows="4"
+                                ></textarea>
+                            </div>
                         </div>
                     </div>
                     <div v-else-if="activeTab === 'cronograma_act'" class="space-y-6 animate-fade-in-up">
@@ -4546,12 +4563,13 @@
                             </div>
                             <!-- Indicador de Horas Totales -->
                             <div class="flex items-center gap-4">
+                            <!-- Indicador de Horas Totales 
                                 <div class="text-right bg-white dark:bg-gray-900 px-4 py-2 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
                                     <span class="text-xs text-gray-500 uppercase font-bold block">Horas {{ anioSeleccionadoTab }}</span>
                                     <span class="text-lg font-black" :class="totalHorasAnioSeleccionado > 240 ? 'text-red-600' : 'text-green-600'">
                                         {{ totalHorasAnioSeleccionado }} / 240 hrs
                                     </span>
-                                </div>
+                                </div>-->
                                 <!-- BOTÓN GENERAR PDF -->
                                <button 
                                     @click="generarPDFCronograma" 
@@ -4634,13 +4652,19 @@
                                             <div class="flex justify-between items-start gap-4">
                                                 <div>
                                                     <h5 class="font-bold text-base text-gray-900 dark:text-white">{{ act.nom_actividad }}</h5>
+                                                    <!-- Modal para Bases de Datos y Patentes 
                                                     <span class="px-2.5 py-1 text-xs font-bold rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300">
                                                         {{ act.horas }} Horas
-                                                    </span>
+                                                    </span>-->
                                                     <span class="text-xs text-gray-500">
                                                         {{ act.fecha_desde }} al {{ act.fecha_hasta }}
                                                     </span>
                                                     <p class="text-xs text-gray-500">Responsables: {{ act.responsables || 'No asignado' }}</p>
+                                                    <!-- NUEVO: Mostrar cantidad de grupos de investigación vinculados si existen -->
+                                                    <p v-if="act.grupos_responsables && act.grupos_responsables.length > 0" class="text-xs text-green-600 dark:text-green-400 font-bold mt-1 flex items-center gap-1">
+                                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                                                        Vinculado a {{ act.grupos_responsables.length }} Grupo(s) de Investigación
+                                                    </p>
                                                 </div>
                                                 <div class="flex items-center gap-2">
                                                     <button @click="abrirModalActividad(act, idx)" class="text-blue-600 hover:text-blue-800 text-xs font-semibold ml-2">Editar</button>
@@ -6123,9 +6147,44 @@
                         </div>
 
                         <!-- Responsables -->
-                        <div>
-                            <label class="block font-bold mb-1">Responsables</label>
-                            <input v-model="modalActividad.responsables" type="text" class="w-full border rounded-lg p-2 dark:bg-gray-800">
+                        <!-- NUEVO: Vincular a Grupos de Investigación -->
+                        <div class="md:col-span-2 bg-gray-50/50 dark:bg-gray-900/50 p-3 rounded-lg border border-gray-200 dark:border-gray-700">
+                            <label class="flex items-center gap-2 font-bold text-sm text-gray-900 dark:text-white cursor-pointer mb-1">
+                                <input 
+                                    type="checkbox" 
+                                    v-model="modalActividad.vincular_grupo" 
+                                    class="w-4 h-4 rounded border-gray-300 text-green-600 focus:ring-green-500 dark:bg-gray-800 dark:border-gray-600"
+                                />
+                                ¿Añadir esta actividad a un Grupo de Investigación?
+                            </label>
+
+                            <!-- Selector de Grupos (Desplegado solo si el checkbox está activo) -->
+                            <div v-if="modalActividad.vincular_grupo" class="mt-3 animate-fade-in-up">
+                                <label class="block text-xs font-semibold mb-2 text-gray-600 dark:text-gray-400">Seleccione los grupos responsables:</label>
+                                
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-32 overflow-y-auto pr-1">
+                                    <!-- Iterar sobre los grupos de investigación cargados previamente del backend -->
+                                    <label 
+                                        v-for="grupo in grupos_investigacion" 
+                                        :key="grupo.id_grupo" 
+                                        class="flex items-start gap-2 p-2 bg-white dark:bg-gray-800 border rounded cursor-pointer hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors"
+                                    >
+                                        <input 
+                                            type="checkbox" 
+                                            :value="grupo.id_grupo" 
+                                            v-model="modalActividad.grupos_responsables" 
+                                            class="mt-0.5 rounded border-gray-300 text-green-600 focus:ring-green-500 dark:bg-gray-700 dark:border-gray-600" 
+                                        />
+                                        <span class="text-xs text-gray-700 dark:text-gray-300 leading-tight">
+                                            {{ grupo.nombre_grupo }} <!-- Ajusta a la propiedad exacta de tu modelo de BD -->
+                                        </span>
+                                    </label>
+                                </div>
+
+                                <p v-if="!grupos_investigacion || grupos_investigacion.length === 0" class="text-xs text-red-500 mt-2 font-semibold">
+                                    No hay grupos de investigación registrados o activos en este proyecto.
+                                </p>
+                            </div>
                         </div>
 
                         <!-- Año del Cronograma -->
@@ -6160,10 +6219,11 @@
                                 :max="`${obtenerAnioNumerico(modalActividad.detalle_anio)}-12-31`"
                                 class="w-full border rounded-lg p-2 dark:bg-gray-800 dark:text-white dark:border-gray-600">
                         </div>
+                        <!-- SECCIÓN DE SUBACTIVIDADES 
                         <div>
                             <label class="block font-bold mb-1">Total de Horas</label>
                             <input v-model.number="modalActividad.horas" type="number" min="1" max="240" class="w-full border rounded-lg p-2 dark:bg-gray-800">
-                        </div>
+                        </div>-->
                     </div>
 
                         <!-- SECCIÓN DE SUBACTIVIDADES -->
@@ -6533,6 +6593,7 @@ export default {
                 proyect_diag_probl: '',
                 proyec_result_invest: '',
                 proyec_pagina_legal: '',
+                proyect_descrip_act_i_d: '',
                 //asignaturas: [],
                 base_patentes: [],
                 proyec_ident_poblaobj: '',
@@ -6611,8 +6672,10 @@ export default {
                 invi_actprod_verificables: [],
                 invi_actmedios_verificacion: [],
                 invi_actindicadores: [],
-                invi_actsupuestos: []
+                invi_actsupuestos: [],
+                grupos_responsables: [], // Array para almacenar los IDs de los grupos seleccionados
             },
+            grupos_investigacion: [],
             isGeneratingPDF: false,
             showModalFinancia: false,
             listaRubrosDisponibles: [],
@@ -6726,6 +6789,11 @@ export default {
                 });
             }
             if (newTab === 'restSupuTextarea') {
+                this.$nextTick(() => {
+                    this.recalcularAlturasCargadas();
+                });
+            }
+            if (newTab === 'descripActIDTextarea') {
                 this.$nextTick(() => {
                     this.recalcularAlturasCargadas();
                 });
@@ -8121,6 +8189,7 @@ export default {
                 const idenTextarea = this.$refs.identPoblaobjTextarea;
                 const factTextarea = this.$refs.facExitTextarea;
                 const restsuTextarea = this.$refs.restSupuTextarea;
+                const descripActIDTextarea = this.$refs.descripActIDTextarea;
                 const bienTextarea = this.$refs.bienesTextarea;
                 const servTextarea = this.$refs.serviTextarea;
                 const servybiTextarea = this.$refs.servibienTextarea;
@@ -8164,6 +8233,10 @@ export default {
                 if (restsuTextarea) {
                     restsuTextarea.style.height = 'auto';
                     restsuTextarea.style.height = restsuTextarea.scrollHeight + 'px';
+                }
+                if (descripActIDTextarea) {
+                    descripActIDTextarea.style.height = 'auto';
+                    descripActIDTextarea.style.height = descripActIDTextarea.scrollHeight + 'px';
                 }
                 if (servbTextarea) {
                     servbTextarea.style.height = 'auto';
@@ -8369,7 +8442,7 @@ export default {
 
                 // Calculamos la diferencia de años y sumamos 1 para incluir el año de inicio
                 // Ejemplo: 2027 - 2025 = 2. Sumamos 1 = 3 años.
-                let aniosTotales = (f2.getFullYear() - f1.getFullYear());
+                 let aniosTotales = (f2.getFullYear() - f1.getFullYear()) + 1;
                 
                 // Convertimos los años a meses
                 let mesesTotales = aniosTotales * 12;
@@ -8484,11 +8557,20 @@ export default {
                                 invi_actprod_verificables: act.invi_actprod_verificables || [],
                                 invi_actmedios_verificacion: act.invi_actmedios_verificacion || [],
                                 invi_actindicadores: act.invi_actindicadores || [],
-                                invi_actsupuestos: act.invi_actsupuestos || []
+                                invi_actsupuestos: act.invi_actsupuestos || [],
+                                grupos_responsables: act.grupos_responsables ? act.grupos_responsables.map(g => {
+                                    if (typeof g === 'object' && g !== null) {
+                                        // Busca el ID en las propiedades comunes o en la tabla pivote
+                                        return g.id_grupo || g.id || (g.pivot ? g.pivot.id_grupo : null);
+                                    }
+                                    // Si ya es un número entero (porque el checkbox lo asignó así)
+                                    return g;
+                                }).filter(id => id !== null && id !== undefined) : []
                             });
                         });
                     }
                 });
+                this.grupos_investigacion = data.grupos_investigacion || [];
                 let adquisicionesMapeadas = [];
                 if (data.proyecto.invi_detalle_adqui && data.proyecto.invi_detalle_adqui.length > 0) {
                     adquisicionesMapeadas = data.proyecto.invi_detalle_adqui.map(detalle => {
@@ -8548,7 +8630,7 @@ export default {
                     });
                 }
                 const nombreArchivo = data.proyecto.proyect_archivo;
-                console.log(data.proyecto)
+                console.log(data)
                 this.editForm = {
                     proyect_id: data.proyecto.proyect_id,
                     proyect_cod: data.proyecto.proyect_cod || '',
@@ -8617,18 +8699,19 @@ export default {
                     proyect_total_num_direct: data.proyecto.proyect_total_num_direct || '',
                     proyect_num_personas_div_fun: data.proyecto.proyect_num_personas_div_fun || '',
                     proyect_total_num_indirect: data.proyecto.proyect_total_num_indirect || '',
-                    proyect_num_doce_h: data.proyecto.proyect_num_doce_h ?? calc.docentes_h ?? 0,
-                    proyect_num_doce_m: data.proyecto.proyect_num_doce_m ?? calc.docentes_m ?? 0,
-                    proyect_num_doce_part: data.proyecto.proyect_num_doce_part ?? calc.docentes_total ?? 0,
+                    proyect_num_doce_h: calc.docentes_h ?? 0,
+                    proyect_num_doce_m: calc.docentes_m ?? 0,
+                    proyect_num_doce_part:  calc.docentes_total ?? 0,
 
                     // Estudiantes (se usan los valores guardados en BD o se calculan automáticamente si están nulos)
-                    proyect_num_est_h: data.proyecto.proyect_num_est_h ?? calc.estudiantes_h ?? 0,
-                    proyect_num_est_m: data.proyecto.proyect_num_est_m ?? calc.estudiantes_m ?? 0,
-                    proyect_num_est_part: data.proyecto.proyect_num_est_part ?? calc.estudiantes_total ?? 0,
+                    proyect_num_est_h:  calc.estudiantes_h ?? 0,
+                    proyect_num_est_m: calc.estudiantes_m ?? 0,
+                    proyect_num_est_part: calc.estudiantes_total ?? 0,
                     proyect_fact_exito: data.proyecto.proyect_fact_exito || '',
                     proyect_rest_supu: data.proyecto.proyect_rest_supu || '',
                     actividades: actividadesExtraidas,
                     proyect_bienes: data.proyecto.proyect_bienes || '',
+                    proyect_descrip_act_i_d: data.proyecto.proyect_descrip_act_i_d || '',
                     proyect_servicios: data.proyecto.proyect_servicios || '',
                     proyect_bienes_servicios: data.proyecto.proyect_bienes_servicios || '',
                     adquisiciones: adquisicionesMapeadas,
@@ -9235,6 +9318,7 @@ export default {
 
             if (actividad) {
                 this.modalActividad = JSON.parse(JSON.stringify(actividad));
+                this.modalActividad.vincular_grupo = this.modalActividad.grupos_responsables && this.modalActividad.grupos_responsables.length > 0;
             } else {
                 this.modalActividad = {
                     id_actividades: null,
@@ -9249,7 +9333,9 @@ export default {
                     invi_actprod_verificables: [{ detalle_prod_verif: '' }],
                     invi_actmedios_verificacion: [{ detalle_medio_verifica: '' }],
                     invi_actindicadores: [{ detalle_indicador: '' }],
-                    invi_actsupuestos: [{ detalle_supuestos: '' }]
+                    invi_actsupuestos: [{ detalle_supuestos: '' }],
+                    vincular_grupo: false, 
+                    grupos_responsables: []
                 };
             }
             this.showModalActividad = true;
@@ -9526,7 +9612,9 @@ export default {
             } else {
                 this.editForm.actividades.push(JSON.parse(JSON.stringify(form)));
             }
-
+            if (!this.modalActividad.vincular_grupo) {
+                this.modalActividad.grupos_responsables = [];
+            }
             this.showModalActividad = false;
             mostraralertas2("Actividad agregada al cronograma correctamente.", "success");
         },

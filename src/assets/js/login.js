@@ -29,7 +29,7 @@ export default {
         } else if (response) {
           const role = response.Rol;
           const tok = response.token;
-          if (role === 'sotics' || role === 'atics' || role === 'sa' || role === 'ainv') {
+          if (role === 'sotics' || role === 'atics' || role === 'sa' || role === 'inv') {
             mostraralertas('LE DAMOS LA BIENVENIDA ADMIN ' + (response.name || ''), 'success');
             this.$router.push('/site-admin');
           } 

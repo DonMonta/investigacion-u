@@ -191,34 +191,34 @@ const menuData = [
         icon: MantenimientoIcon,
         name: "Matenimiento",
         subItems: [
-          { name: "PEI", path: "/site-admin/pei", pro: false },
-          { name: "PLANDNE", path: "/site-admin/plandne", pro: false },
-          { name: "Agenda ODS", path: "/site-admin/agenda_ods", pro: false },
-          { name: "DOMINIOS ACADEMICOS", path: "/site-admin/dominio_academico", pro: false },
-          { name: "LÍNEAS DE INVESTIGACIÓN", path: "/site-admin/linea_investigacion", pro: false },
-          { name: "ÁREAS UNESCO", path: "/site-admin/subarea_unesco", pro: false },
-          { name: "PROGRAMAS", path: "/site-admin/programa", pro: false },
-          { name: "ZONAS DE PLANIFICACIÓN", path: "/site-admin/zona_planificacion", pro: false },
-          { name: "Empresas Registradas", path: "/site-admin/empresa", pro: false },
+          { name: "PEI", path: "/site-admin/pei", pro: false, new: true },
+          { name: "PLANDNE", path: "/site-admin/plandne", pro: false, new: true },
+          { name: "Agenda ODS", path: "/site-admin/agenda_ods", pro: false , new: true},
+          { name: "DOMINIOS ACADEMICOS", path: "/site-admin/dominio_academico", pro: false, new: true },
+          { name: "LÍNEAS DE INVESTIGACIÓN", path: "/site-admin/linea_investigacion", pro: false, new: true },
+          { name: "ÁREAS UNESCO", path: "/site-admin/subarea_unesco", pro: false,new: true },
+          { name: "PROGRAMAS", path: "/site-admin/programa", pro: false,new: true },
+          { name: "ZONAS DE PLANIFICACIÓN", path: "/site-admin/zona_planificacion", pro: false,new: true },
+          { name: "Empresas Registradas", path: "/site-admin/empresa", pro: false,new: true },
         ],
       },
       {
         icon: PlateIcon,
         name: "Proyectos",
         subItems: [
-          { name: "Convocatorias", path: "/site-admin/proyectos/convocatoria", pro: false },
-          { name: "Tipos de Proyectos de Investigación", path: "/site-admin/proyectos/tipo_proyecto_investigacion", pro: false },
-          { name: "Lista de Proyectos", path: "/site-admin/proyectos", pro: false },
+          { name: "Convocatorias", path: "/site-admin/proyectos/convocatoria", pro: false, new: true },
+          { name: "Tipos de Proyectos de Investigación", path: "/site-admin/proyectos/tipo_proyecto_investigacion", pro: false,new: true },
+          { name: "Lista de Proyectos", path: "/site-admin/proyectos", pro: false,new: true },
         ],
       },
       {
         icon: UserCircleIcon,
         name: "Departamento de Investigación",
         subItems: [
-          {name: "Detalle de Departamentos", path: "/site-admin/det_departamento", pro: false},
-          { name: "Roles del equipo de Investigación", path: "/site-admin/roles_equipo", pro: false },
-          { name: "Equipo de Trabajo", path: "/site-admin/equipo", pro: false },
-          { name: "Responsables de Investigación de Facultades", path: "/site-admin/responsables_inv", pro: false },
+          {name: "Detalle de Departamentos", path: "/site-admin/det_departamento", pro: false,new: true},
+          { name: "Roles del equipo de Investigación", path: "/site-admin/roles_equipo", pro: false,new: true },
+          { name: "Equipo de Trabajo", path: "/site-admin/equipo", pro: false,new: true },
+          { name: "Responsables de Investigación de Facultades", path: "/site-admin/responsables_inv", pro: false,new: true },
         ],
       },
      
@@ -248,7 +248,7 @@ const menuGroups = computed(() => {
   const rol = rolUsuario.value;
 
   // Si es administrador (sa) o técnico (atics), devolvemos todo sin filtrar
-  if (rol === 'sa' || rol === 'atics') {
+  if (rol === 'sa' || rol === 'atics' || rol === 'inv') {
     return menuData;
   }
 

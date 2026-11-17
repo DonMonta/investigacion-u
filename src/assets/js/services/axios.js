@@ -37,7 +37,7 @@ API.interceptors.response.use(
         console.warn("🔒 Sesión expirada. Cerrando sesión...");
         localStorage.removeItem("token_inves");
         localStorage.removeItem("token_type_inves");
-        window.location.href = "/investigacion/site-login"; // Redirige al login si la sesión caduca
+        window.location.href = "/site/site-login"; // Redirige al login si la sesión caduca
       }
     } else if (error.request) {
       console.error("📡 No hubo respuesta del servidor:", error.request);

@@ -109,11 +109,11 @@ class Objetivos_peiController extends Controller
             try {
                 $user = Auth::user(); // Obtenemos el usuario autenticado
                 Bitacora::create([
-                    'bt_usuario' => $user->NombUsu,
+                    'bt_usuario' => $user->LoginUsu,
                     'bt_fechahora' => Carbon::now(),
                     'bt_accion' => 'Creación de un Objetivo para el departamento - INVESTIGACIÓN',
                     'bt_ippc' => $request->ip(),
-                    'bt_observacion' => "USUARIO: {$user->NombUsu} REALIZÓ: Creación de un Objetivo con ID: {$res->id_obj_pei} y cod_obj: {$res->cod_obj}",
+                    'bt_observacion' => "USUARIO: {$user->LoginUsu} REALIZÓ: Creación de un Objetivo con ID: {$res->id_obj_pei} y cod_obj: {$res->cod_obj}",
                 ]);
             } catch (\Exception $ex) {
                 Log::error('Error bitácora en Guardar: ' . $ex->getMessage());
@@ -184,11 +184,11 @@ class Objetivos_peiController extends Controller
                     try {
                         $user = Auth::user(); // Obtenemos el usuario autenticado
                         Bitacora::create([
-                            'bt_usuario' => $user->NombUsu,
+                            'bt_usuario' => $user->LoginUsu,
                             'bt_fechahora' => Carbon::now(),
                             'bt_accion' => 'Actualización de un Objetivo para el departamento - INVESTIGACIÓN',
                             'bt_ippc' => $request->ip(),
-                            'bt_observacion' => "USUARIO: {$user->NombUsu} REALIZÓ: Actualización de un Objetivo con ID: {$res->id_obj_pei} y cod_obj: {$res->cod_obj}",
+                            'bt_observacion' => "USUARIO: {$user->LoginUsu} REALIZÓ: Actualización de un Objetivo con ID: {$res->id_obj_pei} y cod_obj: {$res->cod_obj}",
                         ]);
                     } catch (\Exception $ex) {
                         Log::error('Error bitácora en Actualizar: ' . $ex->getMessage());
@@ -228,11 +228,11 @@ class Objetivos_peiController extends Controller
                     try {
                         $user = Auth::user(); // Obtenemos el usuario autenticado
                         Bitacora::create([
-                            'bt_usuario' => $user->NombUsu,
+                            'bt_usuario' => $user->LoginUsu,
                             'bt_fechahora' => Carbon::now(),
                             'bt_accion' => 'Eliminación de un Objetivo para el departamento - INVESTIGACIÓN',
                             'bt_ippc' => $request->ip(),
-                            'bt_observacion' => "USUARIO: {$user->NombUsu} REALIZÓ: Eliminación de un Objetivo con ID: {$res->id_obj_pei} y cod_obj: {$res->cod_obj}",
+                            'bt_observacion' => "USUARIO: {$user->LoginUsu} REALIZÓ: Eliminación de un Objetivo con ID: {$res->id_obj_pei} y cod_obj: {$res->cod_obj}",
                         ]);
                     } catch (\Exception $ex) {
                         Log::error('Error bitácora en Eliminar: ' . $ex->getMessage());

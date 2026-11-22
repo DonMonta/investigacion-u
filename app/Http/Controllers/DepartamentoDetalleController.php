@@ -129,11 +129,11 @@ class DepartamentoDetalleController extends Controller
             try {
                 $user = Auth::user(); // Obtenemos el usuario autenticado
                 Bitacora::create([
-                    'bt_usuario' => $user->NombUsu,
+                    'bt_usuario' => $user->LoginUsu,
                     'bt_fechahora' => Carbon::now(),
                     'bt_accion' => 'Creación de detalle de departamento - VINCULACIÓN',
                     'bt_ippc' => $request->ip(),
-                    'bt_observacion' => "USUARIO: {$user->NombUsu} REALIZÓ: Creación de de detalle de departamento: {$request->id_departamento}",
+                    'bt_observacion' => "USUARIO: {$user->LoginUsu} REALIZÓ: Creación de de detalle de departamento: {$request->id_departamento}",
                 ]);
             } catch (\Exception $ex) {
                 Log::error('Error bitácora en Guardar: ' . $ex->getMessage());
@@ -198,11 +198,11 @@ class DepartamentoDetalleController extends Controller
             try {
                 $user = Auth::user(); // Obtenemos el usuario autenticado
                 Bitacora::create([
-                    'bt_usuario' => $user->NombUsu,
+                    'bt_usuario' => $user->LoginUsu,
                     'bt_fechahora' => Carbon::now(),
                     'bt_accion' => 'Actualización de detalle de departamento - VINCULACIÓN',
                     'bt_ippc' => $request->ip(),
-                    'bt_observacion' => "USUARIO: {$user->NombUsu} REALIZÓ: Actualización de detalle de departamento: {$request->id_departamento}",
+                    'bt_observacion' => "USUARIO: {$user->LoginUsu} REALIZÓ: Actualización de detalle de departamento: {$request->id_departamento}",
                 ]);
             } catch (\Exception $ex) {
                 Log::error('Error bitácora en Guardar: ' . $ex->getMessage());
@@ -237,11 +237,11 @@ class DepartamentoDetalleController extends Controller
             try {
                 $user = Auth::user(); // Obtenemos el usuario autenticado
                 Bitacora::create([
-                    'bt_usuario' => $user->NombUsu,
+                    'bt_usuario' => $user->LoginUsu,
                     'bt_fechahora' => Carbon::now(),
                     'bt_accion' => 'Eliminación de detalle de departamento - VINCULACIÓN',
                     'bt_ippc' => $request->ip(),
-                    'bt_observacion' => "USUARIO: {$user->NombUsu} REALIZÓ: Eliminación de detalle de departamento: {$id}",
+                    'bt_observacion' => "USUARIO: {$user->LoginUsu} REALIZÓ: Eliminación de detalle de departamento: {$id}",
                 ]);
             } catch (\Exception $ex) {
                 Log::error('Error bitácora en Guardar: ' . $ex->getMessage());

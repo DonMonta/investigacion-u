@@ -2559,6 +2559,18 @@ class Invi_proyectosController extends Controller
                     Invi_bibliografias::create($dataBib);
                 }
             }
+            try {
+                $user = Auth::user(); // Obtenemos el usuario autenticado
+                Bitacora::create([
+                    'bt_usuario'     => $user->LoginUsu,
+                    'bt_fechahora'   => Carbon::now(),
+                    'bt_accion'      => "Actualización del proyecto - INVESTIGACIÓN",
+                    'bt_ippc'        => $request->ip(),
+                    'bt_observacion' => "USUARIO: {$user->LoginUsu} REALIZÓ Actualización del proyecto: {$proyecto->proyect_cod}",
+                ]);
+            } catch (\Exception $ex) {
+                Log::error("Error bitácora en guardarCambios: " . $ex->getMessage());
+            }
 
 
             DB::commit();
@@ -2800,11 +2812,11 @@ class Invi_proyectosController extends Controller
             try {
                 $user = Auth::user(); // Obtenemos el usuario autenticado
                 Bitacora::create([
-                    'bt_usuario'     => $user->ciinfper,
+                    'bt_usuario'     => $user->LoginUsu,
                     'bt_fechahora'   => Carbon::now(),
                     'bt_accion'      => $accionBitacora . " - INVESTIGACIÓN",
                     'bt_ippc'        => $request->ip(),
-                    'bt_observacion' => "USUARIO: {$user->NombUsu} REALIZÓ: {$obsBitacora}",
+                    'bt_observacion' => "USUARIO: {$user->LoginUsu} REALIZÓ: {$obsBitacora}",
                 ]);
             } catch (\Exception $ex) {
                 Log::error("Error bitácora en guardarCambios: " . $ex->getMessage());
@@ -2877,11 +2889,11 @@ class Invi_proyectosController extends Controller
                 $user = Auth::user();
                 $nombreGrupoLog = $grupoDatos['nombre_grupo'] ?? 'ID: ' . $idGrupo;
                 Bitacora::create([
-                    'bt_usuario'     => $user->ciinfper,
+                    'bt_usuario'     => $user->LoginUsu,
                     'bt_fechahora'   => Carbon::now(),
                     'bt_accion'      => "ASIGNACIÓN DE GRUPO DE INVESTIGACIÓN",
                     'bt_ippc'        => $request->ip(),
-                    'bt_observacion' => "USUARIO: {$user->NombUsu} asignó " . count($integrantesIds) . " integrantes al grupo {$nombreGrupoLog}.",
+                    'bt_observacion' => "USUARIO: {$user->LoginUsu} asignó " . count($integrantesIds) . " integrantes al grupo {$nombreGrupoLog}.",
                 ]);
             } catch (\Exception $ex) {
                 Log::error("Error bitácora en asignarGrupoIntegrantes: " . $ex->getMessage());
@@ -2919,11 +2931,11 @@ class Invi_proyectosController extends Controller
         try {
             $user = Auth::user();
             Bitacora::create([
-                'bt_usuario'     => $user->ciinfper,
+                'bt_usuario'     => $user->LoginUsu,
                 'bt_fechahora'   => Carbon::now(),
                 'bt_accion'      => 'INHABILITAR INTEGRANTE - INVESTIGACIÓN',
                 'bt_ippc'        => $request->ip(),
-                'bt_observacion' => "USUARIO: {$user->NombUsu} INHABILITÓ AL INTEGRANTE CÉDULA: {$cedulaAfectada} DEL PROYECTO: {$codigoProyect}. MOTIVO/ANEXO: {$request->anexo_integrante}",
+                'bt_observacion' => "USUARIO: {$user->LoginUsu} INHABILITÓ AL INTEGRANTE CÉDULA: {$cedulaAfectada} DEL PROYECTO: {$codigoProyect}. MOTIVO/ANEXO: {$request->anexo_integrante}",
             ]);
         } catch (\Exception $e) {
             Log::error("Error al registrar bitácora en inhabilitar: " . $e->getMessage());

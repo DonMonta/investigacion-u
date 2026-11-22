@@ -110,11 +110,11 @@ class PraempresaController extends Controller
             $res = Praempresa::create($inputs);
 
             Bitacora::create([
-                'bt_usuario'     => $user->ciinfper,
+                'bt_usuario'     => $user->LoginUsu,
                 'bt_fechahora'   => Carbon::now(),
                 'bt_accion'      => "Crear Empresa - INVESTIGACIÓN",
                 'bt_ippc'        => $request->ip(),
-                'bt_observacion' => "USUARIO: {$user->NombUsu} REALIZÓ: Crear Empresa CON RUC: {$request->ruc}", // ✅ Corregido campo nombre
+                'bt_observacion' => "USUARIO: {$user->LoginUsu} REALIZÓ: Crear Empresa CON RUC: {$request->ruc}", // ✅ Corregido campo nombre
             ]);
 
             DB::commit();
@@ -237,11 +237,11 @@ class PraempresaController extends Controller
             $res->save(); // ✅ Guardar primero antes del commit
 
             Bitacora::create([
-                'bt_usuario'     => $user->ciinfper,
+                'bt_usuario'     => $user->LoginUsu,
                 'bt_fechahora'   => Carbon::now(),
                 'bt_accion'      => "Actualizar Empresa - INVESTIGACIÓN",
                 'bt_ippc'        => $request->ip(),
-                'bt_observacion' => "USUARIO: {$user->NombUsu} REALIZÓ: Actualizar Empresa CON RUC: {$request->ruc}", // ✅ Corregido campo nombre
+                'bt_observacion' => "USUARIO: {$user->LoginUsu} REALIZÓ: Actualizar Empresa CON RUC: {$request->ruc}", // ✅ Corregido campo nombre
             ]);
 
             DB::commit(); // ✅ Hacer commit al final de todo el bloque exitoso
@@ -278,11 +278,11 @@ class PraempresaController extends Controller
             $data = $res->toArray();
             DB::commit();
             Bitacora::create([
-                'bt_usuario'     => $user->ciinfper,
+                'bt_usuario'     => $user->LoginUsu,
                 'bt_fechahora'   => Carbon::now(),
                 'bt_accion'      => "Inhabilitar Empresa" . " - INVESTIGACIÓN",
                 'bt_ippc'        => $request->ip(),
-                'bt_observacion' => "USUARIO: {$user->NombUsu} REALIZÓ: Inhabilitar Empresa CON NOMBRE: {$request->NOMBRE}",
+                'bt_observacion' => "USUARIO: {$user->LoginUsu} REALIZÓ: Inhabilitar Empresa CON NOMBRE: {$request->NOMBRE}",
             ]);
             if ($data) {
 
@@ -314,11 +314,11 @@ class PraempresaController extends Controller
 
             DB::commit();
             Bitacora::create([
-                'bt_usuario'     => $user->ciinfper,
+                'bt_usuario'     => $user->LoginUsu,
                 'bt_fechahora'   => Carbon::now(),
                 'bt_accion'      => "Habilitar Empresa" . " - INVESTIGACIÓN",
                 'bt_ippc'        => $request->ip(),
-                'bt_observacion' => "USUARIO: {$user->NombUsu} REALIZÓ: Habilitar Empresa CON NOMBRE: {$request->NOMBRE}",
+                'bt_observacion' => "USUARIO: {$user->LoginUsu} REALIZÓ: Habilitar Empresa CON NOMBRE: {$request->NOMBRE}",
             ]);
             if ($res->save()) {
                 return response()->json([

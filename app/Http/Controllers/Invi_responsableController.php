@@ -129,11 +129,11 @@ class Invi_responsableController extends Controller
             try {
                 $user = Auth::user(); // Obtenemos el usuario autenticado
                 Bitacora::create([
-                    'bt_usuario' => $user->NombUsu,
+                    'bt_usuario' => $user->LoginUsu,
                     'bt_fechahora' => Carbon::now(),
                     'bt_accion' => 'Creación de un Responsable para el departamento - INVESTIGACIÓN',
                     'bt_ippc' => $request->ip(),
-                    'bt_observacion' => "USUARIO: {$user->NombUsu} REALIZÓ: Creación de un Responsable con ID: {$res->id_responsable} y ci: {$res->ciinfper_doc}",
+                    'bt_observacion' => "USUARIO: {$user->LoginUsu} REALIZÓ: Creación de un Responsable con ID: {$res->id_responsable} y ci: {$res->ciinfper_doc}",
                 ]);
             } catch (\Exception $ex) {
                 Log::error('Error bitácora en Guardar: ' . $ex->getMessage());
@@ -206,11 +206,11 @@ class Invi_responsableController extends Controller
                 try {
                     $user = Auth::user(); // Obtenemos el usuario autenticado
                     Bitacora::create([
-                        'bt_usuario' => $user->NombUsu,
+                        'bt_usuario' => $user->LoginUsu,
                         'bt_fechahora' => Carbon::now(),
                         'bt_accion' => 'Actualización de un Responsable para el departamento - INVESTIGACIÓN',
                         'bt_ippc' => $request->ip(),
-                        'bt_observacion' => "USUARIO: {$user->NombUsu} REALIZÓ: Actualización de un Responsable con ID: {$res->id_responsable} y ci: {$res->ciinfper_doc}",
+                        'bt_observacion' => "USUARIO: {$user->LoginUsu} REALIZÓ: Actualización de un Responsable con ID: {$res->id_responsable} y ci: {$res->ciinfper_doc}",
                     ]);
                 } catch (\Exception $ex) {
                     Log::error('Error bitácora en Actualizar: ' . $ex->getMessage());
@@ -256,11 +256,11 @@ class Invi_responsableController extends Controller
                     try {
                         $user = Auth::user(); // Obtenemos el usuario autenticado
                         Bitacora::create([
-                            'bt_usuario' => $user->NombUsu,
+                            'bt_usuario' => $user->LoginUsu,
                             'bt_fechahora' => Carbon::now(),
                             'bt_accion' => 'Inhabilitación de un Responsable para el departamento - INVESTIGACIÓN',
                             'bt_ippc' => $request->ip(),
-                            'bt_observacion' => "USUARIO: {$user->NombUsu} REALIZÓ: Inhabilitación de un Responsable con ID: {$res->id_responsable} y ci: {$res->ciinfper_doc}",
+                            'bt_observacion' => "USUARIO: {$user->LoginUsu} REALIZÓ: Inhabilitación de un Responsable con ID: {$res->id_responsable} y ci: {$res->ciinfper_doc}",
                         ]);
                     } catch (\Exception $ex) {
                         Log::error('Error bitácora en Inhabilitar: ' . $ex->getMessage());
@@ -333,11 +333,11 @@ class Invi_responsableController extends Controller
                 try {
                     $user = Auth::user(); // Obtenemos el usuario autenticado
                     Bitacora::create([
-                        'bt_usuario' => $user->NombUsu,
+                        'bt_usuario' => $user->LoginUsu,
                         'bt_fechahora' => Carbon::now(),
                         'bt_accion' => 'Habilitación de un Responsable para el departamento - INVESTIGACIÓN',
                         'bt_ippc' => $request->ip(),
-                        'bt_observacion' => "USUARIO: {$user->NombUsu} REALIZÓ: Habilitación de un Responsable con ID: {$res->id_responsable} y ci: {$res->ciinfper_doc}",
+                        'bt_observacion' => "USUARIO: {$user->LoginUsu} REALIZÓ: Habilitación de un Responsable con ID: {$res->id_responsable} y ci: {$res->ciinfper_doc}",
                     ]);
                 } catch (\Exception $ex) {
                     Log::error('Error bitácora en Habilitar: ' . $ex->getMessage());

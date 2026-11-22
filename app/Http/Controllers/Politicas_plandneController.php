@@ -108,11 +108,11 @@ class Politicas_plandneController extends Controller
             try {
                 $user = Auth::user(); // Obtenemos el usuario autenticado
                 Bitacora::create([
-                    'bt_usuario' => $user->NombUsu,
+                    'bt_usuario' => $user->LoginUsu,
                     'bt_fechahora' => Carbon::now(),
                     'bt_accion' => 'Creación de un Politica para el departamento - INVESTIGACIÓN',
                     'bt_ippc' => $request->ip(),
-                    'bt_observacion' => "USUARIO: {$user->NombUsu} REALIZÓ: Creación de un Politica con ID: {$res->id_obj_pol_pladne} y cod_pol: {$res->cod_pol}",
+                    'bt_observacion' => "USUARIO: {$user->LoginUsu} REALIZÓ: Creación de un Politica con ID: {$res->id_obj_pol_pladne} y cod_pol: {$res->cod_pol}",
                 ]);
             } catch (\Exception $ex) {
                 Log::error('Error bitácora en Guardar: ' . $ex->getMessage());
@@ -198,11 +198,11 @@ class Politicas_plandneController extends Controller
                     try {
                         $user = Auth::user(); // Obtenemos el usuario autenticado
                         Bitacora::create([
-                            'bt_usuario' => $user->NombUsu,
+                            'bt_usuario' => $user->LoginUsu,
                             'bt_fechahora' => Carbon::now(),
                             'bt_accion' => 'Actualización de un Politica para el departamento - INVESTIGACIÓN',
                             'bt_ippc' => $request->ip(),
-                            'bt_observacion' => "USUARIO: {$user->NombUsu} REALIZÓ: Actualización de un Politica con ID: {$res->id_obj_pol_pladne} y cod_pol: {$res->cod_pol}",
+                            'bt_observacion' => "USUARIO: {$user->LoginUsu} REALIZÓ: Actualización de un Politica con ID: {$res->id_obj_pol_pladne} y cod_pol: {$res->cod_pol}",
                         ]);
                     } catch (\Exception $ex) {
                         Log::error('Error bitácora en Actualizar: ' . $ex->getMessage());
@@ -243,11 +243,11 @@ class Politicas_plandneController extends Controller
                     try {
                         $user = Auth::user(); // Obtenemos el usuario autenticado
                         Bitacora::create([
-                            'bt_usuario' => $user->NombUsu,
+                            'bt_usuario' => $user->LoginUsu,
                             'bt_fechahora' => Carbon::now(),
                             'bt_accion' => 'Eliminación de un Politica para el departamento - INVESTIGACIÓN',
                             'bt_ippc' => $request->ip(),
-                            'bt_observacion' => "USUARIO: {$user->NombUsu} REALIZÓ: Eliminación de un Politica con ID: {$res->id_obj_pol_pladne} y cod_pol: {$res->cod_pol}",
+                            'bt_observacion' => "USUARIO: {$user->LoginUsu} REALIZÓ: Eliminación de un Politica con ID: {$res->id_obj_pol_pladne} y cod_pol: {$res->cod_pol}",
                         ]);
                     } catch (\Exception $ex) {
                         Log::error('Error bitácora en Eliminar: ' . $ex->getMessage());

@@ -79,11 +79,11 @@ class Zona_planificacionController extends Controller
             try {
                 $user = Auth::user(); // Obtenemos el usuario autenticado
                 Bitacora::create([
-                    'bt_usuario'     => $user->NombUsu,
+                    'bt_usuario'     => $user->LoginUsu,
                     'bt_fechahora'   => Carbon::now(),
-                    'bt_accion'      => "Crear Zona de Planificación" . " - VINCULACIÓN",
+                    'bt_accion'      => "Crear Zona de Planificación" . " - INVESTIGACIÓN",
                     'bt_ippc'        => $request->ip(),
-                    'bt_observacion' => "USUARIO: {$user->NombUsu} REALIZÓ: Crear Zona de Planificación con ID: {$res->id_zona_plan} y nombre: {$res->nombre_zona}",
+                    'bt_observacion' => "USUARIO: {$user->LoginUsu} REALIZÓ: Crear Zona de Planificación con ID: {$res->id_zona_plan} y nombre: {$res->nombre_zona}",
                 ]);
             } catch (\Exception $ex) {
                 Log::error('Error bitácora en Guardar: ' . $ex->getMessage());
@@ -136,11 +136,11 @@ class Zona_planificacionController extends Controller
                 try {
                     $user = Auth::user(); // Obtenemos el usuario autenticado
                     Bitacora::create([
-                        'bt_usuario'     => $user->NombUsu,
+                        'bt_usuario'     => $user->LoginUsu,
                         'bt_fechahora'   => Carbon::now(),
-                        'bt_accion'      => "Actualizar Zona de Planificación" . " - VINCULACIÓN",
+                        'bt_accion'      => "Actualizar Zona de Planificación" . " - INVESTIGACIÓN",
                         'bt_ippc'        => $request->ip(),
-                        'bt_observacion' => "USUARIO: {$user->NombUsu} REALIZÓ: Actualizar Zona de Planificación con ID: {$res->id_zona_plan} y nombre: {$res->nombre_zona}",
+                        'bt_observacion' => "USUARIO: {$user->LoginUsu} REALIZÓ: Actualizar Zona de Planificación con ID: {$res->id_zona_plan} y nombre: {$res->nombre_zona}",
                     ]);
                 } catch (\Exception $ex) {
                     Log::error('Error bitácora en Actualizar: ' . $ex->getMessage());
@@ -178,11 +178,11 @@ class Zona_planificacionController extends Controller
                 try {
                     $user = Auth::user(); // Obtenemos el usuario autenticado
                     Bitacora::create([
-                        'bt_usuario'     => $user->NombUsu,
+                        'bt_usuario'     => $user->LoginUsu,
                         'bt_fechahora'   => Carbon::now(),
-                        'bt_accion'      => "Eliminar Zona de Planificación" . " - VINCULACIÓN",
+                        'bt_accion'      => "Eliminar Zona de Planificación" . " - INVESTIGACIÓN",
                         'bt_ippc'        => $request->ip(),
-                        'bt_observacion' => "USUARIO: {$user->NombUsu} REALIZÓ: Eliminar Zona de Planificación con ID: {$res->id_zona_plan} y nombre: {$res->nombre_zona}",
+                        'bt_observacion' => "USUARIO: {$user->LoginUsu} REALIZÓ: Eliminar Zona de Planificación con ID: {$res->id_zona_plan} y nombre: {$res->nombre_zona}",
                     ]);
                 } catch (\Exception $ex) {
                     Log::error('Error bitácora en Eliminar: ' . $ex->getMessage());
@@ -278,11 +278,11 @@ class Zona_planificacionController extends Controller
                 try {
                     $user = Auth::user(); // Obtenemos el usuario autenticado
                     Bitacora::create([
-                        'bt_usuario'     => $user->NombUsu,
+                        'bt_usuario'     => $user->LoginUsu,
                         'bt_fechahora'   => Carbon::now(),
-                        'bt_accion'      => "Actualizar Zona de Planificación" . " - VINCULACIÓN",
+                        'bt_accion'      => "Actualizar Zona de Planificación" . " - INVESTIGACIÓN",
                         'bt_ippc'        => $request->ip(),
-                        'bt_observacion' => "USUARIO: {$user->NombUsu} REALIZÓ: Actualizar Zona de Planificación con ID: {$request->id_zona_plan} y nombre: {$request->nombre_zona}",
+                        'bt_observacion' => "USUARIO: {$user->LoginUsu} REALIZÓ: Actualizar Zona de Planificación con ID: {$request->id_zona_plan} y nombre: {$request->nombre_zona}",
                     ]);
                 } catch (\Exception $ex) {
                     Log::error('Error bitácora en Actualizar: ' . $ex->getMessage());

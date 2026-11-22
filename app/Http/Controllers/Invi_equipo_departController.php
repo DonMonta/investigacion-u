@@ -171,11 +171,11 @@ class Invi_equipo_departController extends Controller
                 try {
                     $user = Auth::user(); // Obtenemos el usuario autenticado
                     Bitacora::create([
-                        'bt_usuario' => $user->NombUsu,
+                        'bt_usuario' => $user->LoginUsu,
                         'bt_fechahora' => Carbon::now(),
                         'bt_accion' => 'Creación de un Equipo de Departamento para el departamento - INVESTIGACIÓN',
                         'bt_ippc' => $request->ip(),
-                        'bt_observacion' => "USUARIO: {$user->NombUsu} REALIZÓ: Creación de un Equipo de Departamento con ID: y ciinfper_doc: {$request->ciinfper_doc}",
+                        'bt_observacion' => "USUARIO: {$user->LoginUsu} REALIZÓ: Creación de un Equipo de Departamento con ID: y ciinfper_doc: {$request->ciinfper_doc}",
                     ]);
                 } catch (\Exception $ex) {
                     Log::error('Error bitácora en Guardar: ' . $ex->getMessage());
@@ -275,11 +275,11 @@ class Invi_equipo_departController extends Controller
                 try {
                     $user = Auth::user(); // Obtenemos el usuario autenticado
                     Bitacora::create([
-                        'bt_usuario' => $user->NombUsu,
+                        'bt_usuario' => $user->LoginUsu,
                         'bt_fechahora' => Carbon::now(),
                         'bt_accion' => 'Actualización de un Equipo de Roles para el departamento - INVESTIGACIÓN',
                         'bt_ippc' => $request->ip(),
-                        'bt_observacion' => "USUARIO: {$user->NombUsu} REALIZÓ: Actualización de un Equipo de Roles con ID: {$asignacion->id_equipo_depart} y nombre: {$asignacion->equipo_roles->nombre_rol}",
+                        'bt_observacion' => "USUARIO: {$user->LoginUsu} REALIZÓ: Actualización de un Equipo de Roles con ID: {$asignacion->id_equipo_depart} y nombre: {$asignacion->equipo_roles->nombre_rol}",
                     ]);
                 } catch (\Exception $ex) {
                     Log::error('Error bitácora en Actualizar: ' . $ex->getMessage());
@@ -313,11 +313,11 @@ class Invi_equipo_departController extends Controller
                     try {
                         $user = Auth::user(); // Obtenemos el usuario autenticado
                         Bitacora::create([
-                            'bt_usuario' => $user->NombUsu,
+                            'bt_usuario' => $user->LoginUsu,
                             'bt_fechahora' => Carbon::now(),
                             'bt_accion' => 'Inhabilitación de un Equipo de Roles para el departamento - INVESTIGACIÓN',
                             'bt_ippc' => $request->ip(),
-                            'bt_observacion' => "USUARIO: {$user->NombUsu} REALIZÓ: Inhabilitación de un Equipo de Roles con ID: {$res->id_equipo_depart} y nombre: {$res->equipo_roles->nombre_rol}",
+                            'bt_observacion' => "USUARIO: {$user->LoginUsu} REALIZÓ: Inhabilitación de un Equipo de Roles con ID: {$res->id_equipo_depart} y nombre: {$res->equipo_roles->nombre_rol}",
                         ]);
                     } catch (\Exception $ex) {
                         Log::error('Error bitácora en Inhabilitar: ' . $ex->getMessage());
@@ -358,11 +358,11 @@ class Invi_equipo_departController extends Controller
                     try {
                         $user = Auth::user(); // Obtenemos el usuario autenticado
                         Bitacora::create([
-                            'bt_usuario' => $user->NombUsu,
+                            'bt_usuario' => $user->LoginUsu,
                             'bt_fechahora' => Carbon::now(),
                             'bt_accion' => 'Habilitación de un Equipo de Roles para el departamento - INVESTIGACIÓN',
                             'bt_ippc' => $request->ip(),
-                            'bt_observacion' => "USUARIO: {$user->NombUsu} REALIZÓ: Habilitación de un Equipo de Roles con ID: {$res->id_equipo_depart} y nombre: {$res->equipo_roles->nombre_rol}",
+                            'bt_observacion' => "USUARIO: {$user->LoginUsu} REALIZÓ: Habilitación de un Equipo de Roles con ID: {$res->id_equipo_depart} y nombre: {$res->equipo_roles->nombre_rol}",
                         ]);
                     } catch (\Exception $ex) {
                         Log::error('Error bitácora en Habilitar: ' . $ex->getMessage());

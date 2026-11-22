@@ -90,11 +90,11 @@ class Invi_dom_humaController extends Controller
             try {
                 $user = Auth::user(); // Obtenemos el usuario autenticado
                 Bitacora::create([
-                    'bt_usuario' => $user->NombUsu,
+                    'bt_usuario' => $user->LoginUsu,
                     'bt_fechahora' => Carbon::now(),
                     'bt_accion' => 'Creación de un Dominio Humano para el departamento - INVESTIGACIÓN',
                     'bt_ippc' => $request->ip(),
-                    'bt_observacion' => "USUARIO: {$user->NombUsu} REALIZÓ: Creación de un Dominio Humano con ID: {$res->id_dom_huma} y detalle_dom_huma: {$res->detalle_dom_huma}",
+                    'bt_observacion' => "USUARIO: {$user->LoginUsu} REALIZÓ: Creación de un Dominio Humano con ID: {$res->id_dom_huma} y detalle_dom_huma: {$res->detalle_dom_huma}",
                 ]);
             } catch (\Exception $ex) {
                 Log::error('Error bitácora en Guardar: ' . $ex->getMessage());
@@ -146,11 +146,11 @@ class Invi_dom_humaController extends Controller
                     try {
                         $user = Auth::user(); // Obtenemos el usuario autenticado
                         Bitacora::create([
-                            'bt_usuario' => $user->NombUsu,
+                            'bt_usuario' => $user->LoginUsu,
                             'bt_fechahora' => Carbon::now(),
                             'bt_accion' => 'Actualización de un Dominio Humano para el departamento - INVESTIGACIÓN',
                             'bt_ippc' => $request->ip(),
-                            'bt_observacion' => "USUARIO: {$user->NombUsu} REALIZÓ: Actualización de un Dominio Humano con ID: {$res->id_dom_huma} y detalle_dom_huma: {$res->detalle_dom_huma}",
+                            'bt_observacion' => "USUARIO: {$user->LoginUsu} REALIZÓ: Actualización de un Dominio Humano con ID: {$res->id_dom_huma} y detalle_dom_huma: {$res->detalle_dom_huma}",
                         ]);
                     } catch (\Exception $ex) {
                         Log::error('Error bitácora en Actualizar: ' . $ex->getMessage());
@@ -192,11 +192,11 @@ class Invi_dom_humaController extends Controller
                 try {
                     $user = Auth::user(); // Obtenemos el usuario autenticado
                     Bitacora::create([
-                        'bt_usuario' => $user->NombUsu,
+                        'bt_usuario' => $user->LoginUsu,
                         'bt_fechahora' => Carbon::now(),
                         'bt_accion' => 'Eliminación de un Dominio Humano para el departamento - INVESTIGACIÓN',
                         'bt_ippc' => $request->ip(),
-                        'bt_observacion' => "USUARIO: {$user->NombUsu} REALIZÓ: Eliminación de un Dominio Humano con ID: {$res->id_dom_huma} y detalle_dom_huma: {$res->detalle_dom_huma}",
+                        'bt_observacion' => "USUARIO: {$user->LoginUsu} REALIZÓ: Eliminación de un Dominio Humano con ID: {$res->id_dom_huma} y detalle_dom_huma: {$res->detalle_dom_huma}",
                     ]);
                 } catch (\Exception $ex) {
                     Log::error('Error bitácora en Eliminar: ' . $ex->getMessage());

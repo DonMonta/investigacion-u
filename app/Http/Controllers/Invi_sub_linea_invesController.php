@@ -59,11 +59,11 @@ class Invi_sub_linea_invesController extends Controller
             try {
                 $user = Auth::user(); // Obtenemos el usuario autenticado
                 Bitacora::create([
-                    'bt_usuario' => $user->NombUsu,
+                    'bt_usuario' => $user->LoginUsu,
                     'bt_fechahora' => Carbon::now(),
                     'bt_accion' => 'Creación de una Sub-línea de Investigación para el departamento - INVESTIGACIÓN',
                     'bt_ippc' => $request->ip(),
-                    'bt_observacion' => "USUARIO: {$user->NombUsu} REALIZÓ: Creación de una Sub-línea de Investigación con ID: {$res->id_sublin} y nombre: {$res->nombre_sublin}",
+                    'bt_observacion' => "USUARIO: {$user->LoginUsu} REALIZÓ: Creación de una Sub-línea de Investigación con ID: {$res->id_sublin} y nombre: {$res->nombre_sublin}",
                 ]);
             } catch (\Exception $ex) {
                 Log::error('Error bitácora en Guardar: ' . $ex->getMessage());
@@ -106,11 +106,11 @@ class Invi_sub_linea_invesController extends Controller
                     try {
                         $user = Auth::user(); // Obtenemos el usuario autenticado
                         Bitacora::create([
-                            'bt_usuario' => $user->NombUsu,
+                            'bt_usuario' => $user->LoginUsu,
                             'bt_fechahora' => Carbon::now(),
                             'bt_accion' => 'Actualización de una Sub-línea de Investigación para el departamento - INVESTIGACIÓN',
                             'bt_ippc' => $request->ip(),
-                            'bt_observacion' => "USUARIO: {$user->NombUsu} REALIZÓ: Actualización de una Sub-línea de Investigación con ID: {$res->id_sublin} y nombre: {$res->nombre_sublin}",
+                            'bt_observacion' => "USUARIO: {$user->LoginUsu} REALIZÓ: Actualización de una Sub-línea de Investigación con ID: {$res->id_sublin} y nombre: {$res->nombre_sublin}",
                         ]);
                     } catch (\Exception $ex) {
                         Log::error('Error bitácora en Actualizar: ' . $ex->getMessage());
@@ -155,11 +155,11 @@ class Invi_sub_linea_invesController extends Controller
                     try {
                         $user = Auth::user(); // Obtenemos el usuario autenticado
                         Bitacora::create([
-                            'bt_usuario' => $user->NombUsu,
+                            'bt_usuario' => $user->LoginUsu,
                             'bt_fechahora' => Carbon::now(),
                             'bt_accion' => 'Eliminación de una Sub-línea de Investigación para el departamento - INVESTIGACIÓN',
                             'bt_ippc' => $request->ip(),
-                            'bt_observacion' => "USUARIO: {$user->NombUsu} REALIZÓ: Eliminación de una Sub-línea de Investigación con ID: {$res->id_sublin} y nombre: {$res->nombre_sublin}",
+                            'bt_observacion' => "USUARIO: {$user->LoginUsu} REALIZÓ: Eliminación de una Sub-línea de Investigación con ID: {$res->id_sublin} y nombre: {$res->nombre_sublin}",
                         ]);
                     } catch (\Exception $ex) {
                         Log::error('Error bitácora en Eliminar: ' . $ex->getMessage());

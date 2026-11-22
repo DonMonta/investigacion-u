@@ -105,11 +105,11 @@ class ODSController extends Controller
             try {
                 $user = Auth::user(); // Obtenemos el usuario autenticado
                 Bitacora::create([
-                    'bt_usuario' => $user->NombUsu,
+                    'bt_usuario' => $user->LoginUsu,
                     'bt_fechahora' => Carbon::now(),
                     'bt_accion' => 'Creación de un ODS para el departamento - VINCULACIÓN',
                     'bt_ippc' => $request->ip(),
-                    'bt_observacion' => "USUARIO: {$user->NombUsu} REALIZÓ: Creación de un ODS con ID: {$res->id_ods} y cod_ods: {$res->cod_ods}",
+                    'bt_observacion' => "USUARIO: {$user->LoginUsu} REALIZÓ: Creación de un ODS con ID: {$res->id_ods} y cod_ods: {$res->cod_ods}",
                 ]);
             } catch (\Exception $ex) {
                 Log::error('Error bitácora en Guardar: ' . $ex->getMessage());
@@ -182,11 +182,11 @@ class ODSController extends Controller
                     try {
                         $user = Auth::user(); // Obtenemos el usuario autenticado
                         Bitacora::create([
-                            'bt_usuario' => $user->NombUsu,
+                            'bt_usuario' => $user->LoginUsu,
                             'bt_fechahora' => Carbon::now(),
                             'bt_accion' => 'Actualización de un ODS para el departamento - VINCULACIÓN',
                             'bt_ippc' => $request->ip(),
-                            'bt_observacion' => "USUARIO: {$user->NombUsu} REALIZÓ: Actualización de un ODS con ID: {$res->id_ods} y cod_ods: {$res->cod_ods}",
+                            'bt_observacion' => "USUARIO: {$user->LoginUsu} REALIZÓ: Actualización de un ODS con ID: {$res->id_ods} y cod_ods: {$res->cod_ods}",
                         ]);
                     } catch (\Exception $ex) {
                         Log::error('Error bitácora en Actualizar: ' . $ex->getMessage());
@@ -226,11 +226,11 @@ class ODSController extends Controller
                     try {
                         $user = Auth::user(); // Obtenemos el usuario autenticado
                         Bitacora::create([
-                            'bt_usuario' => $user->NombUsu,
+                            'bt_usuario' => $user->LoginUsu,
                             'bt_fechahora' => Carbon::now(),
                             'bt_accion' => 'Eliminación de un ODS para el departamento - VINCULACIÓN',
                             'bt_ippc' => $request->ip(),
-                            'bt_observacion' => "USUARIO: {$user->NombUsu} REALIZÓ: Eliminación de un ODS con ID: {$res->id_ods} y cod_ods: {$res->cod_ods}",
+                            'bt_observacion' => "USUARIO: {$user->LoginUsu} REALIZÓ: Eliminación de un ODS con ID: {$res->id_ods} y cod_ods: {$res->cod_ods}",
                         ]);
                     } catch (\Exception $ex) {
                         Log::error('Error bitácora en Eliminar: ' . $ex->getMessage());

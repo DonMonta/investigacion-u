@@ -30,6 +30,7 @@ use App\Http\Controllers\Invi_equipo_departController;
 use App\Http\Controllers\Invi_responsableController;
 use App\Http\Controllers\DepartamentoDetalleController;
 use App\Http\Controllers\Invi_programaController;
+use App\Http\Controllers\BitacoraController;
 
 /*
 |--------------------------------------------------------------------------
@@ -325,6 +326,17 @@ Route::prefix('inves')->group(function () {
         //Definición de endpoint para obtener las estadísticas de proyectos y integrantes
         Route::get('dashboard/stats', [Invi_proyectosController::class, 'getStats']);
         //Definición de endpoint para obtener la foto del docente
+
+        /**
+         * ----------------------------------------------------------------------
+         * Rutas de Gestión de Bitácora (BitacoraController)
+         * ----------------------------------------------------------------------
+         * Define los puntos de acceso (endpoints) para el ciclo de vida del recurso.
+         * Incluye operaciones para obtener la lista de bitácoras y para obtener
+         * la información de una bitácora específica.
+         */
+        //Definición de endpoint para obtener las acciones de la bitácora de investigación
+        Route::get('bitacora-investigacion/{identificador}', [BitacoraController::class, 'obtenerBitacoraInvestigacion']);
     });
 }); 
 

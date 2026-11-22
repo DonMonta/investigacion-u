@@ -61,11 +61,11 @@ class AuthController extends Controller
             // --- INICIO DE REGISTRO EN BITÁCORA ---
             try {
                 Bitacora::create([
-                    'bt_usuario'     => $user->NombUsu,
+                    'bt_usuario'     => $user->LoginUsu,
                     'bt_fechahora'   => Carbon::now(), // Fecha y hora actual
                     'bt_accion'      => 'INICIO DE SESIÓN INVESTIGACIÓN-DASHBOARD',
                     'bt_ippc'        => $request->ip(), // Obtiene la IP del dispositivo
-                    'bt_observacion' => 'INICIO DE SESIÓN DEL USUARIO: ' . $user->NombUsu,
+                    'bt_observacion' => 'INICIO DE SESIÓN DEL USUARIO: ' . $user->LoginUsu,
                 ]);
             } catch (\Exception $e) {
                 // Logueamos el error por si falla la inserción en bitácora, 

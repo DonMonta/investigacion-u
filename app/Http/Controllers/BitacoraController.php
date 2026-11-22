@@ -52,7 +52,10 @@ class BitacoraController extends Controller
 
     public function obtenerBitacoraInvestigacion(string $identificador)
     {
-        $user = User::where('LoginUsu', $identificador)->orWhere('NombUsu', $identificador)->first();
+        $user = User::where('LoginUsu', $identificador)
+            ->orWhere('NombUsu', $identificador)
+            ->orWhere('ciinfper', $identificador)
+            ->first();
 
         if (!$user) {
             return response()->json(['error' => true, 'mensaje' => 'Usuario no encontrado'], 404);

@@ -208,6 +208,7 @@ const menuData = [
         subItems: [
           { name: "Convocatorias", path: "/site-admin/proyectos/convocatoria", pro: false, new: true },
           { name: "Tipos de Proyectos de Investigación", path: "/site-admin/proyectos/tipo_proyecto_investigacion", pro: false,new: true },
+          { name: "Grupos de Investigación", path: "/site-admin/grupos_investigacion", pro: false,new: true },
           { name: "Lista de Proyectos", path: "/site-admin/proyectos", pro: false,new: true },
         ],
       },

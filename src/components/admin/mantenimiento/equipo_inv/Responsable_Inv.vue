@@ -101,16 +101,24 @@
             </td>
             <td class="p-3 text-center">
               <div v-if="post.evidencia_arch" class="flex justify-center">
-                <a :href="`http://192.168.1.112:8087/Documentos/INVESTIGACION/AnexoResponsable/${post.ciinfper_doc}/${post.evidencia_arch}`"
-                  target="_blank"
-                  class="group relative flex items-center justify-center p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-600 hover:text-white transition-all shadow-sm"
+                <button type="button"
+                  @click="verPdfResponsable(post.ciinfper_doc, post.evidencia_arch, 'pdf_' + post.id_responsable)"
+                  :disabled="botonCargando === 'pdf_' + post.id_responsable"
+                  class="group relative flex items-center justify-center p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-600 hover:text-white transition-all shadow-sm disabled:opacity-50"
                   title="Ver documento PDF">
-                  <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path
-                      d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                  
+                  <!-- Spinner -->
+                  <svg v-if="botonCargando === 'pdf_' + post.id_responsable" class="animate-spin h-[18px] w-[18px]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+
+                  <!-- Ícono PDF -->
+                  <svg v-else width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                     <path d="M9 15h6M9 11h6" />
                   </svg>
-                </a>
+                </button>
               </div>
               <span v-else class="text-[10px] text-gray-300 italic">Sin anexo</span>
             </td>
@@ -251,15 +259,25 @@
                 </label>
               </div>
               <div v-if="isEditModalOpen && !archivoSeleccionado" class="mt-4 col-span-1 lg:col-span-2">
-                <label class="block text-xs font-bold mb-2 text-gray-700 dark:text-gray-300">Documento de respaldo
-                  Actual:</label>
-                <div
-                  class="w-full h-[400px] border border-gray-300 dark:border-gray-700 rounded-xl overflow-hidden bg-gray-50">
-                  <iframe :src="objetoeditar.ad_archivo_url" class="w-full h-full border-0"></iframe>
+                <label class="block text-xs font-bold mb-2 text-gray-700 dark:text-gray-300">
+                  Documento de respaldo Actual:
+                </label>
+
+                <div v-if="cargandoIframePdf" class="w-full h-[400px] border border-gray-300 dark:border-gray-700 rounded-xl bg-gray-100 flex items-center justify-center animate-pulse">
+                  <span class="text-sm text-gray-500">Cargando documento seguro...</span>
                 </div>
+
+                <div v-else-if="objetoeditar.pdfBlobUrl" class="w-full h-[400px] border border-gray-300 dark:border-gray-700 rounded-xl overflow-hidden bg-gray-50">
+                  <iframe :src="objetoeditar.pdfBlobUrl" class="w-full h-full border-0"></iframe>
+                </div>
+
                 <div class="mt-2 text-right">
-                  <a :href="objetoeditar.ad_archivo_url" target="_blank"
-                    class="text-sm text-brand-600 hover:underline">Abrir en nueva pestaña</a>
+                  <button type="button"
+                    v-if="objetoeditar.pdfBlobUrl"
+                    @click="abrirBlobEnNuevaPestana(objetoeditar.pdfBlobUrl)"
+                    class="text-sm text-brand-600 hover:underline bg-transparent border-0 cursor-pointer">
+                    Abrir en nueva pestaña
+                  </button>
                 </div>
               </div>
               <label class="block text-[10px] font-bold mb-1">{{ isEditModalOpen ? 'Subir un nuevo documento para reemplazar el actual (PDF)' :
@@ -326,7 +344,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import Modal from '@/components/Modal/Modal.vue'
+/*import Modal from '@/components/Modal/Modal.vue'
 
 const isProfileAddressModal = ref(false)
 const isEditModalOpen = ref(false)
@@ -340,7 +358,7 @@ defineExpose({
   isProfileAddressModal,
   isEditModalOpen,
   cerrarModalDesdeAfuera
-})
+})*/
 </script>
 <script>
 import API from "@/assets/js/services/axios";
@@ -361,16 +379,20 @@ export default {
         idfacultad: "",
         estado_responsable: 1
       },
+      botonCargando: null,
+      cargandoIframePdf: false,
       objetoeditar: {
         id_responsable: 0,
         ciinfper_doc: "",
         idfacultad: "",
         estado_responsable: 0,
-        ad_archivo_url: null
+        ad_archivo_url: null,
+        pdfBlobUrl: null
       },
       filteredarray: [],
       searchQuery: "",
       isProfileAddressModal: false,
+      isEditModalOpen: false,
       cargando: false,
       currentPage: 1,
       lastPage: 1,
@@ -500,8 +522,10 @@ export default {
         this.idEquipoDepartEdit = user.id_responsable; // Asignamos el ID
         this.cedulaFormulario = user.ciinfper_doc;
         this.objetoeditar = {
+          ciinfper_doc: user.ciinfper_doc,
           evidencia_arch: user.evidencia_arch,
-          ad_archivo_url: user.ad_archivo_url
+          ad_archivo_url: user.ad_archivo_url,
+          pdfBlobUrl: null
         };
 
         // IMPORTANTE: Primero cargamos los roles con el ID a excluir
@@ -509,20 +533,68 @@ export default {
 
         // Luego buscamos al docente
         await this.buscarDocenteAPI();
-
+        
         // Finalmente asignamos el rol
         this.formularioFacultadesID = user.idfacultad;
-        this.$.setupState.isEditModalOpen = true;
+        this.isEditModalOpen = true;
+        this.cargarPdfIframe();
       }catch(e){
-        console.log(e)
+        //console.log(e)
       }finally{
         this.botonCargando = null;
       }
      
     },
+    async verPdfResponsable(ci, filename, idBoton) {
+      if (!ci || !filename) return;
+      this.botonCargando = idBoton;
+      try {
+        const response = await API.get(`${this.baseUrl}/ver-anexo-responsable`, {
+          params: { ci: ci, archivo: filename },
+          responseType: 'blob'
+        });
+
+        const fileBlob = new Blob([response.data], { type: 'application/pdf' });
+        const blobUrl = window.URL.createObjectURL(fileBlob);
+
+        window.open(blobUrl, '_blank');
+        setTimeout(() => window.URL.revokeObjectURL(blobUrl), 60000);
+      } catch (error) {
+        console.error("Error al obtener el PDF:", error);
+        mostraralertas2("El documento no está disponible o no tiene permisos.", "error");
+      } finally {
+        this.botonCargando = null;
+      }
+    },
+
+    async cargarPdfIframe() {
+      if (!this.objetoeditar?.ciinfper_doc || !this.objetoeditar?.evidencia_arch) return;
+
+      this.cargandoIframePdf = true;
+      try {
+        const response = await API.get(`${this.baseUrl}/ver-anexo-responsable`, {
+          params: {
+            ci: this.objetoeditar.ciinfper_doc,
+            archivo: this.objetoeditar.evidencia_arch
+          },
+          responseType: 'blob'
+        });
+
+        const fileBlob = new Blob([response.data], { type: 'application/pdf' });
+        this.objetoeditar.pdfBlobUrl = window.URL.createObjectURL(fileBlob);
+      } catch (error) {
+        console.error("Error cargando PDF en iframe:", error);
+      } finally {
+        this.cargandoIframePdf = false;
+      }
+    },
+
+    abrirBlobEnNuevaPestana(blobUrl) {
+      if (blobUrl) window.open(blobUrl, '_blank');
+    },
     cerrarModalGeneral() {
-      this.$.setupState.isProfileAddressModal = false;
-      this.$.setupState.isEditModalOpen = false;
+      this.isProfileAddressModal = false;
+      this.isEditModalOpen = false;
       this.limpiarFormulario();
     },
     limpiarFormulario() {
@@ -576,16 +648,7 @@ export default {
         const response = await API.get(`${this.baseUrl}/invi_responsable`, { params });
 
         const data = response.data?.data || [];
-        const rootURL = (API.defaults.baseURL || '').replace(/\/api\/?$/, '');
-        this.filteredarray = data.map(item => {
-          const cedula = item.ciinfper_doc.replace(/[/\\ ]/g, '_');
-          return {
-            ...item,
-            ad_archivo_url: item.evidencia_arch
-              ? `${rootURL}/Documentos/INVESTIGACION/AnexoResponsable/${cedula}/${item.evidencia_arch}`
-              : null
-          };
-        });
+        this.filteredarray = data;
         const pagination = response.data?.pagination || {};
         this.currentPage = pagination.current_page || 1;
         this.lastPage = pagination.last_page || 1;
@@ -648,7 +711,7 @@ export default {
         };
         const exito = await enviarsolig('POST', params, `${this.baseUrl}/invi_responsable`, 'Asignación registrada éxito');
         if (exito) {
-          this.$.setupState.isProfileAddressModal = false;
+          this.isProfileAddressModal = false;
           this.limpiarFormulario();
           this.actualizar();
         }
@@ -688,7 +751,7 @@ export default {
         };
         const exito = await enviarsolig('PUT', params, `${this.baseUrl}/invi_responsable/${this.idEquipoDepartEdit}`, 'Asignación actualizada con éxito');
         if (exito) {
-          this.$.setupState.isEditModalOpen = false;
+          this.isEditModalOpen = false;
           this.limpiarFormulario();
           this.actualizar();
         }

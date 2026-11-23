@@ -689,7 +689,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import Modal from '@/components/Modal/Modal.vue'
+/*import Modal from '@/components/Modal/Modal.vue'
 
 const isProfileAddressModal = ref(false)
 const isEditModalOpen = ref(false)
@@ -703,7 +703,7 @@ defineExpose({
   isProfileAddressModal,
   isEditModalOpen,
   cerrarModalDesdeAfuera
-})
+})*/
 </script>
 <script>
 import API from "@/assets/js/services/axios";
@@ -739,6 +739,7 @@ export default {
       selectedStatus: "", // Nuevo: estado seleccionado
       isFilterDropdownOpen: false, // Nuevo: control del menu
       isProfileAddressModal: false,
+      isEditModalOpen: false,
       cargando: false,
       currentPage: 1,
       lastPage: 1,
@@ -976,7 +977,7 @@ export default {
           estado_plandne: user.estado_plandne,
           link_plandne: user.link_plandne
         };
-        this.$.setupState.isEditModalOpen = true;
+        this.isEditModalOpen = true;
       } catch (e) {
         console.error("❌ Error:", error.e?.data || e);
       } finally {
@@ -1043,7 +1044,7 @@ export default {
         };
         const exito = await enviarsolig('POST', params, `${this.baseUrl}/plandne`, 'PLANDNE registrado con éxito');
         if (exito) {
-          this.$.setupState.isProfileAddressModal = false;
+          this.isProfileAddressModal = false;
 
           this.limpiarFormulario();
           this.actualizar();
@@ -1069,12 +1070,12 @@ export default {
         };
         const exito = await enviarsolig('PUT', params, `${this.baseUrl}/plandne/${this.objetoeditar.id_pladne}`, 'PLANDNE actualizado con éxito');
         if (exito) {
-          this.$.setupState.isEditModalOpen = false;
+          this.isEditModalOpen = false;
 
           this.limpiarFormulario();
           this.actualizar();
         } else {
-          this.$.setupState.isEditModalOpen = false;
+          this.isEditModalOpen = false;
           mostraralertas2("No se pudo editar el PLANDNE", "error");
         }
       } catch (error) {

@@ -547,12 +547,12 @@
 
 <script setup>
 import { ref } from 'vue'
-import Modal from '@/components/Modal/Modal.vue'
+/*import Modal from '@/components/Modal/Modal.vue'
 
 // Exposición básica por si el layout principal lo requiere
 const isModalOpen = ref(false)
 const cerrarModalDesdeAfuera = () => { isModalOpen.value = false }
-defineExpose({ isModalOpen, cerrarModalDesdeAfuera })
+defineExpose({ isModalOpen, cerrarModalDesdeAfuera })*/
 </script>
 <script>
 import API from "@/assets/js/services/axios";
@@ -636,7 +636,7 @@ export default {
       try {
         this.cargandoDepartamentos = true;
         const res = await API.get(`${this.baseUrl}/listar_departamentos?all=true`);
-        console.log(res);
+        //console.log(res);
         // Asegurarse de acceder a la data correcta según tu API response
         this.departamentosApi = res.data.data; 
       } catch (error) {
@@ -703,7 +703,7 @@ export default {
     abrirModalRegistro() {
       this.isEditMode = false;
       this.limpiarFormulario();
-      this.$.setupState.isModalOpen = true;
+      this.isModalOpen = true;
     },
     abrirModalEdicion(user) {
       this.isEditMode = true;
@@ -744,7 +744,7 @@ export default {
         parseCampo('revision', user.revision);
         parseCampo('aprobacion', user.aprobacion);
 
-        this.$.setupState.isModalOpen = true;
+        this.isModalOpen = true;
       } catch (e) {
         console.error("Error al abrir modal de edición:", e);
       } finally {
@@ -782,7 +782,7 @@ export default {
       this.archivoPreviewName = file.name;
     },
     cerrarModal() {
-      this.$.setupState.isModalOpen = false;
+      this.isModalOpen = false;
       this.limpiarFormulario();
     },
     getPhotoUrl(ci) {

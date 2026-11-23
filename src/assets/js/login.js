@@ -20,9 +20,9 @@ export default {
           LoginUsu: this.email.trim(),
           ClaveUsu: this.password.trim(),
         };
-        console.log('Enviando solicitud de login con parámetros:', parametros);
+        //console.log('Enviando solicitud de login con parámetros:', parametros);
         const response = await enviarsolilogin('POST', parametros, this.url2, 'Logueado');
-        console.log('Respuesta del login:', response);
+        //console.log('Respuesta del login:', response);
         if (response.error) {
           mostraralertas(response.mensaje, 'warning');
           this.isLoggingIn = false;

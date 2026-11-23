@@ -103,7 +103,7 @@
             <td class="p-3">
               <div class="flex flex-col items-start gap-1">
                 <div v-if="post.archivo" class="flex justify-center">
-                  <a :href="`http://vinculacion.test/Documentos/Vinculación/Archivos_Empresas/${post.ruc}/${post.archivo}`"
+                  <a :href="`https://investigacion.utelvt.edu.ec/investigaback/Documentos/Vinculación/Archivos_Empresas/${post.ruc}/${post.archivo}`"
                     target="_blank"
                     class="group relative flex items-center justify-center p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-600 hover:text-white transition-all shadow-sm"
                     title="Ver documento PDF">
@@ -628,7 +628,7 @@
 import { ref } from 'vue'
 import Modal from '@/components/Modal/Modal.vue'
 
-const isProfileAddressModal = ref(false)
+/*const isProfileAddressModal = ref(false)
 const isEditModalOpen = ref(false)
 // Creamos una función para que el bloque de abajo pueda cerrar el modal
 const cerrarModalDesdeAfuera = () => {
@@ -640,7 +640,7 @@ defineExpose({
   isProfileAddressModal,
   isEditModalOpen,
   cerrarModalDesdeAfuera
-})
+})*/
 </script>
 <script>
 import API from "@/assets/js/services/axios";
@@ -749,6 +749,7 @@ export default {
       filteredarray: [],
       searchQuery: "",
       isProfileAddressModal: false,
+      isEditModalOpen: false,
       cargando: false,
       currentPage: 1,
       lastPage: 1,
@@ -1014,7 +1015,7 @@ export default {
     },
     abrirModalEdicion(user) {
       // Clonamos el objeto para no modificar la tabla directamente antes de guardar
-      console.log("Abriendo modal de edición para empresa:", user);
+      //console.log("Abriendo modal de edición para empresa:", user);
       const fechaLimpia = user.fechafin ? String(user.fechafin).substring(0, 10) : "";
       this.objetoeditar = {
         idempresa: user.idempresa,
@@ -1044,7 +1045,7 @@ export default {
       this.activeEditTab = 'general';
       this.getPaises();
       this.objetoeditar.archivoPdf = null;
-      this.$.setupState.isEditModalOpen = true;
+      this.isEditModalOpen = true;
     },
     async GetData(page = 1, searchQuery = "") {
       this.cargando = true;
@@ -1058,7 +1059,7 @@ export default {
 
         const data = response.data?.data || [];
         this.filteredarray = data;
-        console.log("⚡️ Datos obtenidos:", data);
+        //console.log("⚡️ Datos obtenidos:", data);
         const pagination = response.data?.pagination || {};
         this.currentPage = pagination.current_page || 1;
         this.lastPage = pagination.last_page || 1;
@@ -1107,7 +1108,7 @@ export default {
         }
         const exito = await enviarsolig('POST', this.objetoguardar, `${this.baseUrl}/empresa`, 'Empresa registrada con éxito');
         if (exito) {
-          this.$.setupState.isProfileAddressModal = false;
+          this.isProfileAddressModal = false;
 
           this.limpiarFormulario();
           this.actualizar();
@@ -1140,11 +1141,11 @@ export default {
         }
         const exito = await enviarsolig('PUT', this.objetoeditar, `${this.baseUrl}/empresa/${this.objetoeditar.idempresa}`, 'Empresa actualizada con éxito');
         if (exito) {
-          this.$.setupState.isEditModalOpen = false;
+          this.isEditModalOpen = false;
           this.limpiarFormulario();
           this.actualizar();
         } else {
-          this.$.setupState.isEditModalOpen = false;
+          this.isEditModalOpen = false;
           mostraralertas2("No se pudo editar la Empresa", "error");
         }
       } catch (error) {

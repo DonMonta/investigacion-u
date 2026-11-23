@@ -295,7 +295,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import Modal from '@/components/Modal/Modal.vue'
+/*import Modal from '@/components/Modal/Modal.vue'
 
 const isProfileAddressModal = ref(false)
 const isEditModalOpen = ref(false)
@@ -309,7 +309,7 @@ defineExpose({
   isProfileAddressModal,
   isEditModalOpen,
   cerrarModalDesdeAfuera
-})
+})*/
 </script>
 <script>
 import API from "@/assets/js/services/axios";
@@ -335,6 +335,7 @@ export default {
       filteredarray: [],
       searchQuery: "",
       isProfileAddressModal: false,
+      isEditModalOpen: false,
       cargando: false,
       currentPage: 1,
       lastPage: 1,
@@ -382,7 +383,7 @@ export default {
         id_zona_plan: user.id_zona_plan,
         nombre_zona: user.nombre_zona,
       };
-      this.$.setupState.isEditModalOpen = true;
+      this.isEditModalOpen = true;
     },
     async abrirModalProvincias(zona) {
       this.zonaSeleccionada = zona;
@@ -496,7 +497,7 @@ export default {
         };
         const exito = await enviarsolig('POST', params, `${this.baseUrl}/zona_planificacion`, 'ZONA DE PLANIFICACIÓN registrada con éxito');
         if (exito) {
-          this.$.setupState.isProfileAddressModal = false;
+          this.isProfileAddressModal = false;
 
           this.limpiarFormulario();
           this.actualizar();
@@ -514,12 +515,12 @@ export default {
         };
         const exito = await enviarsolig('PUT', params, `${this.baseUrl}/zona_planificacion/${this.objetoeditar.id_zona_plan}`, 'ZONA DE PLANIFICACIÓN actualizada con éxito');
         if (exito) {
-          this.$.setupState.isEditModalOpen = false;
+          this.isEditModalOpen = false;
 
           this.limpiarFormulario();
           this.actualizar();
         } else {
-          this.$.setupState.isEditModalOpen = false;
+          this.isEditModalOpen = false;
           mostraralertas2("No se pudo editar la ZONA DE PLANIFICACIÓN", "error");
         }
       } catch (error) {

@@ -17,6 +17,8 @@ import EquipoAllView from "../views/Admin/Equipo/EquipoAllView.vue";
 import ResponsableInvAllView from '../views/Admin/Equipo/ResponsableInvAllView.vue'
 import Det_DepartView from '../views/Admin/Detalle_Departamento/Det_DepartView.vue'
 import LoginView from "../views/LoginView.vue";
+import PerfilAllView from "../views/Admin/Perfil/PerfilAllView.vue";
+import GruposInvestigaAllView from "../views/Admin/Proyectos/Grupos_Investigacion/GruposInvestigaAllView.vue";
 
 const routes = [
   {
@@ -108,6 +110,16 @@ const routes = [
     path: '/site-admin/det_departamento', 
     name: 'site-admin-det_departamento',  
     component: Det_DepartView   
+  },
+  {
+    path: "/site-admin/perfil",
+    name: "site-admin-perfil",
+    component: PerfilAllView,
+  },
+  {
+    path: "/site-admin/grupos_investigacion",
+    name: "site-admin-grupos_investigacion",
+    component: GruposInvestigaAllView,
   },
 ];
 

@@ -118,17 +118,27 @@
 
             <td class="py-5 px-4">
               <div v-if="post.archivo_ag_ods">
-                <a :href="post.ad_archivo_url" target="_blank"
-                  class="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors dark:bg-red-500/10 dark:text-red-400">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                    <polyline points="14 2 14 8 20 8" />
-                    <line x1="16" y1="13" x2="8" y2="13" />
-                    <line x1="16" y1="17" x2="8" y2="17" />
-                    <polyline points="10 9 9 9 8 9" />
-                  </svg>
-                  <span>PDF</span>
-                </a>
+                <button type="button" 
+                    @click="verPdfAgendaOds(post.anio_ag_ods, post.archivo_ag_ods, 'btn_' + post.id_ag_ods)"
+                    :disabled="botonCargando === 'btn_' + post.id_ag_ods"
+                    class="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors dark:bg-red-500/10 dark:text-red-400 disabled:opacity-50">
+                    
+                    <!-- Spinner -->
+                    <svg v-if="botonCargando === 'btn_' + post.id_ag_ods" class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+
+                    <!-- Ícono PDF -->
+                    <svg v-else width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                        <polyline points="14 2 14 8 20 8" />
+                        <line x1="16" y1="13" x2="8" y2="13" />
+                        <line x1="16" y1="17" x2="8" y2="17" />
+                        <polyline points="10 9 9 9 8 9" />
+                    </svg>
+                    <span>{{ botonCargando === 'btn_' + post.id_ag_ods ? 'Cargando...' : 'PDF' }}</span>
+                </button>
               </div>
               <span v-else class="text-xs text-gray-400 italic">Sin documento</span>
             </td>
@@ -493,18 +503,31 @@
                   </p>
                 </div>
               </div>
-              <div v-if="objetoeditar.ad_archivo_url && !archivoSeleccionado" class="mt-4 col-span-1 lg:col-span-2">
-                <label class="block text-xs font-bold mb-2 text-gray-700 dark:text-gray-300">Documento Agenda ODS
-                  Actual:</label>
-                <div
-                  class="w-full h-[400px] border border-gray-300 dark:border-gray-700 rounded-xl overflow-hidden bg-gray-50">
-                  <iframe :src="objetoeditar.ad_archivo_url" class="w-full h-full border-0"></iframe>
+              <div v-if="objetoeditar.archivo_ag_ods">
+                <label class="block text-xs font-bold mb-2 text-gray-700 dark:text-gray-300">
+                    Documento Agenda ODS Actual:
+                </label>
+                
+                <!-- Loader Skeleton -->
+                <div v-if="cargandoIframePdf" class="w-full h-[400px] border border-gray-300 dark:border-gray-700 rounded-xl bg-gray-100 flex items-center justify-center animate-pulse">
+                    <span class="text-sm text-gray-500">Cargando documento seguro...</span>
                 </div>
+
+                <!-- Iframe Seguro -->
+                <div v-else-if="objetoeditar.pdfBlobUrl" class="w-full h-[400px] border border-gray-300 dark:border-gray-700 rounded-xl overflow-hidden bg-gray-50">
+                    <iframe :src="objetoeditar.pdfBlobUrl" class="w-full h-full border-0"></iframe>
+                </div>
+
                 <div class="mt-2 text-right">
-                  <a :href="objetoeditar.ad_archivo_url" target="_blank"
-                    class="text-sm text-brand-600 hover:underline">Abrir en nueva pestaña</a>
+                    <!-- Botón para nueva pestaña (Bloqueado) -->
+                    <button type="button"
+                        v-if="objetoeditar.pdfBlobUrl"
+                        @click="abrirBlobEnNuevaPestana(objetoeditar.pdfBlobUrl)"
+                        class="text-sm text-brand-600 hover:underline bg-transparent border-0 cursor-pointer">
+                        Abrir en nueva pestaña
+                    </button>
                 </div>
-              </div>
+            </div>
 
               <!-- ZONA PARA SUBIR/REEMPLAZAR PDF -->
               <div class="mt-5 col-span-1 lg:col-span-2">
@@ -596,7 +619,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import Modal from '@/components/Modal/Modal.vue'
+/*import Modal from '@/components/Modal/Modal.vue'
 
 const isProfileAddressModal = ref(false)
 const isEditModalOpen = ref(false)
@@ -610,7 +633,7 @@ defineExpose({
   isProfileAddressModal,
   isEditModalOpen,
   cerrarModalDesdeAfuera
-})
+})*/
 </script>
 <script>
 import API from "@/assets/js/services/axios";
@@ -639,13 +662,15 @@ export default {
         anio_ag_ods: "",
         estado_ag_ods: 0,
         archivo_ag_ods: "",       // El nombre del archivo en la BD
-        ad_archivo_url: null
+        ad_archivo_url: null,
+        pdfBlobUrl: null,        // URL del Blob para el iframe
       },
       filteredarray: [],
       searchQuery: "",
       selectedStatus: "", // Nuevo: estado seleccionado
       isFilterDropdownOpen: false, // Nuevo: control del menu
       isProfileAddressModal: false,
+      isEditModalOpen: false,
       cargando: false,
       currentPage: 1,
       lastPage: 1,
@@ -665,6 +690,8 @@ export default {
         detalle_ods: ''
       },
       codNumero: '', // Solo el número (ej: 1)
+      botonCargando: null,
+      cargandoIframePdf: false,
     };
   },
   created() {
@@ -816,10 +843,12 @@ export default {
           nombre_ag_ods: user.nombre_ag_ods,
           anio_ag_ods: user.anio_ag_ods,
           estado_ag_ods: user.estado_ag_ods,
-          archivo_pei: user.archivo_pei,       // Nombre del archivo base
-          ad_archivo_url: user.ad_archivo_url
+          archivo_ag_ods: user.archivo_ag_ods,       // Nombre del archivo base
+          ad_archivo_url: user.ad_archivo_url,
+          pdfBlobUrl: null
         };
-        this.$.setupState.isEditModalOpen = true;
+        this.isEditModalOpen = true;
+        this.cargarPdfIframe()
       }catch(e){
         console.error(e)
       }finally{
@@ -879,17 +908,9 @@ export default {
         };
         const response = await API.get(`${this.baseUrl}/agenda_ods`, { params });
         const data = response.data?.data || [];
-        const rootURL = (API.defaults.baseURL || '').replace(/\/api\/?$/, '');
-        this.filteredarray = data.map(item => {
-          // Limpiamos el año igual que en el backend para la URL
-          const folderName = item.anio_ag_ods.replace(/[/\\ ]/g, '_');
-          return {
-            ...item,
-            ad_archivo_url: item.archivo_ag_ods
-              ? `${rootURL}/Documentos/AGENDA_ODS/${folderName}/${item.archivo_ag_ods}`
-              : null
-          };
-        });
+        this.filteredarray = data.map(item => ({
+            ...item
+        }));
         const pagination = response.data?.pagination || {};
         this.currentPage = pagination.current_page || 1;
         this.lastPage = pagination.last_page || 1;
@@ -903,7 +924,53 @@ export default {
         this.cargando = false;
       }
     },
+    async verPdfAgendaOds(anio, filename, idBoton) {
+        if (!anio || !filename) return;
+        this.botonCargando = idBoton;
+        try {
+            const folderName = anio.replace(/[/\\ ]/g, '_');
+            const response = await API.get(`${this.baseUrl}/ver-agenda-ods`, {
+                params: { anio: folderName, archivo: filename },
+                responseType: 'blob'
+            });
+            
+            const fileBlob = new Blob([response.data], { type: 'application/pdf' });
+            const blobUrl = window.URL.createObjectURL(fileBlob);
+            
+            window.open(blobUrl, '_blank');
+            setTimeout(() => window.URL.revokeObjectURL(blobUrl), 60000);
+        } catch (error) {
+            console.error("Error al obtener el PDF:", error);
+            mostraralertas2("El documento no está disponible o no tiene permisos.", "error");
+        } finally {
+            this.botonCargando = null;
+        }
+    },
 
+    // 2. Método para el IFRAME del Formulario de Edición
+    async cargarPdfIframe() {
+        if (!this.objetoeditar.anio_ag_ods || !this.objetoeditar.archivo_ag_ods) return;
+        
+        this.cargandoIframePdf = true;
+        try {
+            const folderName = this.objetoeditar.anio_ag_ods.replace(/[/\\ ]/g, '_');
+            const response = await API.get(`${this.baseUrl}/ver-agenda-ods`, {
+                params: { anio: folderName, archivo: this.objetoeditar.archivo_ag_ods },
+                responseType: 'blob'
+            });
+            
+            const fileBlob = new Blob([response.data], { type: 'application/pdf' });
+            this.objetoeditar.pdfBlobUrl = window.URL.createObjectURL(fileBlob);
+        } catch (error) {
+            console.error("Error cargando PDF en iframe:", error);
+        } finally {
+            this.cargandoIframePdf = false;
+        }
+    },
+
+    abrirBlobEnNuevaPestana(blobUrl) {
+        if (blobUrl) window.open(blobUrl, '_blank');
+    },
     filterAndFetch() {
       this.currentPage = 1;
       this.GetData(this.currentPage, this.searchQuery);
@@ -948,7 +1015,7 @@ export default {
           }  
         }
         mostraralertas2(res.data.mensaje || 'Agenda ODS registrado con éxito', 'success');
-        this.$.setupState.isProfileAddressModal = false;
+        this.isProfileAddressModal = false;
         this.limpiarFormulario();
         this.actualizar();
       } catch (error) {
@@ -985,7 +1052,7 @@ export default {
           } 
         }   
         mostraralertas2(response.data.mensaje || 'Agenda ODS actualizado con éxito', 'success');
-        this.$.setupState.isEditModalOpen = false;
+        this.isEditModalOpen = false;
         this.limpiarFormulario();
         this.actualizar();
       } catch (error) {

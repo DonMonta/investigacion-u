@@ -504,8 +504,21 @@
                                                 class="w-full border rounded-lg p-2 text-sm focus:ring-2 ring-blue-200 outline-none bg-white dark:bg-gray-800">
                                         </div>
                                     </div>    
-                                    <div v-if="formInt.reemplazado == 1 || modoNuevo || formInt.anexo_integrante2==null" class="md:col-span-2">
+                                    <div class="md:col-span-2">
                                         <label class="block text-[10px] font-bold mb-1">Documento Respaldo (PDF)</label>
+                                        <!-- NUEVO: Indicador y botón si ya existe un anexo guardado -->
+                                        <div v-if="!modoNuevo && formInt.anexo_integrante2" class="mb-3 p-3 bg-green-50 border border-green-200 rounded-xl flex items-center justify-between animate-fadeIn">
+                                            <span class="text-[11px] text-green-700 font-bold flex items-center gap-2">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                                Anexo actual guardado
+                                            </span>
+                                            <button type="button" 
+                                                    @click="verAnexoSeguro(integranteEdit?.cedula, formInt.anexo_integrante2)"
+                                                    :disabled="cargandoPdf"
+                                                    class="text-[10px] bg-green-600 text-white px-3 py-1.5 rounded-lg shadow-sm hover:bg-green-700 transition-colors disabled:opacity-50">
+                                                {{ cargandoPdf ? 'Abriendo...' : 'Ver PDF Actual' }}
+                                            </button>
+                                        </div>
                                         <div @click="$refs.fileFoto.click()"
                                             class="relative flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-xl cursor-pointer transition-all"
                                             :class="archivoPreviewName ? 'border-brand-500 bg-brand-50/20' : 'border-gray-300 hover:border-brand-400 bg-gray-50 dark:bg-gray-800/50'">
@@ -767,49 +780,70 @@
 
                                         <td class="p-3 text-center" v-if="int.estado === 0">
                                             <div v-if="int.anexo_integrante" class="flex justify-center">
-                                                <a :href="`http://investigacionback.test/Documentos/INVESTIGACION/Bajas_Docentes/Anexo/${int.ciinfper_doc || int.ciinfper_est}/${int.anexo_integrante}`"
-                                                    target="_blank"
-                                                    class="group relative flex items-center justify-center p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-600 hover:text-white transition-all shadow-sm"
+                                                <button type="button"
+                                                    @click="verAnexoTablaBajasSeguro(int.ciinfper_doc || int.ciinfper_est, int.anexo_integrante, 'anexob_' + int.id_deta_invi_proyect)"
+                                                    :disabled="botonCargando === 'anexob_' + int.id_deta_invi_proyect"
+                                                    class="group relative flex items-center justify-center p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-600 hover:text-white transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                                                     title="Ver documento PDF">
-                                                    <svg width="18" height="18" fill="none" stroke="currentColor"
-                                                        stroke-width="2" viewBox="0 0 24 24">
-                                                        <path
-                                                            d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                                    
+                                                    <!-- Spinner individual -->
+                                                    <svg v-if="botonCargando === 'anexob_' + int.id_deta_invi_proyect" class="animate-spin h-[18px] w-[18px]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                    </svg>
+
+                                                    <!-- Ícono PDF -->
+                                                    <svg v-else width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                        <path d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                                                         <path d="M9 15h6M9 11h6" />
                                                     </svg>
-                                                </a>
+                                                </button>
                                             </div>
                                             <span v-else class="text-[10px] text-gray-300 italic">Sin anexo</span>
                                         </td>
                                         <td class="p-3 text-center" v-else>
                                             <div v-if="int.anexo_integrante" class="flex justify-center">
-                                                <a :href="`http://investigacionback.test/Documentos/INVESTIGACION/AnexoIntegrante/${int.ciinfper_doc || int.ciinfper_est}/${int.anexo_integrante}`"
-                                                    target="_blank"
-                                                    class="group relative flex items-center justify-center p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-600 hover:text-white transition-all shadow-sm"
+                                                <button type="button"
+                                                    @click="verAnexoTablaSeguro(int.ciinfper_doc || int.ciinfper_est, int.anexo_integrante, 'anexo1_' + int.id_deta_invi_proyect)"
+                                                    :disabled="botonCargando === 'anexo1_' + int.id_deta_invi_proyect"
+                                                    class="group relative flex items-center justify-center p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-600 hover:text-white transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                                                     title="Ver documento PDF">
-                                                    <svg width="18" height="18" fill="none" stroke="currentColor"
-                                                        stroke-width="2" viewBox="0 0 24 24">
-                                                        <path
-                                                            d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                                    
+                                                    <!-- Spinner individual -->
+                                                    <svg v-if="botonCargando === 'anexo1_' + int.id_deta_invi_proyect" class="animate-spin h-[18px] w-[18px]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                    </svg>
+
+                                                    <!-- Ícono PDF -->
+                                                    <svg v-else width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                        <path d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                                                         <path d="M9 15h6M9 11h6" />
                                                     </svg>
-                                                </a>
+                                                </button>
                                             </div>
                                             <span v-else class="text-[10px] text-gray-300 italic">Sin anexo</span>
                                         </td>
                                         <td class="p-3 text-center">
                                             <div v-if="int.anexo_integrante2" class="flex justify-center">
-                                                <a :href="`http://investigacionback.test/Documentos/INVESTIGACION/AnexoIntegrante/${int.ciinfper_doc || int.ciinfper_est}/${int.anexo_integrante2}`"
-                                                    target="_blank"
-                                                    class="group relative flex items-center justify-center p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-600 hover:text-white transition-all shadow-sm"
+                                                <button type="button"
+                                                    @click="verAnexoTablaSeguro(int.ciinfper_doc || int.ciinfper_est, int.anexo_integrante2, 'anexo2_' + int.id_deta_invi_proyect)"
+                                                    :disabled="botonCargando === 'anexo2_' + int.id_deta_invi_proyect"
+                                                    class="group relative flex items-center justify-center p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-600 hover:text-white transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                                                     title="Ver documento PDF">
-                                                    <svg width="18" height="18" fill="none" stroke="currentColor"
-                                                        stroke-width="2" viewBox="0 0 24 24">
-                                                        <path
-                                                            d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                                    
+                                                    <!-- Spinner individual -->
+                                                    <svg v-if="botonCargando === 'anexo2_' + int.id_deta_invi_proyect" class="animate-spin h-[18px] w-[18px]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                    </svg>
+
+                                                    <!-- Ícono PDF -->
+                                                    <svg v-else width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                        <path d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                                                         <path d="M9 15h6M9 11h6" />
                                                     </svg>
-                                                </a>
+                                                </button>
                                             </div>
                                             <span v-else class="text-[10px] text-gray-300 italic">Sin anexo</span>
                                         </td>
@@ -5687,13 +5721,29 @@
                             </div>
                         </div>
                         <!-- VISUALIZADOR DEL PDF ACTUAL -->
-                        <div v-if="editForm.pdfurlarchivo && !archivopdfSeleccionado" class="mt-4">
-                            <label class="block text-xs font-bold mb-2 text-gray-700 dark:text-gray-300">Documento Actual Guardado:</label>
-                            <div class="w-full h-[400px] border border-gray-300 dark:border-gray-700 rounded-xl overflow-hidden bg-gray-50">
-                                <iframe :src="editForm.pdfurlarchivo" class="w-full h-full border-0"></iframe>
+                        <div v-if="editForm.proyect_archivo && !archivopdfSeleccionado" class="mt-4">
+                            <label class="block text-xs font-bold mb-2 text-gray-700 dark:text-gray-300">
+                                Documento Actual Guardado:
+                            </label>
+                            
+                            <!-- Skeleton/Loader mientras se descarga de forma segura -->
+                            <div v-if="cargandoEvidencia" class="w-full h-[400px] border border-gray-300 dark:border-gray-700 rounded-xl bg-gray-100 flex items-center justify-center animate-pulse">
+                                <span class="text-sm text-gray-500">Cargando documento seguro...</span>
                             </div>
+
+                            <!-- Iframe con el Blob Seguro -->
+                            <div v-else-if="editForm.pdfBlobUrl" class="w-full h-[400px] border border-gray-300 dark:border-gray-700 rounded-xl overflow-hidden bg-gray-50">
+                                <iframe :src="editForm.pdfBlobUrl" class="w-full h-full border-0"></iframe>
+                            </div>
+
                             <div class="mt-2 text-right">
-                                <a :href="editForm.pdfurlarchivo" target="_blank" class="text-sm text-brand-600 hover:underline">Abrir en nueva pestaña</a>
+                                <!-- Botón para abrir en nueva pestaña usando el mismo Blob -->
+                                <button type="button" 
+                                        v-if="editForm.pdfBlobUrl"
+                                        @click="abrirBlobEnNuevaPestana(editForm.pdfBlobUrl)" 
+                                        class="text-sm text-brand-600 hover:underline bg-transparent border-0 cursor-pointer">
+                                    Abrir en nueva pestaña
+                                </button>
                             </div>
                         </div>
 
@@ -6443,6 +6493,7 @@ export default {
             nuevoIntegranteData: null,
             buscando: false,
             modoNuevo: false,
+            cargandoPdf: false,
             archivoSeleccionado: null,
             archivoPreviewName: '',
             uploading: false,
@@ -6539,6 +6590,7 @@ export default {
             empresasAgregadas2: [],
             //asignaturasDisponibles: [],
             searchAsignatura: '',
+            cargandoEvidencia: false,
             editForm: {
                 proyect_id: '',
                 proyect_cod: '',
@@ -6632,6 +6684,7 @@ export default {
                 bibliografias: [],
                 proyect_archivo: null,
                 pdfurlarchivo: null,
+                pdfBlobUrl: null,
             },
             anioSeleccionadoTab: 'Primer Año',
             showModalActividad: false,
@@ -7020,7 +7073,7 @@ export default {
             return 'text-green-600 dark:text-green-400';
         },
         cooperadoresFiltrados() {
-            console.log(this.empresasAgregadas2);
+            //console.log(this.empresasAgregadas2);
             return this.empresasAgregadas2.filter(emp => emp && emp.ruc !== '0860000830001');
         },
         // Calcula dinámicamente la suma del presupuesto del proyecto en tiempo real
@@ -7329,7 +7382,7 @@ export default {
                 const resp = await API.post(`${this.baseUrl}/subir_pdf_proyecto`, form, {
                     headers: { 'Content-Type': 'multipart/form-data' }
                 });
-                console.log(resp);
+                //console.log(resp);
                 if (resp && resp.data && resp.data.filename) {
                     this.archivopdfSeleccionado = null;
                     this.archivopdfPreviewName = '';
@@ -7762,6 +7815,124 @@ export default {
                 this.descargandoCSVProyectos = false;
             }
         },
+        async cargarEvidenciaProyectoSegura() {
+            if (!this.editForm.proyect_cod || !this.editForm.proyect_archivo) return;
+            
+            this.cargandoEvidencia = true;
+            try {
+                const response = await API.get(`${this.baseUrl}/ver-evidencia-proyecto/${this.editForm.proyect_cod}/${this.editForm.proyect_archivo}`, {
+                    responseType: 'blob'
+                });
+                
+                const fileBlob = new Blob([response.data], { type: 'application/pdf' });
+                this.editForm.pdfBlobUrl = window.URL.createObjectURL(fileBlob);
+            } catch (error) {
+                console.error("Error al obtener la evidencia del proyecto:", error);
+            } finally {
+                this.cargandoEvidencia = false;
+            }
+        },
+        
+        abrirBlobEnNuevaPestana(blobUrl) {
+            if (blobUrl) {
+                window.open(blobUrl, '_blank');
+            }
+        },
+        async verAnexoSeguro(ci, filename) {
+            if (!ci || !filename) {
+                return mostraralertas2("Datos del documento incompletos.", "warning");
+            }
+
+            this.cargandoPdf = true;
+            try {
+            // Axios enviará automáticamente tu token JWT en las cabeceras
+                const response = await API.get(`${this.baseUrl}/ver-anexo-integrante/${ci}/${filename}`, {
+                responseType: 'blob'
+                });
+
+            // Creamos un Blob de tipo PDF y una URL temporal en el navegador del cliente
+                const fileBlob = new Blob([response.data], { type: 'application/pdf' });
+                const blobUrl = window.URL.createObjectURL(fileBlob);
+
+            // Abrimos el PDF en una nueva pestaña
+                window.open(blobUrl, '_blank');
+
+                // Liberamos la memoria después de un minuto
+                setTimeout(() => window.URL.revokeObjectURL(blobUrl), 60000);
+
+            } catch (error) {
+                console.error("Error al obtener el PDF:", error);
+                mostraralertas2("No tiene permisos o el archivo no se encuentra disponible.", "error");
+            } finally {
+                this.cargandoPdf = false;
+            }
+        },
+        async verAnexoTablaSeguro(ci, filename, botonId = null) {
+            if (!ci || !filename) {
+                return mostraralertas2("Datos del documento incompletos.", "warning");
+            }
+
+            if (botonId) {
+                this.botonCargando = botonId;
+            } else {
+                this.cargandoPdf = true;
+            }
+
+            try {
+                const response = await API.get(`${this.baseUrl}/ver-anexo-integrante/${ci}/${filename}`, {
+                responseType: 'blob'
+                });
+
+                const fileBlob = new Blob([response.data], { type: 'application/pdf' });
+                const blobUrl = window.URL.createObjectURL(fileBlob);
+
+                window.open(blobUrl, '_blank');
+                setTimeout(() => window.URL.revokeObjectURL(blobUrl), 60000);
+
+            } catch (error) {
+                console.error("Error al obtener el PDF:", error);
+                mostraralertas2("No tiene permisos o el archivo no se encuentra disponible.", "error");
+            } finally {
+                if (botonId) {
+                this.botonCargando = null;
+                } else {
+                this.cargandoPdf = false;
+                }
+            }
+        },
+        async verAnexoTablaBajasSeguro(ci, filename, botonId = null) {
+            if (!ci || !filename) {
+                return mostraralertas2("Datos del documento incompletos.", "warning");
+            }
+
+            if (botonId) {
+                this.botonCargando = botonId;
+            } else {
+                this.cargandoPdf = true;
+            }
+
+            try {
+                const response = await API.get(`${this.baseUrl}/ver-anexo-bajas-integrante/${ci}/${filename}`, {
+                responseType: 'blob'
+                });
+
+                const fileBlob = new Blob([response.data], { type: 'application/pdf' });
+                const blobUrl = window.URL.createObjectURL(fileBlob);
+
+                window.open(blobUrl, '_blank');
+                setTimeout(() => window.URL.revokeObjectURL(blobUrl), 60000);
+
+            } catch (error) {
+                console.error("Error al obtener el PDF:", error);
+                mostraralertas2("No tiene permisos o el archivo no se encuentra disponible.", "error");
+            } finally {
+                if (botonId) {
+                this.botonCargando = null;
+                } else {
+                this.cargandoPdf = false;
+                }
+            }
+        },
         async guardarCambios() {
             // 1. Validaciones Previas
             if (!this.formInt.id_funcion || !this.formInt.idCarr) {
@@ -7796,7 +7967,11 @@ export default {
             try {
                 this.enviando = true;
                 let anexoData = null;
-                const ciABuscar = this.modoNuevo ? this.nuevoIntegranteData.cedula : (this.formInt.reemplazado == 1 ? this.nuevoIntegranteData.cedula : (this.integranteEdit.ciinfper_doc || this.integranteEdit.ciinfper_est));
+                const ciABuscar = this.modoNuevo 
+                ? this.nuevoIntegranteData?.cedula 
+                : (this.formInt.reemplazado == 1 
+                    ? this.nuevoIntegranteData?.cedula 
+                    : (this.integranteEdit?.cedula || this.integranteEdit?.ciinfper_doc || this.integranteEdit?.ciinfper_est));
 
                 // 3. Subir archivo si hay uno nuevo seleccionado
                 if (this.archivoSeleccionado) {
@@ -8452,6 +8627,36 @@ export default {
                 this.editForm.proyect_duracion_mes = 0;
             }
         },
+        handlepdfFileChange(event) {
+            //Obtener el archivo seleccionado por el usuario
+            const file = event.target.files[0];
+            //Validar que el archivo seleccionado sea un archivo PDF, si no se cumple se muestra una alerta y se limpia el archivo seleccionado
+            if (!file) return;
+            // validación básica: pdf y tamaño si quieres
+            if (file.type !== 'application/pdf') {
+                //Mostrar una alerta de advertencia si el archivo seleccionado no es un archivo PDF, se usa la función mostraralertas2 para mostrar un mensaje de advertencia
+                mostraralertas2('Solo se permiten archivos PDF', 'warning');
+                //Limpiar el archivo seleccionado
+                this.$refs.filePDF.value = null;
+                //Devolver sin hacer nada más
+                return;
+            }
+            //Validar que el tamaño del archivo no exceda el límite de 30 MB, si no se cumple se muestra una alerta y se limpia el archivo seleccionado
+            const maxMB = 30;
+            //Si el tamaño del archivo es mayor que el límite de 30 MB, se muestra una alerta y se limpia el archivo seleccionado
+            if (file.size > maxMB * 1024 * 1024) {
+                //Mostrar una alerta de advertencia si el tamaño del archivo es mayor que el límite de 10 MB, se usa la función mostraralertas2 para mostrar un mensaje de advertencia
+                mostraralertas2(`Archivo muy grande. Máx ${maxMB} MB`, 'warning');
+                //Limpiar el archivo seleccionado
+                this.$refs.filePDF.value = null;
+                //Devolver sin hacer nada más
+                return;
+            }
+            //Asignar el archivo seleccionado a la variable archivoSeleccionado
+            this.archivopdfSeleccionado = file;
+            //Asignar el nombre del archivo seleccionado a la variable archivoPreviewName
+            this.archivopdfPreviewName = file.name;
+        },
         cancelarNuevoPDF() {
             this.archivopdfSeleccionado = null;
             this.archivopdfPreviewName = '';
@@ -8630,7 +8835,7 @@ export default {
                     });
                 }
                 const nombreArchivo = data.proyecto.proyect_archivo;
-                console.log(data)
+                //console.log(data)
                 this.editForm = {
                     proyect_id: data.proyecto.proyect_id,
                     proyect_cod: data.proyecto.proyect_cod || '',
@@ -8731,9 +8936,7 @@ export default {
                     difusion: difusionMapeada,
                     bibliografias: data.proyecto.invi_bibliografias ? [...data.proyecto.invi_bibliografias] : [],
                     proyect_archivo: nombreArchivo || '',
-                    pdfurlarchivo: nombreArchivo
-                        ? `http://192.168.1.112:8082/Documentos/INVESTIGACION/Evidencia_Proyect/${data.proyecto.proyect_cod}/${nombreArchivo}`
-                        : null
+                    pdfBlobUrl: null
 
                 };
                 // Reset de estado UI
@@ -8757,6 +8960,7 @@ export default {
                 }
                 this.calcularTotalDocentes();
                 this.calcularTotalEstudiantes();
+                this.cargarEvidenciaProyectoSegura();
             } catch (error) {
                 mostraralertas2('Error al cargar datos del proyecto', 'error');
                 console.error(error);
@@ -9927,14 +10131,14 @@ export default {
 
                         const archivoViejo = this.editForm.proyect_archivo;
                         uploadResp = await this.uploadarpdfchivo(this.editForm.proyect_cod, archivoViejo);
-                        console.log(uploadResp);
+                        //console.log(uploadResp);
                         if (uploadResp && uploadResp.filename) {
                                 //Asignar el nombre del archivo a la variable certificado_matricula
                             payload.proyect_archivo = uploadResp.filename;
                         }
                     }else{
                         uploadResp = await this.uploadarpdfchivo(this.editForm.proyect_cod);
-                        console.log(uploadResp);
+                        //console.log(uploadResp);
                         if (uploadResp && uploadResp.filename) {
                                 //Asignar el nombre del archivo a la variable certificado_matricula
                             payload.proyect_archivo = uploadResp.filename;
@@ -10262,7 +10466,7 @@ export default {
                 let ceduladirecto = '';
                 try {
                     const resDir = await this.ObteneVicerect(proy.proyect_id);
-                    console.log("Respuesta del director:", resDir);
+                    //console.log("Respuesta del director:", resDir);
                     if (resDir.data) {
                         directorProy = resDir.data.nombre_completo;
                         ceduladirecto = resDir.data.ci;

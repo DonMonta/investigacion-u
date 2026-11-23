@@ -237,12 +237,12 @@
 
 <script setup>
 import { ref } from 'vue'
-import Modal from '@/components/Modal/Modal.vue'
+/*import Modal from '@/components/Modal/Modal.vue'
 
 // Exposición básica por si el layout principal lo requiere
 const isModalOpen = ref(false)
 const cerrarModalDesdeAfuera = () => { isModalOpen.value = false }
-defineExpose({ isModalOpen, cerrarModalDesdeAfuera })
+defineExpose({ isModalOpen, cerrarModalDesdeAfuera })*/
 </script>
 <script>
 import API from "@/assets/js/services/axios";
@@ -298,7 +298,7 @@ export default {
     abrirModalRegistro() {
       this.isEditMode = false;
       this.limpiarFormulario();
-      this.$.setupState.isModalOpen = true;
+      this.isModalOpen = true;
     },
     abrirModalEdicion(user) {
       this.isEditMode = true;
@@ -315,7 +315,7 @@ export default {
 
         };
         
-        this.$.setupState.isModalOpen = true;
+        this.isModalOpen = true;
       } catch (e) {
         console.error("Error al abrir modal de edición:", e);
       } finally {
@@ -323,7 +323,7 @@ export default {
       }
     },
     cerrarModal() {
-      this.$.setupState.isModalOpen = false;
+      this.isModalOpen = false;
       this.limpiarFormulario();
     },
     handleImgError(e) {
@@ -340,7 +340,7 @@ export default {
           id_departamento: this.UsuarioInfo.departamentoUsuario
         };
         const response = await API.get(`${this.baseUrl}/detalle_departamentos`, { params });
-        console.log(response)
+        //console.log(response)
         const data = response.data?.data || [];
         this.filteredarray = data;
         const pagination = response.data?.pagination || {};

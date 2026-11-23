@@ -349,7 +349,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import Modal from '@/components/Modal/Modal.vue'
+/*import Modal from '@/components/Modal/Modal.vue'
 
 const isProfileAddressModal = ref(false)
 const isEditModalOpen = ref(false)
@@ -363,7 +363,7 @@ defineExpose({
   isProfileAddressModal,
   isEditModalOpen,
   cerrarModalDesdeAfuera
-})
+})*/
 </script>
 <script>
 import API from "@/assets/js/services/axios";
@@ -397,6 +397,7 @@ export default {
       filteredarray: [],
       searchQuery: "",
       isProfileAddressModal: false,
+      isEditModalOpen: false,
       cargando: false,
       currentPage: 1,
       lastPage: 1,
@@ -454,7 +455,7 @@ export default {
         tipo_rol: user.tipo_rol,
         estado_rol: user.estado_rol
       };
-      this.$.setupState.isEditModalOpen = true;
+      this.isEditModalOpen = true;
     },
     async GetData(page = 1, searchQuery = "") {
       this.cargando = true;
@@ -516,7 +517,7 @@ export default {
 
         const exito = await enviarsolig('POST', params, `${this.baseUrl}/invi_equipo_roles`, 'Rol al equipo de Investigación registrado con éxito');
         if (exito) {
-          this.$.setupState.isProfileAddressModal = false;
+          this.isProfileAddressModal = false;
           this.limpiarFormulario();
           this.actualizar();
         }
@@ -540,7 +541,7 @@ export default {
         const exito = await enviarsolig('PUT', params, `${this.baseUrl}/invi_equipo_roles/${this.objetoeditar.id_equipo_roles}`, 'Rol al equipo de Investigación actualizado con éxito');
 
         if (exito) {
-          this.$.setupState.isEditModalOpen = false;
+          this.isEditModalOpen = false;
           this.limpiarFormulario();
           this.actualizar();
         }

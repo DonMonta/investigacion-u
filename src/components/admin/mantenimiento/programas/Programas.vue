@@ -328,7 +328,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import Modal from '@/components/Modal/Modal.vue'
+/*import Modal from '@/components/Modal/Modal.vue'
 
 const isProfileAddressModal = ref(false)
 const isEditModalOpen = ref(false)
@@ -342,7 +342,7 @@ defineExpose({
   isProfileAddressModal,
   isEditModalOpen,
   cerrarModalDesdeAfuera
-})
+})*/
 </script>
 <script>
 import API from "@/assets/js/services/axios";
@@ -373,6 +373,7 @@ export default {
       filteredarray: [],
       searchQuery: "",
       isProfileAddressModal: false,
+      isEditModalOpen: false,
       cargando: false,
       currentPage: 1,
       lastPage: 1,
@@ -424,7 +425,7 @@ export default {
         dominio: user.dominio || null,
         estado_programa: 1
       };
-      this.$.setupState.isEditModalOpen = true;
+      this.isEditModalOpen = true;
     },
     async GetData(page = 1, searchQuery = "") {
       this.cargando = true;
@@ -484,7 +485,7 @@ export default {
         };
         const exito = await enviarsolig('POST', params, `${this.baseUrl}/invi_programa`, 'programa registrado con éxito');
         if (exito) {
-          this.$.setupState.isProfileAddressModal = false;
+          this.isProfileAddressModal = false;
 
           this.limpiarFormulario();
           this.actualizar();
@@ -508,12 +509,12 @@ export default {
         };
         const exito = await enviarsolig('PUT', params, `${this.baseUrl}/invi_programa/${this.objetoeditar.id_programa}`, 'programa actualizado con éxito');
         if (exito) {
-          this.$.setupState.isEditModalOpen = false;
+          this.isEditModalOpen = false;
 
           this.limpiarFormulario();
           this.actualizar();
         } else {
-          this.$.setupState.isEditModalOpen = false;
+          this.isEditModalOpen = false;
           mostraralertas2("No se pudo editar el programa", "error");
         }
       } catch (error) {

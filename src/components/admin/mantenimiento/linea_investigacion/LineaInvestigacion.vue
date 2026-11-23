@@ -595,7 +595,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import Modal from '@/components/Modal/Modal.vue'
+/*import Modal from '@/components/Modal/Modal.vue'
 
 const isProfileAddressModal = ref(false)
 const isEditModalOpen = ref(false)
@@ -609,7 +609,7 @@ defineExpose({
   isProfileAddressModal,
   isEditModalOpen,
   cerrarModalDesdeAfuera
-})
+})*/
 </script>
 <script>
 import API from "@/assets/js/services/axios";
@@ -641,6 +641,7 @@ export default {
       searchQuery: "",
       selectedStatus: "", // Nuevo: estado seleccionado
       isProfileAddressModal: false,
+      isEditModalOpen: false,
       cargando: false,
       currentPage: 1,
       lastPage: 1,
@@ -732,9 +733,9 @@ export default {
           nombre_lin: user.nombre_lin,
           estado_lin_investiga: user.estado_lin_investiga
         };
-        this.$.setupState.isEditModalOpen = true;
+        this.isEditModalOpen = true;
       }catch(e){
-        console.log(e)
+        //console.log(e)
       }finally{
         this.botonCargando = null;
       }
@@ -751,7 +752,7 @@ export default {
         await this.cargarCarrerasDeFacultad(post.idfacultad);
         await this.cargarSublineas(post.id_lin_investiga);
       }catch(e){
-        console.log(e)
+        //console.log(e)
       }finally{
         this.botonCargando = null;
       }
@@ -900,7 +901,7 @@ export default {
         };
         const exito = await enviarsolig('POST', params, `${this.baseUrl}/invi_linea_investiga`, 'Línea de investigación registrada con éxito');
         if (exito) {
-          this.$.setupState.isProfileAddressModal = false;
+          this.isProfileAddressModal = false;
 
           this.limpiarFormulario();
           this.actualizar();
@@ -924,12 +925,12 @@ export default {
         };
         const exito = await enviarsolig('PUT', params, `${this.baseUrl}/invi_linea_investiga/${this.objetoeditar.id_lin_investiga}`, 'Línea de investigación actualizada con éxito');
         if (exito) {
-          this.$.setupState.isEditModalOpen = false;
+          this.isEditModalOpen = false;
 
           this.limpiarFormulario();
           this.actualizar();
         } else {
-          this.$.setupState.isEditModalOpen = false;
+          this.isEditModalOpen = false;
           mostraralertas2("No se pudo editar la Línea de Investigación", "error");
         }
       } catch (error) {

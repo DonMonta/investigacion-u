@@ -9,7 +9,7 @@ class Invi_deta_inte extends Model
 {
     protected $table = 'invi_detalle_integrante';
     protected $primaryKey = 'id_deta_invi_proyect';
-    public $incrementing = false;
+    public $incrementing = true;
     protected $keyType = 'int';
 
     protected $fillable = [

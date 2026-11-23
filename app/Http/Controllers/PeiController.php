@@ -518,4 +518,22 @@ class PeiController extends Controller
 
         return response()->json(['status' => false, 'message' => 'Archivo no encontrado'], 404);
     }
+    public function verArchivoPei(Request $request)
+    {
+        $anioSeguro = basename($request->query('anio'));
+        $archivoSeguro = basename($request->query('archivo'));
+
+        $path = public_path("Documentos/Pei/{$anioSeguro}/{$archivoSeguro}");
+
+        if (!File::exists($path)) {
+            return response()->json(['message' => 'El documento solicitado no existe.'], 404);
+        }
+
+        $contenido = File::get($path);
+
+        return response($contenido, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="' . $archivoSeguro . '"'
+        ]);
+    }
 }

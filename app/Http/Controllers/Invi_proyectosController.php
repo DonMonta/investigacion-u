@@ -93,6 +93,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Response;
 
 class Invi_proyectosController extends Controller
 {
@@ -121,44 +122,44 @@ class Invi_proyectosController extends Controller
             $rucInstitucionLocal = '0860000830001';
             $stats = [
                 'TP' => (clone $query)->count(),
-                
+
                 // TPyRF: Proyectos con financiamiento externo verificables
-                'TPyRF' => (clone $query)->whereHas('invi_detalle_inst_proy', function($qDetalle) use ($rucInstitucionLocal) {
+                'TPyRF' => (clone $query)->whereHas('invi_detalle_inst_proy', function ($qDetalle) use ($rucInstitucionLocal) {
                     // 1. Filtros de la tabla intermedia (detalle)
                     $qDetalle->whereIn('tipo_participacion', ['FINANCIAMIENTO', 'AMBOS'])
-                             ->whereNotNull('archivo')
-                             ->where('archivo', '!=', '')
-                             ->where('es_verificable', 1)
-                             // 2. Filtros de la tabla de la institución (praempresas)
-                             ->whereHas('praempresas', function($qEmpresa) use ($rucInstitucionLocal) {
-                                 $qEmpresa->where('ruc', '!=', $rucInstitucionLocal);
-                             });
+                        ->whereNotNull('archivo')
+                        ->where('archivo', '!=', '')
+                        ->where('es_verificable', 1)
+                        // 2. Filtros de la tabla de la institución (praempresas)
+                        ->whereHas('praempresas', function ($qEmpresa) use ($rucInstitucionLocal) {
+                            $qEmpresa->where('ruc', '!=', $rucInstitucionLocal);
+                        });
                 })->count(),
 
                 // TPyCI: Redes Internacionales verificables
-                'TPyCI' => (clone $query)->whereHas('invi_detalle_inst_proy', function($qDetalle) {
+                'TPyCI' => (clone $query)->whereHas('invi_detalle_inst_proy', function ($qDetalle) {
                     // 1. Filtros de la tabla intermedia (detalle)
                     $qDetalle->whereNotNull('archivo')
-                             ->where('archivo', '!=', '')
-                             ->where('es_verificable', 1)
-                             // 2. Filtros de la tabla de la institución (praempresas)
-                             ->whereHas('praempresas', function($qEmpresa) {
-                                 $qEmpresa->where('es_red_investigacion', 1)
-                                          ->whereRaw('UPPER(pais) != ?', ['ECUADOR']);
-                             });
+                        ->where('archivo', '!=', '')
+                        ->where('es_verificable', 1)
+                        // 2. Filtros de la tabla de la institución (praempresas)
+                        ->whereHas('praempresas', function ($qEmpresa) {
+                            $qEmpresa->where('es_red_investigacion', 1)
+                                ->whereRaw('UPPER(pais) != ?', ['ECUADOR']);
+                        });
                 })->count(),
 
                 // TPyCN: Redes Nacionales verificables
-                'TPyCN' => (clone $query)->whereHas('invi_detalle_inst_proy', function($qDetalle) {
+                'TPyCN' => (clone $query)->whereHas('invi_detalle_inst_proy', function ($qDetalle) {
                     // 1. Filtros de la tabla intermedia (detalle)
                     $qDetalle->whereNotNull('archivo')
-                             ->where('archivo', '!=', '')
-                             ->where('es_verificable', 1)
-                             // 2. Filtros de la tabla de la institución (praempresas)
-                             ->whereHas('praempresas', function($qEmpresa) {
-                                 $qEmpresa->where('es_red_investigacion', 1)
-                                          ->whereRaw('UPPER(pais) = ?', ['ECUADOR']);
-                             });
+                        ->where('archivo', '!=', '')
+                        ->where('es_verificable', 1)
+                        // 2. Filtros de la tabla de la institución (praempresas)
+                        ->whereHas('praempresas', function ($qEmpresa) {
+                            $qEmpresa->where('es_red_investigacion', 1)
+                                ->whereRaw('UPPER(pais) = ?', ['ECUADOR']);
+                        });
                 })->count(),
             ];
             if ($request->has('all') && $request->all === 'true') {
@@ -234,7 +235,7 @@ class Invi_proyectosController extends Controller
                     $nombre = strtoupper($item->funciones->nombre_funcion ?? '');
                     if (str_contains($nombre, 'DIRECTOR') && !str_contains($nombre, 'SUB')) return 'director';
                     if (str_contains($nombre, 'SUBDIRECTOR')) return 'subdirector';
-                    if (str_contains($nombre, 'INVESTIGADOR')||str_contains($nombre, 'AYUDANTE')||str_contains($nombre, 'TÉCNICO')) return 'docente';
+                    if (str_contains($nombre, 'INVESTIGADOR') || str_contains($nombre, 'AYUDANTE') || str_contains($nombre, 'TÉCNICO')) return 'docente';
                     return 'otros';
                 });
 
@@ -339,7 +340,7 @@ class Invi_proyectosController extends Controller
                 ->whereHas('subsistemas_pei', function ($query) use ($peiActivo) {
                     $query->where('id_pei', $peiActivo->id_pei);
                 })->get();
-            
+
             $polpei = $peiActivo->politicas_pei()->get();
             // 3. Buscar el objetivo de investigación para preseleccionarlo por defecto
             foreach ($objetivos as $obj) {
@@ -480,7 +481,7 @@ class Invi_proyectosController extends Controller
 
             foreach ($gruposEspecificos as $codEsp => $itemsEsp) {
                 // Mapear solo los campos detallados (nivel más bajo)
-                $detalladosArray = $itemsEsp->map(function($item) {
+                $detalladosArray = $itemsEsp->map(function ($item) {
                     return [
                         'id' => $item->id,
                         'codigo' => $item->codigo,
@@ -488,7 +489,7 @@ class Invi_proyectosController extends Controller
                         'nivel' => $item->nivel
                     ];
                 })->values()->toArray();
-                    $especificosArray[] = [
+                $especificosArray[] = [
                     'codigo_especifico' => $codEsp,
                     'campo_especifico' => $itemsEsp->first()->campo_especifico,
                     'detallados' => $detalladosArray
@@ -543,9 +544,9 @@ class Invi_proyectosController extends Controller
         $empresasSeleccionadas = $proyecto->invi_detalle_inst_proy->map(function ($detalle) {
             $empresa = $detalle->praempresas;
             if ($empresa) {
-                $empresa->tipo_participacion = $detalle->tipo_participacion; 
-                $empresa->es_verificable = $detalle->es_verificable; 
-                $empresa->archivo = $detalle->archivo; 
+                $empresa->tipo_participacion = $detalle->tipo_participacion;
+                $empresa->es_verificable = $detalle->es_verificable;
+                $empresa->archivo = $detalle->archivo;
             }
             return $empresa;
         })->filter()->values()->toArray();
@@ -563,8 +564,8 @@ class Invi_proyectosController extends Controller
             ->filter(function ($empresa) {
                 return $empresa && $empresa->ruc !== '0860000830001';
             })
-        ->values()
-        ->toArray();
+            ->values()
+            ->toArray();
         $aportesUtlvt = [];
         $aportesInst = [];
 
@@ -683,14 +684,14 @@ class Invi_proyectosController extends Controller
             $carreraFormateada = '';
             if ($integranteModificado->carreras) {
                 $nombreCarreraRaw = trim($integranteModificado->carreras->NombCarr ?? '');
-                
+
                 // Quitamos el guión y los números/año del final (ej: " - 2020")
                 $carreraLimpia = preg_replace('/\s*-\s*\d+.*$/', '', $nombreCarreraRaw);
 
                 // Convertimos a Title Case (pasando primero por minúsculas para evitar problemas con TODO MAYUSCULAS)
                 $carreraFormateada = mb_convert_case(mb_strtolower($carreraLimpia, 'UTF-8'), MB_CASE_TITLE, "UTF-8");
             }
-            
+
             // Guardamos la carrera formateada como un nuevo atributo
             $integranteModificado->setAttribute('carrera_formateada', $carreraFormateada);
             $persona = $integranteModificado->informacionPersonalD;
@@ -758,7 +759,7 @@ class Invi_proyectosController extends Controller
 
                 // Construcción del nombre con rango académico completo
                 $nombreCompletoConTitulo = trim("{$prefijoNombre} {$nombresFormateados}{$sufijoNombre}");
-            } 
+            }
             // Si es un Estudiante (tiene informacionpersonal)
             else {
                 $personaEst = $integranteModificado->informacionpersonal;
@@ -788,10 +789,10 @@ class Invi_proyectosController extends Controller
         $peipoliticasData = Politicas_pei::whereIn('id_pol_pei', $polpeiSeleccionado)->get();
         $agendaOdsData = ODS::whereIn('id_ods', $odsSeleccionadas)->get();
         $objPolData = Politicas_plandne::with('objetivos_plandne')
-                    ->whereIn('id_pol_pladne', $politicasSeleccionadas)
-                    ->get()->pluck('objetivos_plandne')
-                    ->unique('id_obj_pol_pladne')
-                    ->values();
+            ->whereIn('id_pol_pladne', $politicasSeleccionadas)
+            ->get()->pluck('objetivos_plandne')
+            ->unique('id_obj_pol_pladne')
+            ->values();
         $convocatoriaData = Invi_convocatoria::where('id_convocatoria', $proyecto->id_convocatoria)->get();
         $lineasData = Invi_sub_linea_inves::with('linea_investigacion')
             ->whereIn('id_sublin_investiga', $sublineasSeleccionadas)
@@ -799,7 +800,7 @@ class Invi_proyectosController extends Controller
             ->unique('id_lin_investiga')
             ->values();
         $sublineasData = Invi_sub_linea_inves::whereIn('id_sublin_investiga', $sublineasSeleccionadas)->get();
-        
+
         // Para Unesco filtramos la collection que ya creaste previamente:
         $unescoData = collect($unescoCatalogo)->whereIn('sau_id', $unescoSeleccionadas)->values();
         // 4. Data plana seleccionada para pintar checks
@@ -812,15 +813,15 @@ class Invi_proyectosController extends Controller
             'actividades',
             'objetivos'
         ])->where('proyect_id', $id)
-          ->where('estado', 1)
-          ->get();
+            ->where('estado', 1)
+            ->get();
 
         return response()->json([
             'proyecto' => $proyecto,
             'objetivos_pei' => $objetivos,
             'seleccionados' => $preseleccionados,
             'politicas_pei' => $polpei,
-            'politicas_pei_seleccionadas'=> $polpeiSeleccionado,
+            'politicas_pei_seleccionadas' => $polpeiSeleccionado,
             'politicas_plandne' => $politicas,
             'politicas_seleccionadas' => $politicasSeleccionadas,
             'objetivos_politicas_seleccionadas' => $objetivosPoliticasSeleccionadas,
@@ -909,25 +910,22 @@ class Invi_proyectosController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
-    {
-
-    }
+    public function store(Request $request) {}
     public function exportarParticipantesCACES(Request $request, $id)
     {
         try {
             // Recibimos las opciones seleccionadas por el usuario
-            $tipoNombre = $request->query('tipo_nombre', 'nombre'); 
-            $tipoGrupo = $request->query('tipo_grupo', 'nombre'); 
-            
-            $proyecto = Invi_proyectos::with(['invi_detalle_integrante' => function($query) {
+            $tipoNombre = $request->query('tipo_nombre', 'nombre');
+            $tipoGrupo = $request->query('tipo_grupo', 'nombre');
+
+            $proyecto = Invi_proyectos::with(['invi_detalle_integrante' => function ($query) {
                 $query->where('estado', 1);
             }, 'invi_detalle_integrante.grupo_investigacion'])->findOrFail($id);
-            
+
             $nombreProyecto = $tipoNombre === 'titulo' ? $proyecto->proyect_titulo : $proyecto->proyect_nombre;
-            
+
             $fileName = 'Matriz_CACES_' . ($proyecto->proyect_cod ?? 'S_N') . '.csv';
-            
+
             $headers = [
                 "Content-type"        => "text/csv; charset=UTF-8",
                 "Content-Disposition" => "attachment; filename={$fileName}",
@@ -935,30 +933,30 @@ class Invi_proyectosController extends Controller
                 "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
                 "Expires"             => "0"
             ];
-            
+
             $columns = [
-                'CODIGO_IES', 
-                'CODIGO', 
-                'NOMBRE', 
-                'TIPO_PROYECTO', 
-                'TIPO_PARTICIPANTE', 
-                'IDENTIFICACION_CODIGO', 
-                'HORAS', 
+                'CODIGO_IES',
+                'CODIGO',
+                'NOMBRE',
+                'TIPO_PROYECTO',
+                'TIPO_PARTICIPANTE',
+                'IDENTIFICACION_CODIGO',
+                'HORAS',
                 'GRUPO_INVESTIGACION'
             ];
-            
+
             // Usamos $tipoGrupo en el scope del callback
-            $callback = function() use ($proyecto, $columns, $nombreProyecto, $tipoGrupo) {
+            $callback = function () use ($proyecto, $columns, $nombreProyecto, $tipoGrupo) {
                 $file = fopen('php://output', 'w');
-                
+
                 fputs($file, $bom = (chr(0xEF) . chr(0xBB) . chr(0xBF)));
                 fputcsv($file, $columns, ';');
-                
+
                 foreach ($proyecto->invi_detalle_integrante as $int) {
-                    
+
                     $tipoParticipante = '';
                     $cedula = '';
-                    
+
                     if (!empty($int->ciinfper_doc)) {
                         $tipoParticipante = 'DOCENTE';
                         $cedula = $int->ciinfper_doc;
@@ -982,26 +980,25 @@ class Invi_proyectosController extends Controller
                             $nombreGrupoFinal = strtoupper(trim($int->grupo_investigacion->nombre_grupo));
                         }
                     }
-                    
+
                     $row = [
-                        '1012',                                   
-                        $proyecto->proyect_cod ?? '',             
-                        strtoupper($nombreProyecto ?? ''),        
-                        'INVESTIGACION E INNOVACION',             
-                        $tipoParticipante,                        
-                        $cedula,                                  
-                        '',                                       
-                        $nombreGrupoFinal                              
+                        '1012',
+                        $proyecto->proyect_cod ?? '',
+                        strtoupper($nombreProyecto ?? ''),
+                        'INVESTIGACION E INNOVACION',
+                        $tipoParticipante,
+                        $cedula,
+                        '',
+                        $nombreGrupoFinal
                     ];
-                    
+
                     fputcsv($file, $row, ';');
                 }
-                
+
                 fclose($file);
             };
-            
-            return response()->stream($callback, 200, $headers);
 
+            return response()->stream($callback, 200, $headers);
         } catch (\Exception $e) {
             return response()->json(['message' => 'Error al generar CSV: ' . $e->getMessage()], 500);
         }
@@ -1015,10 +1012,10 @@ class Invi_proyectosController extends Controller
             $idConvocatoria = $request->query('id_convocatoria');
 
             // Construir la consulta principal (con las mismas relaciones)
-            $query = Invi_proyectos::with(['invi_detalle_integrante' => function($q) {
+            $query = Invi_proyectos::with(['invi_detalle_integrante' => function ($q) {
                 $q->where('estado', 1);
             }, 'invi_detalle_integrante.grupo_investigacion'])
-            ->where('proyect_tipo', 'INVESTIGACIÓN');
+                ->where('proyect_tipo', 'INVESTIGACIÓN');
 
             // Aplicar filtros exactos de tu método index
             if (!empty($searchQuery)) {
@@ -1039,27 +1036,27 @@ class Invi_proyectosController extends Controller
             ];
 
             $columns = [
-                'CODIGO_IES', 
-                'CODIGO', 
-                'NOMBRE', 
-                'TIPO_PROYECTO', 
-                'TIPO_PARTICIPANTE', 
-                'IDENTIFICACION_CODIGO', 
-                'HORAS', 
+                'CODIGO_IES',
+                'CODIGO',
+                'NOMBRE',
+                'TIPO_PROYECTO',
+                'TIPO_PARTICIPANTE',
+                'IDENTIFICACION_CODIGO',
+                'HORAS',
                 'GRUPO_INVESTIGACION'
             ];
 
-            $callback = function() use ($query, $columns, $tipoNombre, $tipoGrupo) {
+            $callback = function () use ($query, $columns, $tipoNombre, $tipoGrupo) {
                 $file = fopen('php://output', 'w');
-                
+
                 fputs($file, $bom = (chr(0xEF) . chr(0xBB) . chr(0xBF)));
                 fputcsv($file, $columns, ';');
-                
+
                 // Procesar la data en bloques (chunks) para no saturar memoria
-                $query->chunk(100, function($proyectos) use ($file, $tipoNombre, $tipoGrupo) {
+                $query->chunk(100, function ($proyectos) use ($file, $tipoNombre, $tipoGrupo) {
                     foreach ($proyectos as $proyecto) {
-                        $nombreProyecto = $tipoNombre === 'titulo' 
-                            ? (!empty($proyecto->proyect_titulo) ? $proyecto->proyect_titulo : $proyecto->proyect_nombre) 
+                        $nombreProyecto = $tipoNombre === 'titulo'
+                            ? (!empty($proyecto->proyect_titulo) ? $proyecto->proyect_titulo : $proyecto->proyect_nombre)
                             : $proyecto->proyect_nombre;
 
                         foreach ($proyecto->invi_detalle_integrante as $int) {
@@ -1086,7 +1083,7 @@ class Invi_proyectosController extends Controller
                                     $nombreGrupoFinal = strtoupper(trim($int->grupo_investigacion->nombre_grupo));
                                 }
                             }
-                            
+
                             $row = [
                                 '1012',
                                 $proyecto->proyect_cod ?? '',
@@ -1097,17 +1094,16 @@ class Invi_proyectosController extends Controller
                                 '',
                                 $nombreGrupoFinal
                             ];
-                            
+
                             fputcsv($file, $row, ';');
                         }
                     }
                 });
-                
+
                 fclose($file);
             };
 
             return response()->stream($callback, 200, $headers);
-
         } catch (\Exception $e) {
             return response()->json(['message' => 'Error al generar CSV: ' . $e->getMessage()], 500);
         }
@@ -1143,26 +1139,26 @@ class Invi_proyectosController extends Controller
 
             // Columnas según requerimiento exacto
             $columns = [
-                'CODIGO_IES', 
-                'CODIGO', 
-                'NOMBRE', 
-                'ANIO', 
-                'PRESUPUESTO_PLANIFICADO', 
+                'CODIGO_IES',
+                'CODIGO',
+                'NOMBRE',
+                'ANIO',
+                'PRESUPUESTO_PLANIFICADO',
                 'PRESUPUESTO_EJECUTADO'
             ];
 
-            $callback = function() use ($query, $columns, $tipoNombre) {
+            $callback = function () use ($query, $columns, $tipoNombre) {
                 $file = fopen('php://output', 'w');
-                
+
                 fputs($file, $bom = (chr(0xEF) . chr(0xBB) . chr(0xBF)));
                 fputcsv($file, $columns, ';');
-                
+
                 // Procesar la data en bloques de 100
-                $query->chunk(100, function($proyectos) use ($file, $tipoNombre) {
+                $query->chunk(100, function ($proyectos) use ($file, $tipoNombre) {
                     foreach ($proyectos as $proyecto) {
                         // 1. Determinar el nombre a usar
-                        $nombreProyecto = $tipoNombre === 'titulo' 
-                            ? (!empty($proyecto->proyect_titulo) ? $proyecto->proyect_titulo : $proyecto->proyect_nombre) 
+                        $nombreProyecto = $tipoNombre === 'titulo'
+                            ? (!empty($proyecto->proyect_titulo) ? $proyecto->proyect_titulo : $proyecto->proyect_nombre)
                             : $proyecto->proyect_nombre;
 
                         // 2. Calcular Presupuesto Planificado sumando el campo total_presupuesto de los detalles
@@ -1183,16 +1179,15 @@ class Invi_proyectosController extends Controller
                             $presupuestoPlanificadoStr,     // PRESUPUESTO_PLANIFICADO
                             ''                              // PRESUPUESTO_EJECUTADO (En blanco según solicitud)
                         ];
-                        
+
                         fputcsv($file, $row, ';');
                     }
                 });
-                
+
                 fclose($file);
             };
 
             return response()->stream($callback, 200, $headers);
-
         } catch (\Exception $e) {
             return response()->json(['message' => 'Error al generar CSV Presupuesto: ' . $e->getMessage()], 500);
         }
@@ -1240,26 +1235,51 @@ class Invi_proyectosController extends Controller
 
             // Columnas según requerimiento CACES en el orden del documento
             $columns = [
-                'CODIGO_IES', 'CODIGO', 'NOMBRE', 'TIPO_PROYECTO', 'PROGRAMA', 'OBJETIVO', 'ESTADO',
-                'LINEA_INVESTIGACION', 'FACULTAD_ENTIDAD_RESPONABLE', 'FECHA_INICIO', 'FECHA_FIN_PLANEADO',
-                'FECHA_FIN_REAL', 'COORDINADOR_DIRECTOR', 'CORREO_ELECTRONICO_COORDINADOR', 'TELEFONO_COORDINADOR',
-                'CAMPO_DETALLADO', 'ALCANCE TERRITORIAL', 'IMPACTO_SOCIAL', 'IMPACTO_CIENTIFICO',
-                'IMPACTO_ECONOMICO', 'IMPACTO_POLITICO', 'OTRO_IMPACTO', 'INVESTIGADORES_ACREDITADOS_MINEDEC',
-                'FUENTE_FINANCIAMIENTO', 'DESCRIPCION_ACTIVIDAD_I+D', 'PARAMETRO_CUMPLIMIENTO', 'GRUPO_GASTO',
-                'ITEM', 'COOPERACIÓN', 'RED', 'RESULTADOS_VERIFICABLES', 'IMPACTO_AMBIENTAL'
+                'CODIGO_IES',
+                'CODIGO',
+                'NOMBRE',
+                'TIPO_PROYECTO',
+                'PROGRAMA',
+                'OBJETIVO',
+                'ESTADO',
+                'LINEA_INVESTIGACION',
+                'FACULTAD_ENTIDAD_RESPONABLE',
+                'FECHA_INICIO',
+                'FECHA_FIN_PLANEADO',
+                'FECHA_FIN_REAL',
+                'COORDINADOR_DIRECTOR',
+                'CORREO_ELECTRONICO_COORDINADOR',
+                'TELEFONO_COORDINADOR',
+                'CAMPO_DETALLADO',
+                'ALCANCE TERRITORIAL',
+                'IMPACTO_SOCIAL',
+                'IMPACTO_CIENTIFICO',
+                'IMPACTO_ECONOMICO',
+                'IMPACTO_POLITICO',
+                'OTRO_IMPACTO',
+                'INVESTIGADORES_ACREDITADOS_MINEDEC',
+                'FUENTE_FINANCIAMIENTO',
+                'DESCRIPCION_ACTIVIDAD_I+D',
+                'PARAMETRO_CUMPLIMIENTO',
+                'GRUPO_GASTO',
+                'ITEM',
+                'COOPERACIÓN',
+                'RED',
+                'RESULTADOS_VERIFICABLES',
+                'IMPACTO_AMBIENTAL'
             ];
 
-            $callback = function() use ($query, $columns, $tipoNombre) {
+            $callback = function () use ($query, $columns, $tipoNombre) {
                 $file = fopen('php://output', 'w');
                 fputs($file, $bom = (chr(0xEF) . chr(0xBB) . chr(0xBF))); // UTF-8 BOM
                 fputcsv($file, $columns, ';');
-                
-                $query->chunk(100, function($proyectos) use ($file, $tipoNombre) {
+
+                $query->chunk(100, function ($proyectos) use ($file, $tipoNombre) {
                     foreach ($proyectos as $proyecto) {
-                        
+
                         // 1. Datos Base
-                        $nombreProyecto = $tipoNombre === 'titulo' 
-                            ? (!empty($proyecto->proyect_titulo) ? $proyecto->proyect_titulo : $proyecto->proyect_nombre) 
+                        $nombreProyecto = $tipoNombre === 'titulo'
+                            ? (!empty($proyecto->proyect_titulo) ? $proyecto->proyect_titulo : $proyecto->proyect_nombre)
                             : $proyecto->proyect_nombre;
 
                         // 2. Fechas (Formato dd/mm/aaaa)[cite: 12]
@@ -1269,7 +1289,7 @@ class Invi_proyectosController extends Controller
 
                         // 3. Obtener relaciones 1 a 1 / Mapeos directos
                         $programa = $proyecto->invi_detalle_programa->first()?->invi_programa?->nombre_programa ?? '';
-                        
+
                         $objetivoGen = $proyecto->invi_obj_proyectos->where('tipo_obj_proy', 'general')->first();
                         $objetivo = $objetivoGen ? $objetivoGen->detalle_obj_proy : '';
 
@@ -1285,8 +1305,10 @@ class Invi_proyectosController extends Controller
                         }
 
                         // 4. Coordinador/Director[cite: 13, 15]
-                        $coordNombre = ''; $coordCorreo = ''; $coordTelf = '';
-                        $director = $proyecto->invi_detalle_integrante->first(function($inte) {
+                        $coordNombre = '';
+                        $coordCorreo = '';
+                        $coordTelf = '';
+                        $director = $proyecto->invi_detalle_integrante->first(function ($inte) {
                             return $inte->es_coordinador == 1 || ($inte->funciones && stripos($inte->funciones->nombre_funcion, 'DIRECTOR') !== false);
                         });
                         if ($director && $director->informacionPersonalD) {
@@ -1303,11 +1325,16 @@ class Invi_proyectosController extends Controller
                         $paramCumpl = $proyecto->invi_detalle_param_cumpl->first()?->invi_param_cumpl?->nombre ?? '';
 
                         // 6. Impactos[cite: 13, 14, 15]
-                        $impSoc = ''; $impCie = ''; $impEco = ''; $impPol = ''; $impAmb = ''; $impOtro = '';
+                        $impSoc = '';
+                        $impCie = '';
+                        $impEco = '';
+                        $impPol = '';
+                        $impAmb = '';
+                        $impOtro = '';
 
                         foreach ($proyecto->invi_det_impactos_esperados as $impacto) {
                             $descImp = $impacto->descripcion_general;
-                            
+
                             // Evaluamos directamente el ID del impacto basado en tu tabla invi_impactos
                             switch ($impacto->id_impactos) {
                                 case 1: // 1: Impacto económico
@@ -1334,12 +1361,14 @@ class Invi_proyectosController extends Controller
                         // 7. Cooperación y Red (Nacional, Internacional, Ambos, No Aplica)[cite: 13, 15]
                         $cooperacion = 'NO APLICA';
                         $red = 'NO APLICA';
-                        $hasNacCoop = false; $hasIntCoop = false;
-                        $hasNacRed = false; $hasIntRed = false;
+                        $hasNacCoop = false;
+                        $hasIntCoop = false;
+                        $hasNacRed = false;
+                        $hasIntRed = false;
 
                         foreach ($proyecto->invi_detalle_inst_proy as $inst) {
                             if (!$inst->praempresas) continue;
-                            
+
                             $pais = strtoupper($inst->praempresas->pais);
                             $esRed = $inst->praempresas->es_red_investigacion == 1;
 
@@ -1397,26 +1426,26 @@ class Invi_proyectosController extends Controller
                             $proyecto->proyec_result_invest ?? '',              // RESULTADOS_VERIFICABLES (Fallback a campo general si aplica)[cite: 14, 15]
                             $impAmb                                             // IMPACTO_AMBIENTAL[cite: 14]
                         ];
-                        
+
                         // Limpiar saltos de línea para el CSV
-                        $row = array_map(function($val) {
+                        $row = array_map(function ($val) {
                             return str_replace(["\r", "\n"], " ", $val ?? '');
                         }, $row);
 
                         fputcsv($file, $row, ';');
                     }
                 });
-                
+
                 fclose($file);
             };
 
             return response()->stream($callback, 200, $headers);
-
         } catch (\Exception $e) {
             return response()->json(['message' => 'Error al generar CSV Proyectos: ' . $e->getMessage()], 500);
         }
     }
-    public function uploadArchivoInstitucion(Request $request){
+    public function uploadArchivoInstitucion(Request $request)
+    {
         $request->validate([
             'file' => 'required|file|mimes:pdf|mimetypes:application/pdf|max:10240',
             'old_filename' => 'nullable|string',
@@ -1504,7 +1533,7 @@ class Invi_proyectosController extends Controller
         $integrantesConTitulos = $integrantesOrdenados->map(function ($integrante) {
             // Clonamos el modelo para no mutar el objeto original de la otra colección
             $integranteModificado = clone $integrante;
-            
+
             $persona = $integranteModificado->informacionPersonalD;
             $nombreCompletoConTitulo = '';
             $cargoFormateado = '';
@@ -1596,7 +1625,7 @@ class Invi_proyectosController extends Controller
      */
     public function update(Request $request, string $id)
     {
-       DB::beginTransaction();
+        DB::beginTransaction();
         try {
             $proyecto = Invi_proyectos::findOrFail($id);
             $proyecto->proyect_cod = $request->proyect_cod;
@@ -1672,7 +1701,7 @@ class Invi_proyectosController extends Controller
                 }
             }
             Invi_detalle_pol_pei::where('proyect_id', $id)->delete();
-            
+
             // Cambiamos 'politicas_pei' y 'politicas' por 'peipoliticas', que es el array que manda el frontend
             if ($request->has('peipoliticas') && is_array($request->peipoliticas)) {
                 foreach ($request->peipoliticas as $id_pol) {
@@ -1823,7 +1852,7 @@ class Invi_proyectosController extends Controller
             }
             // =========================================================
             Invi_detalle_alcance_territorial::where('proyect_id', $id)->delete();
-            
+
             if ($request->filled('alcance_territorial')) {
                 $inputAlcance = $request->alcance_territorial;
                 $alcance_id = null;
@@ -1834,9 +1863,9 @@ class Invi_proyectosController extends Controller
                     $nombreLimpio = trim($inputAlcance);
                     // Buscar si existe (ignorando mayúsculas/minúsculas)
                     $alcanceExistente = Invi_alcance_territorial::whereRaw('LOWER(nombre) = ?', [strtolower($nombreLimpio)])->first();
-                    
+
                     if ($alcanceExistente) {
-                        $alcance_id = $alcanceExistente->alcance_id; 
+                        $alcance_id = $alcanceExistente->alcance_id;
                     } else {
                         $nuevoAlcance = Invi_alcance_territorial::create([
                             'nombre' => $nombreLimpio,
@@ -1852,7 +1881,7 @@ class Invi_proyectosController extends Controller
                 ]);
             }
             Invi_detalle_fuente_finan::where('proyect_id', $id)->delete();
-            
+
             if ($request->filled('fuente_finan')) {
                 $inputFuenteFina = $request->fuente_finan;
                 $id_fuente_finan = null;
@@ -1863,9 +1892,9 @@ class Invi_proyectosController extends Controller
                     $nombreLimpio = trim($inputFuenteFina);
                     // Buscar si existe (ignorando mayúsculas/minúsculas)
                     $fuentefinaExistente = Invi_fuente_finan::whereRaw('LOWER(nombre) = ?', [strtolower($nombreLimpio)])->first();
-                    
+
                     if ($fuentefinaExistente) {
-                        $id_fuente_finan = $fuentefinaExistente->id_fuente_finan; 
+                        $id_fuente_finan = $fuentefinaExistente->id_fuente_finan;
                     } else {
                         $nuevoFuenteFina = Invi_fuente_finan::create([
                             'nombre' => $nombreLimpio,
@@ -1881,7 +1910,7 @@ class Invi_proyectosController extends Controller
                 ]);
             }
             Invi_detalle_param_cumpl::where('proyect_id', $id)->delete();
-            
+
             if ($request->filled('params_cumpli')) {
                 $inputParams = $request->params_cumpli;
                 $id_param_cumpl = null;
@@ -1892,9 +1921,9 @@ class Invi_proyectosController extends Controller
                     $nombreLimpio = trim($inputParams);
                     // Buscar si existe (ignorando mayúsculas/minúsculas)
                     $paramscumpliExistente = Invi_param_cumpl::whereRaw('LOWER(nombre) = ?', [strtolower($nombreLimpio)])->first();
-                    
+
                     if ($paramscumpliExistente) {
-                        $id_param_cumpl = $paramscumpliExistente->id_param_cumpl; 
+                        $id_param_cumpl = $paramscumpliExistente->id_param_cumpl;
                     } else {
                         $nuevoParams = Invi_param_cumpl::create([
                             'nombre' => $nombreLimpio,
@@ -1910,7 +1939,7 @@ class Invi_proyectosController extends Controller
                 ]);
             }
             Invi_detalle_result_verifi::where('proyect_id', $id)->delete();
-            
+
             if ($request->filled('result_verif')) {
                 $inputResultVer = $request->result_verif;
                 $id_result_verificables = null;
@@ -1921,9 +1950,9 @@ class Invi_proyectosController extends Controller
                     $nombreLimpio = trim($inputResultVer);
                     // Buscar si existe (ignorando mayúsculas/minúsculas)
                     $resultverifExistente = Invi_result_verificables::whereRaw('LOWER(nombre) = ?', [strtolower($nombreLimpio)])->first();
-                    
+
                     if ($resultverifExistente) {
-                        $id_result_verificables = $resultverifExistente->id_result_verificables; 
+                        $id_result_verificables = $resultverifExistente->id_result_verificables;
                     } else {
                         $nuevoRF = Invi_result_verificables::create([
                             'nombre' => $nombreLimpio,
@@ -2231,7 +2260,7 @@ class Invi_proyectosController extends Controller
                     Invi_grupo_actividad::where('id_actividades', $actividad->id_actividades)->delete();
 
                     if (!empty($actData['grupos_responsables'])) {
-                        $gruposValidos = array_filter($actData['grupos_responsables'], function($val) {
+                        $gruposValidos = array_filter($actData['grupos_responsables'], function ($val) {
                             return !is_null($val) && is_numeric($val);
                         });
                         // sync() elimina los registros viejos y crea los nuevos automáticamente
@@ -2239,7 +2268,7 @@ class Invi_proyectosController extends Controller
                     } else {
                         // Si envían el arreglo vacío, elimina todas las relaciones
                         $actividad->grupos_responsables()->detach();
-                    }              
+                    }
                     // Subactividades
                     $actividad->invi_subactividad()->delete();
                     if (!empty($actData['invi_subactividad'])) {
@@ -2356,15 +2385,15 @@ class Invi_proyectosController extends Controller
 
             // Determinar cuáles hay que ELIMINAR
             $idsBasePatToDelete = array_diff($basePatIdsActuales, $basePatIdsReq);
-            
+
             if (!empty($idsBasePatToDelete)) {
                 // Obtenemos los id_base_pat (catálogo) vinculados antes de eliminar el detalle
                 $detallesBPAborrar = Invi_det_base_pat::whereIn('id_det_base_pat', $idsBasePatToDelete)->get();
                 $idsCatalogoBPAborrar = $detallesBPAborrar->pluck('id_base_pat')->filter()->toArray();
-                
+
                 // Eliminamos los detalles pivote
                 Invi_det_base_pat::whereIn('id_det_base_pat', $idsBasePatToDelete)->delete();
-                
+
                 // Eliminamos los registros del catálogo vinculados
                 if (!empty($idsCatalogoBPAborrar)) {
                     Invi_base_pat::whereIn('id_base_pat', $idsCatalogoBPAborrar)->delete();
@@ -2400,7 +2429,7 @@ class Invi_proyectosController extends Controller
                 }
             }
             $financiamientosReq = $request->financiamientos ?? [];
-            
+
             // Obtener IDs de financiamientos que vienen del frontend
             $finIdsReq = collect($financiamientosReq)->pluck('id_det_financia')->filter()->toArray();
 
@@ -2436,7 +2465,7 @@ class Invi_proyectosController extends Controller
                 if (isset($finReq['id_det_financia']) && $finReq['id_det_financia']) {
                     // Actualizar
                     Invi_detalle_financia::where('id_det_financia', $finReq['id_det_financia'])
-                                         ->update($dataFin);
+                        ->update($dataFin);
                 } else {
                     // Crear
                     $dataFin['proyect_id'] = $id;
@@ -2444,7 +2473,7 @@ class Invi_proyectosController extends Controller
                 }
             }
             $impactosReq = $request->impactos ?? [];
-            
+
             // Obtener IDs de impactos que vienen del frontend
             $impIdsReq = collect($impactosReq)->pluck('id_det_impactos_esp')->filter()->toArray();
 
@@ -2468,7 +2497,7 @@ class Invi_proyectosController extends Controller
                 if (isset($impReq['id_det_impactos_esp']) && $impReq['id_det_impactos_esp']) {
                     // Actualizar
                     Invi_det_impactos_esperados::where('id_det_impactos_esp', $impReq['id_det_impactos_esp'])
-                                               ->update($dataImp);
+                        ->update($dataImp);
                 } else {
                     // Crear
                     $dataImp['proyect_id'] = $id;
@@ -2476,7 +2505,7 @@ class Invi_proyectosController extends Controller
                 }
             }
             $difusionReq = $request->difusion ?? [];
-            
+
             // Obtener IDs de detalles de difusión que vienen del frontend
             $difIdsReq = collect($difusionReq)->pluck('id_det_difusion')->filter()->toArray();
 
@@ -2490,10 +2519,10 @@ class Invi_proyectosController extends Controller
                 // Obtenemos los id_difusion (catálogo) vinculados antes de eliminar el detalle
                 $detallesAborrar = Invi_det_difusion::whereIn('id_det_difusion', $idsDifToDelete)->get();
                 $idsCatalogoDifusionAborrar = $detallesAborrar->pluck('id_difusion')->filter()->toArray();
-                
+
                 // Eliminamos los detalles
                 Invi_det_difusion::whereIn('id_det_difusion', $idsDifToDelete)->delete();
-                
+
                 // Eliminamos las actividades del catálogo vinculadas (ya que se crean en conjunto)
                 if (!empty($idsCatalogoDifusionAborrar)) {
                     Invi_difusion::whereIn('id_difusion', $idsCatalogoDifusionAborrar)->delete();
@@ -2505,11 +2534,11 @@ class Invi_proyectosController extends Controller
                 if (isset($difReq['id_det_difusion']) && $difReq['id_det_difusion']) {
                     // ACTUALIZAR
                     Invi_det_difusion::where('id_det_difusion', $difReq['id_det_difusion'])
-                                     ->update(['costo' => $difReq['costo']]);
-                    
+                        ->update(['costo' => $difReq['costo']]);
+
                     if (isset($difReq['id_difusion']) && $difReq['id_difusion']) {
                         Invi_difusion::where('id_difusion', $difReq['id_difusion'])
-                                     ->update(['nombre_actividad' => $difReq['nombre_actividad']]);
+                            ->update(['nombre_actividad' => $difReq['nombre_actividad']]);
                     }
                 } else {
                     // CREAR (Primero el catálogo, luego el detalle)
@@ -2525,7 +2554,7 @@ class Invi_proyectosController extends Controller
                 }
             }
             $bibReq = $request->bibliografias ?? [];
-            
+
             // Obtener IDs de bibliografías que vienen del frontend
             $bibIdsReq = collect($bibReq)->pluck('id_bibliografia')->filter()->toArray();
 
@@ -2552,7 +2581,7 @@ class Invi_proyectosController extends Controller
                 if (isset($bib['id_bibliografia']) && $bib['id_bibliografia']) {
                     // Actualizar
                     Invi_bibliografias::where('id_bibliografia', $bib['id_bibliografia'])
-                                      ->update($dataBib);
+                        ->update($dataBib);
                 } else {
                     // Crear
                     $dataBib['proyect_id'] = $id;
@@ -2705,7 +2734,8 @@ class Invi_proyectosController extends Controller
                     if ($existe) return response()->json(['message' => "Ya existe un {$funcionSolicitada->nombre_funcion} activo."], 422);
                 }
 
-                $integranteAfectado = Invi_deta_inte::create([
+                // 1. Creamos el registro
+                Invi_deta_inte::create([
                     'proyect_id' => $proyect_id,
                     'ciinfper_doc' => $form['tipo_nuevo'] == 'doc' ? $form['cedula_nueva'] : null,
                     'ciinfper_est' => $form['tipo_nuevo'] == 'est' ? $form['cedula_nueva'] : null,
@@ -2716,6 +2746,16 @@ class Invi_proyectosController extends Controller
                     'anexo_integrante2' => $form['anexo_integrante2'],
                     'estado' => 1,
                 ]);
+
+                // 2. RECUPERAMOS el integrante recién creado para asegurar que tenemos su Primary Key real
+                $integranteAfectado = Invi_deta_inte::where('proyect_id', $proyect_id)
+                    ->where(function ($q) use ($form) {
+                        $q->where('ciinfper_doc', $form['cedula_nueva'])
+                          ->orWhere('ciinfper_est', $form['cedula_nueva']);
+                    })
+                    ->orderBy('id_deta_invi_proyect', 'desc')
+                    ->first();
+
                 $accionBitacora = "REGISTRO DE NUEVO INTEGRANTE INVESTIGACIÓN";
                 $obsBitacora = "Se agregó a la cédula {$form['cedula_nueva']} al proyecto: {$codigoProyect} con función {$nombreUpper}";
             } else {
@@ -2794,10 +2834,10 @@ class Invi_proyectosController extends Controller
                 // Si la clave primaria no está configurada en el modelo, el ID se guarda en ->id
                 // Usamos getKey() que es más seguro, o el fallback (??)
                 $idDetalleIntegrante = $integranteAfectado->id_deta_invi_proyect ?? $integranteAfectado->id;
-                
+
                 // Eliminamos compromisos previos para evitar duplicados en la edición
                 Invi_compromiso::where('id_deta_invi_proyect', $idDetalleIntegrante)->delete();
-                
+
                 // Iteramos sobre el arreglo para crear todos los seleccionados
                 foreach ($compromisos as $detalle) {
                     Invi_compromiso::create([
@@ -2844,8 +2884,8 @@ class Invi_proyectosController extends Controller
     public function getGruposProyecto($proyect_id)
     {
         $grupos = Invi_grupos_investigacion::where('proyect_id', $proyect_id)
-                    ->where('estado', 1)
-                    ->get();
+            ->where('estado', 1)
+            ->get();
         return response()->json(['grupos' => $grupos]);
     }
     public function asignarGrupoIntegrantes(Request $request)
@@ -2853,8 +2893,9 @@ class Invi_proyectosController extends Controller
         DB::beginTransaction();
         try {
             $proyect_id = $request->proyect_id;
-            $integrantesIds = $request->integrantes_ids; // Array de IDs de detalle integrante
-            $grupoDatos = $request->grupo_datos; // Array con {id_grupo, es_nuevo, nombre_grupo, acronimo}
+            // Aseguramos que si viene null, se convierta en un array vacío
+            $integrantesIds = $request->integrantes_ids ?? [];
+            $grupoDatos = $request->grupo_datos;
             $coordinadorId = $request->coordinador_id;
 
             $idGrupo = $grupoDatos['id_grupo'];
@@ -2870,16 +2911,33 @@ class Invi_proyectosController extends Controller
                 $idGrupo = $nuevoGrupo->id_grupo;
             }
 
-            // 2. Limpiamos cualquier asignación de grupo previa de los integrantes seleccionados (Opcional, depende tu regla de negocio. Aquí asumo que lo sobreescribe)
-            // 3. Asignar el grupo y marcar al coordinador
-            foreach ($integrantesIds as $idDetalle) {
-                $integrante = Invi_deta_inte::findOrFail($idDetalle);
-                $esCoordinador = ($idDetalle == $coordinadorId) ? 1 : 0;
-                
-                $integrante->update([
-                    'id_grupo' => $idGrupo,
-                    'es_coordinador' => $esCoordinador
-                ]);
+            // 2. Limpieza de integrantes
+            if (empty($integrantesIds)) {
+                // Si el array viene vacío, significa que quitaron a todos. Limpiamos todo el grupo.
+                Invi_deta_inte::where('id_grupo', $idGrupo)
+                    ->update([
+                        'id_grupo' => null,
+                        'es_coordinador' => 0
+                    ]);
+            } else {
+                // Si hay integrantes seleccionados, quitamos solo a los que ya no están en la nueva lista
+                Invi_deta_inte::where('id_grupo', $idGrupo)
+                    ->whereNotIn('id_deta_invi_proyect', $integrantesIds)
+                    ->update([
+                        'id_grupo' => null,
+                        'es_coordinador' => 0
+                    ]);
+
+                // 3. Asignar el grupo y marcar al coordinador a los seleccionados
+                foreach ($integrantesIds as $idDetalle) {
+                    $integrante = Invi_deta_inte::findOrFail($idDetalle);
+                    $esCoordinador = ($idDetalle == $coordinadorId) ? 1 : 0;
+
+                    $integrante->update([
+                        'id_grupo' => $idGrupo,
+                        'es_coordinador' => $esCoordinador
+                    ]);
+                }
             }
 
             DB::commit();
@@ -2888,12 +2946,13 @@ class Invi_proyectosController extends Controller
             try {
                 $user = Auth::user();
                 $nombreGrupoLog = $grupoDatos['nombre_grupo'] ?? 'ID: ' . $idGrupo;
+                $cantidad = count($integrantesIds);
                 Bitacora::create([
                     'bt_usuario'     => $user->LoginUsu,
                     'bt_fechahora'   => Carbon::now(),
                     'bt_accion'      => "ASIGNACIÓN DE GRUPO DE INVESTIGACIÓN",
                     'bt_ippc'        => $request->ip(),
-                    'bt_observacion' => "USUARIO: {$user->LoginUsu} asignó " . count($integrantesIds) . " integrantes al grupo {$nombreGrupoLog}.",
+                    'bt_observacion' => "USUARIO: {$user->LoginUsu} asignó {$cantidad} integrantes al grupo {$nombreGrupoLog}.",
                 ]);
             } catch (\Exception $ex) {
                 Log::error("Error bitácora en asignarGrupoIntegrantes: " . $ex->getMessage());
@@ -2903,7 +2962,6 @@ class Invi_proyectosController extends Controller
                 'status' => true,
                 'message' => 'Integrantes asignados al grupo correctamente.'
             ]);
-
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json(['message' => 'Error al asignar: ' . $e->getMessage()], 500);
@@ -3006,6 +3064,62 @@ class Invi_proyectosController extends Controller
                 'error'   => $e->getMessage()
             ], 500);
         }
+    }
+    public function verAnexoIntegrante($ci, $filename)
+    {
+        // 1. Sanitización estricta contra ataques Path Traversal (ej. ../../.env)
+        $ciSeguro = basename($ci);
+        $archivoSeguro = basename($filename);
+
+        // 2. Construir la ruta física en el servidor
+        $path = public_path("Documentos/INVESTIGACION/AnexoIntegrante/{$ciSeguro}/{$archivoSeguro}");
+
+        if (!File::exists($path)) {
+            return response()->json(['message' => 'El documento solicitado no existe.'], 404);
+        }
+
+        // 3. Devolver el archivo con cabeceras seguras para visualizarlo en el navegador
+        return Response::file($path, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="' . $archivoSeguro . '"'
+        ]);
+    }
+    public function verAnexoBajasIntegrante($ci, $filename)
+    {
+        // 1. Sanitización estricta contra ataques Path Traversal (ej. ../../.env)
+        $ciSeguro = basename($ci);
+        $archivoSeguro = basename($filename);
+
+        // 2. Construir la ruta física en el servidor
+        $path = public_path("Documentos/INVESTIGACION/Bajas_Docentes/Anexo/{$ciSeguro}/{$archivoSeguro}");
+
+        if (!File::exists($path)) {
+            return response()->json(['message' => 'El documento solicitado no existe.'], 404);
+        }
+
+        // 3. Devolver el archivo con cabeceras seguras para visualizarlo en el navegador
+        return Response::file($path, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="' . $archivoSeguro . '"'
+        ]);
+    }
+    public function verEvidenciaProyecto($codigoProyecto, $filename)
+    {
+        $codigoSeguro = basename($codigoProyecto);
+        $archivoSeguro = basename($filename);
+
+        $path = public_path("Documentos/INVESTIGACION/Evidencia_Proyect/{$codigoSeguro}/{$archivoSeguro}");
+
+        if (!File::exists($path)) {
+            return response()->json(['message' => 'El documento de evidencia no existe.'], 404);
+        }
+
+        $contenido = File::get($path);
+
+        return response($contenido, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="' . $archivoSeguro . '"',
+        ]);
     }
     public function uploadArchivoDarBaja(Request $request)
     {
@@ -4239,7 +4353,7 @@ class Invi_proyectosController extends Controller
     }
     public function uploadPDFProyectArchivo(Request $request)
     {
-         $request->validate([
+        $request->validate([
             // 'mimetypes:application/pdf' obliga a que el CONTENIDO sea un PDF real
             'file' => 'required|file|mimes:pdf|mimetypes:application/pdf|max:51200',
             'codPro'   => 'required|alpha_dash', // Solo letras, números, guiones

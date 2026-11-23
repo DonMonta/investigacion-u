@@ -433,6 +433,24 @@ class Invi_responsableController extends Controller
             ], 500);
         }
     }
+    public function verArchivoResponsable(Request $request)
+    {
+        $ciSeguro = basename($request->query('ci'));
+        $archivoSeguro = basename($request->query('archivo'));
+
+        $path = public_path("Documentos/INVESTIGACION/AnexoResponsable/{$ciSeguro}/{$archivoSeguro}");
+
+        if (!File::exists($path)) {
+            return response()->json(['message' => 'El documento solicitado no existe.'], 404);
+        }
+
+        $contenido = File::get($path);
+
+        return response($contenido, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="' . $archivoSeguro . '"'
+        ]);
+    }
 
     public function getFacultadesInvestigacion(Request $request)
     {

@@ -23,6 +23,7 @@ use App\Http\Controllers\SubAreaUnescoController;
 use App\Http\Controllers\Zona_planificacionController;
 use App\Http\Controllers\PraempresaController;
 use App\Http\Controllers\Invi_convocatoriaController;
+use App\Http\Controllers\Invi_grupos_investigacionController;
 use App\Http\Controllers\DepartamentoController;
 use App\Http\Controllers\Invi_tip_proyectController;
 use App\Http\Controllers\Invi_equipo_rolesController;
@@ -31,6 +32,7 @@ use App\Http\Controllers\Invi_responsableController;
 use App\Http\Controllers\DepartamentoDetalleController;
 use App\Http\Controllers\Invi_programaController;
 use App\Http\Controllers\BitacoraController;
+use App\Http\Controllers\InviDetalleIntegranteController;
 
 /*
 |--------------------------------------------------------------------------
@@ -73,6 +75,8 @@ Route::prefix('inves')->group(function () {
         Route::delete('inhabilitar_pei/{id}', [PeiController::class, 'destroy']);
         //Definición de la ruta endpoint para subir un archivo
         Route::post('subir_archivo_pei', [PeiController::class, 'uploadArchivo']);
+        //Definición de la ruta endpoint para ver un archivo
+        Route::get('ver-archivo-pei', [PeiController::class, 'verArchivoPei']);
         //Definición de la ruta endpoint para eliminar un archivo
         Route::post('eliminar_archivo', [PeiController::class, 'deleteArchivo']);
         //Definición de la ruta endpoint para el recurso Subsistemas_pei, perimitiendo operaciones CRUD
@@ -108,6 +112,8 @@ Route::prefix('inves')->group(function () {
         Route::post('subir_archivo_agenda_ods', [Agenda_ODSController::class, 'uploadArchivo']);
         //Definición de la ruta endpoint para eliminar un archivo
         Route::post('eliminar_archivo_agenda_ods', [Agenda_ODSController::class, 'deleteArchivo']);
+        //Definición de ruta para obtener los anexos de una agenda ods
+        Route::get('ver-agenda-ods', [Agenda_ODSController::class, 'verAnexo']);
         /**
          * API DOMINIO HUMANISTICO
          */
@@ -260,6 +266,8 @@ Route::prefix('inves')->group(function () {
         Route::get('getRolesInvestigacion', [Invi_equipo_departController::class, 'getRolesInvestigacion']);
         //Definición de endpoint para subir un archivo
         Route::post('subir_archivo_quipoinves', [Invi_equipo_departController::class, 'uploadArchivo']);
+        //Definición de endpoint para obtener el archivo del equipo de investigación
+        Route::get('ver-equipo-invest', [Invi_equipo_departController::class, 'verArchivoEquipo']);
         /**
          * * --------------------------------------------------------------------------
          * Rutas de Gestión de Detalle de Departamentos (DepartamentoDetalleController)
@@ -290,6 +298,8 @@ Route::prefix('inves')->group(function () {
         Route::delete('inhabilitar_responsable/{id}', [Invi_responsableController::class, 'destroy']);
         //Definición de endpoint para subir un archivo
         Route::post('subir_archivo_responsable', [Invi_responsableController::class, 'uploadArchivo']);
+        //Definición de endpoint para obtener los anexos de los responsables de investigación por facultad
+        Route::get('ver-anexo-responsable', [Invi_responsableController::class, 'verArchivoResponsable']);
         Route::post('uploadArchivoInstitucion', [Invi_proyectosController::class, 'uploadArchivoInstitucion']);
         //Definición de endpoint para obtener las facultades de Investigacion
         Route::get('getFacultadesInvestigacion', [Invi_responsableController::class, 'getFacultadesInvestigacion']);
@@ -312,6 +322,15 @@ Route::prefix('inves')->group(function () {
         Route::post('subir_archivo_anexo', [Invi_proyectosController::class, 'uploadArchivo']);
         //Definición de ruta para subir un archivo
         Route::post('subir_archivo_anexo_darbaja', [Invi_proyectosController::class, 'uploadArchivoDarBaja']);
+        //Definición de ruta para obtener los anexos de integrantes de un proyecto
+        Route::get('ver-anexo-integrante/{ci}/{filename}', [Invi_proyectosController::class, 'verAnexoIntegrante']);
+        //Definición de ruta para obtener los anexos baja de integrantes  de un proyecto
+        Route::get('ver-anexo-bajas-integrante/{ci}/{filename}', [Invi_proyectosController::class, 'verAnexoBajasIntegrante']);
+        //Definición de ruta para obtener los anexos de un proyecto
+        Route::get('ver-evidencia-proyecto/{codigoProyecto}/{filename}', [Invi_proyectosController::class, 'verEvidenciaProyecto']);
+        
+        //Definición de ruta para subir la evidencia del proyecto
+        Route::post('subir_pdf_proyecto', [Invi_proyectosController::class, 'uploadPDFProyectArchivo']);
         //Definición de endpoint para guardar/reemplazar un integrante (modo nuevo o reemplazo)
         Route::post('integrantes/guardar', [Invi_proyectosController::class, 'guardarCambios']);
         //Definción de endpoint para obtener los grupos de investigación de un proyecto
@@ -337,6 +356,28 @@ Route::prefix('inves')->group(function () {
          */
         //Definición de endpoint para obtener las acciones de la bitácora de investigación
         Route::get('bitacora-investigacion/{identificador}', [BitacoraController::class, 'obtenerBitacoraInvestigacion']);
+
+        /**
+         * ----------------------------------------------------------------------
+         * Rutas de Gestión de Grupos de Investigación (Invi_grupos_investigacionController)
+         * ----------------------------------------------------------------------
+         * Define los puntos de acceso (endpoints) para el ciclo de vida del recurso.
+         * Incluye operaciones CRUD estandarizadas, gestión de estados (activación/desactivación)
+         * 
+         */
+        //Definición de recurso para los Grupos de Investigación, perimitiendo operaciones CRUD
+        Route::apiResource("invi_grupos_investigacion", Invi_grupos_investigacionController::class);
+        //Definición de endpoint para habilitar un Grupo de Investigación
+        Route::delete('habilitar_grupo_investigacion/{id}', [Invi_grupos_investigacionController::class, 'habilitar']);
+        //Definición de endpoint para inhabilitar un Grupo de Investigación
+        Route::delete('inhabilitar_grupo_investigacion/{id}', [Invi_grupos_investigacionController::class, 'destroy']);
+        /**
+         * ----------------------------------------------------------------------
+         * Rutas de Gestión de Los integrantes de los proyectos de investigación (Invi_deta_inteController)
+         * ----------------------------------------------------------------------
+         * Define los puntos de acceso (endpoints) para el ciclo de vida del recurso.
+         */
+        Route::get('invi_detalle_integrante', [InviDetalleIntegranteController::class, 'index']);
     });
 }); 
 

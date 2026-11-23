@@ -799,4 +799,22 @@ class Invi_equipo_departController extends Controller
             ], 500);
         }
     }
+    public function verArchivoEquipo(Request $request)
+    {
+        $ciSeguro = basename($request->query('ci'));
+        $archivoSeguro = basename($request->query('archivo'));
+
+        $path = public_path("Documentos/INVESTIGACION/EquipoInvest/{$ciSeguro}/{$archivoSeguro}");
+
+        if (!File::exists($path)) {
+            return response()->json(['message' => 'El documento solicitado no existe.'], 404);
+        }
+
+        $contenido = File::get($path);
+
+        return response($contenido, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="' . $archivoSeguro . '"'
+        ]);
+    }
 }

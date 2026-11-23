@@ -12,6 +12,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Str;
 
 class Agenda_ODSController extends Controller
@@ -461,5 +462,24 @@ class Agenda_ODSController extends Controller
         }
 
         return response()->json(['status' => false, 'message' => 'Archivo no encontrado'], 404);
+    }
+    public function verAnexo(Request $request)
+    {
+        // Usamos $request->query() para evitar problemas con la extensión .pdf en la URL
+        $anioSeguro = basename($request->query('anio'));
+        $archivoSeguro = basename($request->query('archivo'));
+
+        $path = public_path("Documentos/AGENDA_ODS/{$anioSeguro}/{$archivoSeguro}");
+
+        if (!File::exists($path)) {
+            return response()->json(['message' => 'El documento solicitado no existe.'], 404);
+        }
+
+        $contenido = File::get($path);
+
+        return response($contenido, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="' . $archivoSeguro . '"'
+        ]);
     }
 }

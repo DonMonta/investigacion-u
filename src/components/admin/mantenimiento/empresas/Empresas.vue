@@ -103,16 +103,24 @@
             <td class="p-3">
               <div class="flex flex-col items-start gap-1">
                 <div v-if="post.archivo" class="flex justify-center">
-                  <a :href="`https://investigacion.utelvt.edu.ec/investigaback/Documentos/Vinculación/Archivos_Empresas/${post.ruc}/${post.archivo}`"
-                    target="_blank"
-                    class="group relative flex items-center justify-center p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-600 hover:text-white transition-all shadow-sm"
+                  <button type="button"
+                    @click="verPdfEmpresa(post.ruc, post.archivo, 'pdf_' + post.idempresa)"
+                    :disabled="botonCargando === 'pdf_' + post.idempresa"
+                    class="group relative flex items-center justify-center p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-600 hover:text-white transition-all shadow-sm disabled:opacity-50"
                     title="Ver documento PDF">
-                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                      <path
-                        d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                    
+                    <!-- Spinner -->
+                    <svg v-if="botonCargando === 'pdf_' + post.idempresa" class="animate-spin h-[18px] w-[18px]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+
+                    <!-- Ícono PDF -->
+                    <svg v-else width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                      <path d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                       <path d="M9 15h6M9 11h6" />
                     </svg>
-                  </a>
+                  </button>
                 </div>
                 <span v-else class="text-[10px] text-gray-300 italic">Sin anexo</span>
 
@@ -565,6 +573,28 @@
                       class="h-14 w-14 object-cover rounded-xl border animate-fade-in" />
                   </div>
                 </div>
+                <div v-if="objetoeditar.archivo && !objetoeditar.archivoPdf" class="lg:col-span-2 mt-2">
+                  <label class="block text-xs font-semibold mb-2 text-gray-700 dark:text-gray-400">
+                    Anexo PDF Actual:
+                  </label>
+
+                  <div v-if="cargandoIframePdf" class="w-full h-[350px] border border-gray-300 dark:border-gray-700 rounded-xl bg-gray-100 flex items-center justify-center animate-pulse">
+                    <span class="text-sm text-gray-500">Cargando documento seguro...</span>
+                  </div>
+
+                  <div v-else-if="objetoeditar.pdfBlobUrl" class="w-full h-[350px] border border-gray-300 dark:border-gray-700 rounded-xl overflow-hidden bg-gray-50">
+                    <iframe :src="objetoeditar.pdfBlobUrl" class="w-full h-full border-0"></iframe>
+                  </div>
+
+                  <div class="mt-2 text-right">
+                    <button type="button"
+                      v-if="objetoeditar.pdfBlobUrl"
+                      @click="abrirBlobEnNuevaPestana(objetoeditar.pdfBlobUrl)"
+                      class="text-sm text-brand-600 hover:underline bg-transparent border-0 cursor-pointer">
+                      Abrir en nueva pestaña
+                    </button>
+                  </div>
+                </div>
                 <div>
                   <label class="mb-1.5 block text-xs font-semibold text-gray-700 dark:text-gray-400">Reemplazar Anexo
                     PDF</label>
@@ -719,6 +749,8 @@ export default {
         archivoImagenReal: null, // Archivo adjunto original
         es_red_investigacion: 0,
       },
+      botonCargando: null,
+      cargandoIframePdf: false,
       objetoeditar: {
         idempresa: 0,
         ruc: "", //ruc de la empresa
@@ -742,6 +774,7 @@ export default {
         vision: "",//visión de la empresa. Ej. Ser una empresa líder en el sector de servicios petroleros, reconocida por su compromiso con
         mision: "",//misión de la empresa. Ej. Promover la adopción de prácticas de servicio comunitario en la región de la provincia de Esmeraldas
         archivoPdf: null, // Archivo PDF adjunto
+        pdfBlobUrl: null,
         imagenPreview: null, // Preview de la imagen adjunta
         archivoImagenReal: null, // Archivo adjunto original
         es_red_investigacion: 0,
@@ -1040,12 +1073,63 @@ export default {
         vision: user.vision,
         mision: user.mision,
         es_red_investigacion: user.es_red_investigacion || 0,
+        archivo: user.archivo,
+        archivoPdf: null,
+        pdfBlobUrl: null,
         imagenPreview: null,
       };
       this.activeEditTab = 'general';
       this.getPaises();
       this.objetoeditar.archivoPdf = null;
       this.isEditModalOpen = true;
+      this.cargarPdfIframe();
+    },
+    async verPdfEmpresa(ruc, filename, idBoton) {
+      if (!ruc || !filename) return;
+      this.botonCargando = idBoton;
+      try {
+        const response = await API.get(`${this.baseUrl}/ver-archivo-empresa`, {
+          params: { ruc: ruc, archivo: filename },
+          responseType: 'blob'
+        });
+
+        const fileBlob = new Blob([response.data], { type: 'application/pdf' });
+        const blobUrl = window.URL.createObjectURL(fileBlob);
+
+        window.open(blobUrl, '_blank');
+        setTimeout(() => window.URL.revokeObjectURL(blobUrl), 60000);
+      } catch (error) {
+        console.error("Error al obtener el PDF:", error);
+        mostraralertas2("El documento no está disponible o no tiene permisos.", "error");
+      } finally {
+        this.botonCargando = null;
+      }
+    },
+
+    async cargarPdfIframe() {
+      if (!this.objetoeditar?.ruc || !this.objetoeditar?.archivo) return;
+
+      this.cargandoIframePdf = true;
+      try {
+        const response = await API.get(`${this.baseUrl}/ver-archivo-empresa`, {
+          params: {
+            ruc: this.objetoeditar.ruc,
+            archivo: this.objetoeditar.archivo
+          },
+          responseType: 'blob'
+        });
+
+        const fileBlob = new Blob([response.data], { type: 'application/pdf' });
+        this.objetoeditar.pdfBlobUrl = window.URL.createObjectURL(fileBlob);
+      } catch (error) {
+        console.error("Error cargando PDF en iframe:", error);
+      } finally {
+        this.cargandoIframePdf = false;
+      }
+    },
+
+    abrirBlobEnNuevaPestana(blobUrl) {
+      if (blobUrl) window.open(blobUrl, '_blank');
     },
     async GetData(page = 1, searchQuery = "") {
       this.cargando = true;

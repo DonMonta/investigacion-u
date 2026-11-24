@@ -1217,6 +1217,47 @@
                 </div>
             </div>
         </div>
+        <div v-if="showModalArea2Tematica"
+            class="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 z-99999">
+            <div class="relative w-full max-w-md p-4 mx-auto bg-white rounded-xl shadow-lg dark:bg-gray-800">
+                <!-- Header -->
+                <div class="flex items-center justify-between p-4 border-b rounded-t dark:border-gray-700">
+                    <h3 class="text-lg font-bold text-gray-900 dark:text-white">
+                        Área Temática
+                    </h3>
+                    <button @click="cerrarModalAreaTematica" type="button"
+                        class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white">
+                        <i class="fas fa-times text-lg"></i>
+                    </button>
+                </div>
+                <!-- Body -->
+                <div class="p-5 space-y-4">
+                    <p class="text-sm text-gray-600 dark:text-gray-300">
+                        Ingrese el Área Temática del proyecto para incluirla en el Anexo 3.
+                    </p>
+                    <div>
+                        <input v-model="areaTematica2Input" @keyup.enter="generarPDFFinanciamiento" type="text"
+                            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
+                            placeholder="Ej: Educación y Ambiente" autofocus>
+                    </div>
+                </div>
+                <!-- Footer -->
+                <div
+                    class="flex items-center justify-end p-4 border-t border-gray-200 rounded-b dark:border-gray-700 gap-3">
+                    <button @click="cerrarModalAreaTematica" type="button"
+                        class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:text-white">
+                        Cancelar
+                    </button>
+                    <button @click="generarPDFFinanciamiento" type="button"
+                        class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 focus:ring-4 focus:outline-none focus:ring-red-300 flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+                        :disabled="!areaTematica2Input.trim() || isGeneratingPDFFinancia">
+                        <i v-if="isGeneratingPDFFinancia" class="fas fa-spinner fa-spin"></i>
+                        <i v-else class="fas fa-download"></i>
+                        Generar y Descargar
+                    </button>
+                </div>
+            </div>
+        </div>
         <div v-if="showModalBaja"
             class="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 z-99999">
             <div
@@ -11093,6 +11134,442 @@ export default {
             this.areaTematicaInput = '';
             this.areaTematica2Input = '';
             this.botonCargando = null;
+        },
+        async PDFAnexo1(id) {
+            this.botonCargando = 'anexo_1_' + id;
+            try {
+                const idProyecto = id;
+                if (!idProyecto) {
+                    return mostraralertas2("Error: No se ha seleccionado un proyecto válido.", "warning");
+                }
+
+                const responseDatos = await API.get(`${this.baseUrl}/getEdicionDatos/${idProyecto}`);
+                const data = responseDatos.data;
+                const proy = data.proyecto || {};
+
+                // --- HELPERS ---
+                const sanitizarTexto = (str) => {
+                    if (!str) return '';
+                    return String(str)
+                        .replace(/’|'/g, "'")
+                        .replace(/“|”/g, '"')
+                        .replace(/ã'|ã/g, 'ñ');
+                };
+
+                const capitalizarNombres = (str) => {
+                    if (!str) return '';
+                    return str.toLowerCase().split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+                };
+
+                const getPrioridadFuncion = (nombreFuncion = '') => {
+                    const f = nombreFuncion.toLowerCase();
+                    if (f.includes('subdirector')) return 2;
+                    if (f.includes('director')) return 1;
+                    if (f.includes('investigador')) return 3;
+                    if (f.includes('ayudante')) return 4;
+                    if (f.includes('técnico') || f.includes('tecnico')) return 5;
+                    return 6;
+                };
+
+                const formatearFecha = (fechaStr) => {
+                    if (!fechaStr) return '';
+                    const partes = String(fechaStr).split(' ')[0].split('-');
+                    if (partes.length === 3) {
+                        const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+                        return `${parseInt(partes[2], 10)} de ${meses[parseInt(partes[1], 10) - 1]} de ${partes[0]}`;
+                    }
+                    return fechaStr;
+                };
+
+                // --- EXTRACCIÓN DE DATOS GENERALES ---
+                const integrantesRaw = data.integrantes_titulosactivos || data.integrantes_activos || [];
+                const integrantes = [...integrantesRaw].sort((a, b) => {
+                    const funcA = a.funciones ? a.funciones.nombre_funcion : '';
+                    const funcB = b.funciones ? b.funciones.nombre_funcion : '';
+                    return getPrioridadFuncion(funcA) - getPrioridadFuncion(funcB);
+                });
+
+                const obtenerNombreIntegrante = (integrante) => {
+                    if (integrante.nombre_completo_titulo) return integrante.nombre_completo_titulo;
+                    const info = integrante.informacion_personal_d || integrante.informacionpersonal || {};
+                    const nombresStr = `${info.NombInfPer || ''} ${info.ApellInfPer || ''} ${info.ApellMatInfPer || ''}`.trim();
+                    return capitalizarNombres(nombresStr);
+                };
+
+                const nombresAutores = sanitizarTexto(
+                    integrantes.map(obtenerNombreIntegrante).filter(Boolean).join(', ') || 'Autores no registrados'
+                );
+
+                const proyecttitulo = sanitizarTexto(proy.proyect_titulo || proy.proyect_nombre || 'N/A');
+
+                const lineasTxt = sanitizarTexto(
+                    (data.lineas_data || []).map(l => l.nombre_lin).filter(Boolean).join(', ') || 'N/A'
+                );
+
+                const sublineasTxt = sanitizarTexto(
+                    (data.sublineas_data || []).map(s => s.nombre_sublin).filter(Boolean).join(', ') || 'N/A'
+                );
+
+                const dominiosTxt = sanitizarTexto(
+                    (data.dominios_data || []).map(d => d.nombre_dom_huma || d.detalle_dom_huma || d.nombre || d.dominio).filter(Boolean).join(', ') || 'N/A'
+                );
+
+                const objetivosPeiTxt = sanitizarTexto(
+                    (data.objetivos_pei_data || []).map(o => o.detalle_obj).filter(Boolean).join(', ') || 'N/A'
+                );
+
+                // Ubicación y Fecha
+                let provincia = 'Esmeraldas';
+                if (Array.isArray(proy.invi_detalle_cobe)) {
+                    const provMap = proy.invi_detalle_cobe.map(c => c.provincias?.detalle || c.provincia?.detalle).filter(Boolean);
+                    provincia = [...new Set(provMap)].join(', ') || 'Esmeraldas';
+                } else if (proy.invi_detalle_cobe?.provincias?.detalle) {
+                    provincia = proy.invi_detalle_cobe.provincias.detalle;
+                }
+                const fechaFormateada = formatearFecha(proy.proyect_fecha_pres) || `${new Date().getDate()} de ${['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'][new Date().getMonth()]} de ${new Date().getFullYear()}`;
+
+                // --- BASE FIJA DEL PRIMER PÁRRAFO ---
+                const textoBaseConvocatoria = `por medio de la presente, declaro conocer las bases y condiciones del concurso de "CONVOCATORIA INTERNA PARA LA PRESENTACIÓN DE PROYECTOS DE INVESTIGACIÓN, PROFESORES E INVESTIGADORES TITULARES Y OCASIONALES 2024", aprobada mediante Resolución Nº UTLVTE-115-2023, adoptada por el Consejo Superior Universitario, en sesión ordinaria realizada el 19 de octubre de 2023, realizada por el Vicerrectorado de Investigación, Vinculación y Posgrado de la UTLVTE en correspondencia con el Art. 87 del Reglamento de Becas y ayudas económicas para perfeccionamiento docente, financiamiento de proyectos de investigación y producción científica, y período sabático para el personal académico de la Universidad Técnica "Luis Vargas Torres" de Esmeraldas, aprobado mediante Resolución Nº UTLVTE-090-2023, adoptada por el Consejo Superior Universitario, en sesión ordinaria realizada el 17 de agosto de 2023.`;
+
+                // --- INICIALIZAR jsPDF ---
+                const doc = new jsPDF('p', 'mm', 'a4');
+                const pageWidth = doc.internal.pageSize.getWidth();
+                const pageHeight = doc.internal.pageSize.getHeight();
+                const rutaImagenFondo = '/fondo2.png';
+
+                const dibujarFondoBanner = () => {
+                    doc.addImage(rutaImagenFondo, 'PNG', 0, 0, pageWidth, pageHeight);
+                };
+
+                let esPrimeraPagina = true;
+
+                // Helper para dibujar una carta completa en su propia página
+                const dibujarCartaAval = ({ anexoTitulo, subtitulo, parrafo1, parrafo2, nombreFirma, cargoFirma }) => {
+                    if (!esPrimeraPagina) {
+                        doc.addPage();
+                    }
+                    esPrimeraPagina = false;
+                    dibujarFondoBanner();
+
+                    let cursorY = 46;
+                    doc.setFont("helvetica", "bold");
+                    doc.setFontSize(11);
+                    doc.text(anexoTitulo, pageWidth / 2, cursorY, { align: "center" });
+                    cursorY += 6;
+                    doc.text("CARTA AVAL DEL PROYECTO DE INVESTIGACIÓN", pageWidth / 2, cursorY, { align: "center" });
+                    cursorY += 6;
+                    doc.text(subtitulo, pageWidth / 2, cursorY, { align: "center" });
+
+                    autoTable(doc, {
+                        startY: cursorY + 8,
+                        margin: { left: 20, right: 20 },
+                        theme: 'plain',
+                        body: [
+                            [{ content: parrafo1, styles: { halign: 'justify' } }],
+                            [{ content: parrafo2, styles: { halign: 'justify' } }],
+                            [{ content: 'Saludo a Ud. atentamente,', styles: { halign: 'left' } }]
+                        ],
+                        styles: {
+                            fontSize: 10,
+                            textColor: [0, 0, 0],
+                            font: 'helvetica',
+                            cellPadding: { top: 4, bottom: 4, left: 0, right: 0 }
+                        }
+                    });
+
+                    // Firma centrada
+                    let finalY = doc.lastAutoTable.finalY + 35;
+                    doc.setFontSize(10);
+                    doc.setFont("helvetica", "bold");
+                    doc.text(sanitizarTexto(nombreFirma), pageWidth / 2, finalY, { align: "center" });
+                    doc.setFont("helvetica", "normal");
+                    doc.text(sanitizarTexto(cargoFirma), pageWidth / 2, finalY + 5, { align: "center" });
+
+                    // Lugar y Fecha
+                    finalY += 25;
+                    doc.setFont("helvetica", "bold");
+                    doc.text(`${provincia}, ${fechaFormateada}`, pageWidth / 2, finalY, { align: "center" });
+                };
+
+                const facultades = data.facultades_data || [];
+                const carreras = data.carreras_data || [];
+                const responsablesInv = data.responsables_investigacion_data || [];
+
+                // =========================================================================
+                // 1. ANEXO 1.1 - DECANATO (1 por cada Facultad)
+                // =========================================================================
+                facultades.forEach((fac) => {
+                    const nombreFac = sanitizarTexto(fac.facultad || 'Facultad');
+                    const nombreDecano = fac.decano || 'Decano(a) de la Facultad';
+
+                    dibujarCartaAval({
+                        anexoTitulo: "ANEXO 1.1",
+                        subtitulo: "DECANATO",
+                        parrafo1: `Como Decano/a de la facultad de ${nombreFac}, ${textoBaseConvocatoria}`,
+                        parrafo2: `Certifico que el proyecto de investigación "${proyecttitulo}" de autoría de ${nombresAutores}, ha sido desarrollado en concordancia con las líneas de investigación institucional "${lineasTxt}", dominios académicos ${dominiosTxt} y objetivos del Plan Estratégico Institucional (PEI) ${objetivosPeiTxt}.`,
+                        nombreFirma: nombreDecano,
+                        cargoFirma: `Decano(a) de la facultad de ${nombreFac}`
+                    });
+                });
+
+                // =========================================================================
+                // 2. ANEXO 1.2 - DIRECCIÓN DE CARRERA (1 por cada Carrera)
+                // =========================================================================
+                carreras.forEach((carr) => {
+                    const nombreCarr = sanitizarTexto((carr.NombCarr || 'Carrera').replace(/\s*-\s*\d+.*$/, ''));
+                    const facRelacionada = facultades.find(f => String(f.idfacultad) === String(carr.idfacultad))
+                        || (data.facultades_catalogo || []).find(f => String(f.idfacultad) === String(carr.idfacultad));
+                    const nombreFac = sanitizarTexto(facRelacionada ? facRelacionada.facultad : 'Facultad');
+                    const nombreDirectorCarr = carr.director || 'Director(a) de Carrera';
+
+                    // Filtrar docentes pertenecientes específicamente a esta carrera
+                    const docentesCarrera = integrantes
+                        .filter(int => int.informacion_personal_d && String(int.idCarr || int.carreras?.idCarr) === String(carr.idCarr))
+                        .map(obtenerNombreIntegrante)
+                        .filter(Boolean)
+                        .join(', ') || 'Docentes de la carrera no especificados';
+
+                    dibujarCartaAval({
+                        anexoTitulo: "ANEXO 1.2",
+                        subtitulo: "DIRECCIÓN DE CARRERA",
+                        parrafo1: `Como director(a) de carrera de ${nombreCarr} de la facultad ${nombreFac}, ${textoBaseConvocatoria}`,
+                        parrafo2: `Certifico que el proyecto de investigación "${proyecttitulo}" de autoría de ${nombresAutores}, tiene como línea de investigación institucional "${lineasTxt}" (Sublíneas: ${sublineasTxt}) y dominios académicos ${dominiosTxt}; cuyos docentes pertenecen a la carrera: ${sanitizarTexto(docentesCarrera)}.`,
+                        nombreFirma: nombreDirectorCarr,
+                        cargoFirma: `Director(a) de la Carrera de ${nombreCarr}`
+                    });
+                });
+
+                // =========================================================================
+                // 3. ANEXO 1.3 - RESPONSABLE DE INVESTIGACIÓN (1 por cada Facultad)
+                // =========================================================================
+                facultades.forEach((fac) => {
+                    const nombreFac = sanitizarTexto(fac.facultad || 'Facultad');
+                    const respObj = responsablesInv.find(r => String(r.idfacultad) === String(fac.idfacultad));
+                    const nombreResp = respObj ? respObj.nombre_completo : 'Responsable de Investigación de la Facultad';
+
+                    dibujarCartaAval({
+                        anexoTitulo: "ANEXO 1.3",
+                        subtitulo: "RESPONSABLE DE INVESTIGACIÓN",
+                        parrafo1: `Como Responsable de investigación de la ${nombreFac}, ${textoBaseConvocatoria}`,
+                        parrafo2: `Certifico que el proyecto de investigación "${proyecttitulo}" de autoría de ${nombresAutores}, tiene como línea de investigación institucional ${lineasTxt} y dominios académicos ${dominiosTxt}.`,
+                        nombreFirma: nombreResp,
+                        cargoFirma: `Responsable de Investigación de la ${nombreFac}`
+                    });
+                });
+
+                // Descargar PDF consolidado
+                const codigoProy = proy.proyect_cod || id;
+                doc.save(`Anexos_1_Cartas_Aval_${codigoProy}.pdf`);
+
+            } catch (error) {
+                console.error(`Error al generar el PDF de Cartas Aval para el ID ${id}:`, error);
+                mostraralertas2("Ocurrió un error al generar las Cartas Aval.", "error");
+            } finally {
+                this.botonCargando = null;
+            }
+        },
+        async generarPDFFinanciamiento() {
+            if(this.showEditModal){
+
+                if (!this.areaTematicaInput.trim()) {
+                    mostraralertas2("Debe ingresar un área temática válida.", "warning");
+                    return;
+                }
+            }else{
+                 if (!this.areaTematica2Input.trim()) {
+                    mostraralertas2("Debe ingresar un área temática válida.", "warning");
+                    return;
+                }
+            }
+
+            this.isGeneratingPDFFinancia = true;
+            
+            try {
+                // 1. Inicializar documento en horizontal (landscape)
+                const doc = new jsPDF('l', 'mm', 'a4');
+                const pageWidth = doc.internal.pageSize.getWidth();
+                const maxTextWidth = pageWidth - 92 - 15; // Ancho máximo para los textos antes de saltar de línea
+
+                // 2. Obtener Nombre del Director
+                const proyect_id = this.editForm.proyect_id;
+                let directorProy = '';
+                try {
+                    const resDir = await this.ObteneProDir(proyect_id);
+                    if (resDir.data?.data && resDir.data.data.length > 0) {
+                        directorProy = resDir.data.data[0].nombre_con_titulo;
+                    }
+                } catch (e) { console.warn("No se pudo obtener director", e); }
+
+                // 3. Encabezados y Logos
+                doc.addImage('/ecuador.png', 'PNG', 15, 10, 22, 22); 
+                doc.addImage('/images.png', 'PNG', pageWidth - 37, 10, 22, 22);
+
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(10);
+                doc.text('ANEXO 3', pageWidth / 2, 15, { align: 'center' });
+                doc.text('PROGRAMACIÓN ANUAL DE INVERSIONES', pageWidth / 2, 20, { align: 'center' });
+                doc.setFont("helvetica", "normal");
+                doc.text('Plan de trabajo presupuestario Convocatoria Fondos Concursables UTLVTE', pageWidth / 2, 28, { align: 'center' });
+
+                // 4. Datos de Información del Proyecto
+                doc.setFontSize(9);
+                let currentY = 40;
+                
+                // --- Título del Proyecto ---
+                doc.text('Título del Proyecto de Investigación:', 15, currentY);
+                doc.setFontSize(8);
+                const tituloTexto = this.editForm.proyect_titulo || 'N/A';
+                const splitTitulo = doc.splitTextToSize(tituloTexto, maxTextWidth);
+                doc.text(splitTitulo, 92, currentY);
+                let extraYTitulo = (splitTitulo.length - 1) * 4;
+                doc.line(90, currentY + extraYTitulo + 1, pageWidth - 15, currentY + extraYTitulo + 1);
+                currentY += extraYTitulo + 7;
+                doc.setFontSize(9);
+
+                // --- Nombre de la Institución ---
+                doc.text('Nombre de la Institución:', 15, currentY);
+                doc.text('UTLVTE', 92, currentY);
+                doc.line(90, currentY + 1, pageWidth - 15, currentY + 1);
+                currentY += 7;
+
+                // --- Instituciones Coejecutoras ---
+                doc.text('Nombre de Instituciones', 15, currentY);
+                doc.text('Coejecutoras', 15, currentY + 4);
+                
+                let instY = currentY;
+                if (this.empresasAgregadas2 && this.empresasAgregadas2.length > 0) {
+                    this.empresasAgregadas2.forEach((emp) => {
+                        let prefijo = this.empresasAgregadas2.length > 1 ? '• ' : '';
+                        let nombreEmpresa = prefijo + (emp.empresacorta || 'Empresa sin nombre');
+                        let splitInst = doc.splitTextToSize(nombreEmpresa, maxTextWidth);
+                        doc.text(splitInst, 92, instY);
+                        instY += splitInst.length * 4;
+                    });
+                } else {
+                    doc.text('Ninguna', 92, instY);
+                    instY += 4;
+                }
+                doc.line(90, instY - 2, pageWidth - 15, instY - 2);
+                currentY = Math.max(currentY + 8, instY + 3);
+
+                // --- Área Temática (Viene del Modal) ---
+                doc.text('Área temática:', 15, currentY);
+                // Protegemos el texto por si ingresan algo muy largo
+                let splitArea
+                if(this.showEditModal){
+                    splitArea = doc.splitTextToSize(this.areaTematicaInput.trim(), maxTextWidth);
+                }else{
+                    splitArea = doc.splitTextToSize(this.areaTematica2Input.trim(), maxTextWidth);
+                }
+                doc.text(splitArea, 92, currentY);
+                let extraYArea = (splitArea.length - 1) * 4;
+                doc.line(90, currentY + extraYArea + 1, pageWidth - 15, currentY + extraYArea + 1);
+                currentY += extraYArea + 10; // Espacio final antes de la tabla
+
+                // 5. Preparar Datos de la Tabla
+                let filasTabla = [];
+                let totalesCols = { utlvte: [0,0,0,0,0], otros: [0,0,0,0,0], totalEfectivo: 0 };
+                const formatMoney = (val) => val > 0 ? `$ ${Number(val).toFixed(2)}` : '';
+                const formatMoneyZero = (val) => `$ ${Number(val || 0).toFixed(2)}`;
+
+                this.editForm.financiamientos.forEach(fin => {
+                    let nombreRubro = '';
+                    const rubroEncontrado = this.listaRubrosDisponibles.find(r => r.id_rubro === fin.id_rubro);
+                    if(rubroEncontrado) nombreRubro = rubroEncontrado.nombre_rubro;
+                    else nombreRubro = `Rubro ${fin.id_rubro}`;
+
+                    let fila = [ nombreRubro, fin.cantidad || 1, formatMoneyZero(fin.valor) ];
+
+                    for (let i = 1; i <= 5; i++) {
+                        let val = Number(fin[`utlvte_anio${i}`] || 0);
+                        totalesCols.utlvte[i-1] += val;
+                        fila.push(formatMoney(val));
+                    }
+                    for (let i = 1; i <= 5; i++) {
+                        let val = Number(fin[`otros_anio${i}`] || 0);
+                        totalesCols.otros[i-1] += val;
+                        fila.push(formatMoney(val));
+                    }
+                    
+                    let totalRow = Number(fin.total_efectivo || 0);
+                    totalesCols.totalEfectivo += totalRow;
+                    fila.push(formatMoneyZero(totalRow));
+                    filasTabla.push(fila);
+                });
+
+                // Fila de Totales
+                let filaTotal = ['Total', '', ''];
+                totalesCols.utlvte.forEach(v => filaTotal.push(formatMoneyZero(v)));
+                totalesCols.otros.forEach(v => filaTotal.push(formatMoneyZero(v)));
+                filaTotal.push(formatMoneyZero(totalesCols.totalEfectivo));
+                filasTabla.push(filaTotal);
+
+                // Fila de Porcentajes
+                let filaPct = ['Porcentajes', '', ''];
+                const calcPct = (val) => totalesCols.totalEfectivo > 0 ? ((val / totalesCols.totalEfectivo) * 100).toFixed(2) + '%' : '0%';
+                totalesCols.utlvte.forEach(v => filaPct.push(calcPct(v)));
+                totalesCols.otros.forEach(v => filaPct.push(calcPct(v)));
+                filaPct.push('100%');
+                filasTabla.push(filaPct);
+
+                // 6. Generar Tabla con autoTable
+                const headerColor = [238, 236, 225];
+                autoTable(doc, {
+                    startY: currentY,
+                    margin: { left: 15, right: 15 },
+                    theme: 'grid',
+                    headStyles: {
+                        fillColor: headerColor, textColor: [0, 0, 0], lineColor: [0, 0, 0],
+                        lineWidth: 0.2, halign: 'center', valign: 'middle', fontSize: 8, fontStyle: 'bold'
+                    },
+                    bodyStyles: { lineColor: [0, 0, 0], lineWidth: 0.2, fontSize: 8, textColor: [0, 0, 0] },
+                    head: [
+                        [
+                            { content: 'RUBROS', rowSpan: 3 }, { content: 'Cantidad', rowSpan: 3 }, { content: 'Valor', rowSpan: 3 },
+                            { content: 'APORTES UTLVTE', colSpan: 5 }, { content: 'OTROS APORTES', colSpan: 5 }, { content: 'TOTAL', rowSpan: 1 }
+                        ],
+                        [
+                            { content: 'EFECTIVO', colSpan: 5 }, { content: 'EFECTIVO', colSpan: 5 }, { content: 'EFECTIVO', rowSpan: 2 }
+                        ],
+                        ['Año 1', 'Año 2', 'Año 3', 'Año 4', 'Año 5', 'Año 1', 'Año 2', 'Año 3', 'Año 4', 'Año 5']
+                    ],
+                    body: filasTabla,
+                    didParseCell: function(data) {
+                        if (data.section === 'body' && (data.row.index === filasTabla.length - 1 || data.row.index === filasTabla.length - 2)) {
+                            data.cell.styles.fontStyle = 'bold';
+                            data.cell.styles.fillColor = headerColor;
+                        }
+                    },
+                    columnStyles: {
+                        0: { cellWidth: 50, halign: 'left' }, 1: { halign: 'center' }, 2: { halign: 'right' },
+                        3: { halign: 'right' }, 4: { halign: 'right' }, 5: { halign: 'right' }, 6: { halign: 'right' }, 7: { halign: 'right' },
+                        8: { halign: 'right' }, 9: { halign: 'right' }, 10: { halign: 'right' }, 11: { halign: 'right' }, 12: { halign: 'right' },
+                        13: { halign: 'right', fontStyle: 'bold' }
+                    }
+                });
+
+                // 7. Pie de firma
+                let finalY = doc.lastAutoTable.finalY + 30;
+                if(finalY > doc.internal.pageSize.getHeight() - 20) {
+                    doc.addPage();
+                    finalY = 30;
+                }
+
+                doc.setFontSize(9);
+                doc.text(directorProy || '_________________________________________', 15, finalY);
+                doc.text('Director(a) Proyecto de Investigación', 15, finalY + 5);
+
+                // 8. Descargar PDF
+                doc.save('Anexo_3_Financiamiento.pdf');
+
+                // Cerrar modal al terminar con éxito
+                this.cerrarModalAreaTematica();
+
+            } catch (error) {
+                console.error('Error al generar el PDF del Anexo 3:', error);
+            } finally {
+                this.isGeneratingPDFFinancia = false;
+            }
         },
 
     },

@@ -636,7 +636,7 @@ export default {
       try {
         this.cargandoDepartamentos = true;
         const res = await API.get(`${this.baseUrl}/listar_departamentos?all=true`);
-        //console.log(res);
+        console.log(res);
         // Asegurarse de acceder a la data correcta según tu API response
         this.departamentosApi = res.data.data; 
       } catch (error) {
@@ -745,6 +745,7 @@ export default {
         parseCampo('aprobacion', user.aprobacion);
 
         this.isModalOpen = true;
+        this.fetchDepartamentos();
       } catch (e) {
         console.error("Error al abrir modal de edición:", e);
       } finally {

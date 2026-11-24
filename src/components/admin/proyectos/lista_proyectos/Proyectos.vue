@@ -11228,9 +11228,30 @@ export default {
                 }
                 const fechaFormateada = formatearFecha(proy.proyect_fecha_pres) || `${new Date().getDate()} de ${['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'][new Date().getMonth()]} de ${new Date().getFullYear()}`;
 
-                // --- BASE FIJA DEL PRIMER PÁRRAFO ---
-                const textoBaseConvocatoria = `por medio de la presente, declaro conocer las bases y condiciones del concurso de "CONVOCATORIA INTERNA PARA LA PRESENTACIÓN DE PROYECTOS DE INVESTIGACIÓN, PROFESORES E INVESTIGADORES TITULARES Y OCASIONALES 2024", aprobada mediante Resolución Nº UTLVTE-115-2023, adoptada por el Consejo Superior Universitario, en sesión ordinaria realizada el 19 de octubre de 2023, realizada por el Vicerrectorado de Investigación, Vinculación y Posgrado de la UTLVTE en correspondencia con el Art. 87 del Reglamento de Becas y ayudas económicas para perfeccionamiento docente, financiamiento de proyectos de investigación y producción científica, y período sabático para el personal académico de la Universidad Técnica "Luis Vargas Torres" de Esmeraldas, aprobado mediante Resolución Nº UTLVTE-090-2023, adoptada por el Consejo Superior Universitario, en sesión ordinaria realizada el 17 de agosto de 2023.`;
+                const conv = proy.invi_convocatoria || data.convocatoria || {};
 
+                const tituloConvocatoria = sanitizarTexto(
+                    conv.titulo_convocatoria ||
+                    'CONVOCATORIA INTERNA PARA LA PRESENTACIÓN DE PROYECTOS DE INVESTIGACIÓN, PROFESORES E INVESTIGADORES TITULARES Y OCASIONALES 2024'
+                );
+
+                // Evita duplicar "Resolución Nº" si en la BD ya viene escrito con ese prefijo
+                const rawResolucion = sanitizarTexto(conv.num_resolucion || 'UTLVTE-115-2023').trim();
+                const numResolucion = rawResolucion.toLowerCase().startsWith('resoluci')
+                    ? rawResolucion
+                    : `Resolución Nº ${rawResolucion}`;
+
+                const aprobacionConv = sanitizarTexto(
+                    conv.aprobacion ||
+                    'Consejo Superior Universitario, en sesión ordinaria realizada el 19 de octubre de 2023'
+                );
+
+                const elaboracionConv = sanitizarTexto(
+                    conv.elaboracion ||
+                    'Vicerrectorado de Investigación, Vinculación y Posgrado de la UTLVTE'
+                );
+
+                const textoBaseConvocatoria = `por medio de la presente, declaro conocer las bases y condiciones del concurso de "${tituloConvocatoria}", aprobada mediante ${numResolucion}, adoptada por el ${aprobacionConv}, en sesión ordinaria realizada el ${formatearFecha(conv.fecha_inicio)}, realizada por el ${elaboracionConv} en correspondencia con el Art. 87 del Reglamento de Becas y ayudas económicas para perfeccionamiento docente, financiamiento de proyectos de investigación y producción científica, y período sabático para el personal académico de la Universidad Técnica "Luis Vargas Torres" de Esmeraldas, aprobado mediante Resolución Nº UTLVTE-090-2023, adoptada por el Consejo Superior Universitario, en sesión ordinaria realizada el 17 de agosto de 2023.`;
                 // --- INICIALIZAR jsPDF ---
                 const doc = new jsPDF('p', 'mm', 'a4');
                 const pageWidth = doc.internal.pageSize.getWidth();

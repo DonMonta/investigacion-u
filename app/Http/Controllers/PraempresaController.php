@@ -368,7 +368,7 @@ class PraempresaController extends Controller
             // Ambos archivos (el viejo y el nuevo) ahora se mantendrán en el servidor.
 
             // Crear carpeta si no existe
-            $directory = public_path("Documentos/INVESTIGACIÓN/Archivos_Empresas/{$ruc}");
+            $directory = public_path("Documentos/INVESTIGACION/Archivos_Empresas/{$ruc}");
 
             if (!File::isDirectory($directory)) {
                 File::makeDirectory($directory, 0755, true, true);
@@ -385,7 +385,7 @@ class PraempresaController extends Controller
             $file->move($directory, $filename);
 
             // URL pública
-            $url = url('Documentos/INVESTIGACIÓN/Archivos_Empresas/' . $ruc . '/' . $filename);
+            $url = url('Documentos/INVESTIGACION/Archivos_Empresas/' . $ruc . '/' . $filename);
 
             return response()->json([
                 'status'   => true,
@@ -399,6 +399,28 @@ class PraempresaController extends Controller
                 'error'   => $e->getMessage()
             ], 500);
         }
+    }
+    public function verArchivoEmpresa(Request $request)
+    {
+        $rucSeguro = basename($request->query('ruc'));
+        $archivoSeguro = basename($request->query('archivo'));
+
+        $path = public_path("Documentos/INVESTIGACION/Archivos_Empresas/{$rucSeguro}/{$archivoSeguro}");
+
+        if (!File::exists($path)) {
+            $path = public_path("Documentos/INVESTIGACION/Archivos_Empresas/{$rucSeguro}/{$archivoSeguro}");
+        }
+
+        if (!File::exists($path)) {
+            return response()->json(['message' => 'El documento solicitado no existe.'], 404);
+        }
+
+        $contenido = File::get($path);
+
+        return response($contenido, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="' . $archivoSeguro . '"'
+        ]);
     }
     public function getFotografia($ci)
     {

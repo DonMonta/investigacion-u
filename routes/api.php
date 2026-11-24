@@ -169,6 +169,8 @@ Route::prefix('inves')->group(function () {
         Route::apiResource("empresa", PraempresaController::class);
         //Definición de endpoint para subir un archivo
         Route::post('subir_archivo', [PraempresaController::class, 'uploadArchivo']);
+        //Definición de endpoint para obtener los anexos de una empresa
+        Route::get('ver-archivo-empresa', [PraempresaController::class, 'verArchivoEmpresa']);
         //Definición de endpoint para habilitar un empresa
         Route::delete('habilitar_empresa/{id}', [PraempresaController::class, 'habilitar']);
         //Definición de endpoint para inhabilitar un empresa

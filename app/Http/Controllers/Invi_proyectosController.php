@@ -85,6 +85,7 @@ use App\Models\Invi_base_pat;
 use App\Models\Obj_pol_plandne;
 use App\Models\Asignaturas;
 use App\Models\Invi_grupos_investigacion;
+use App\Models\Invi_responsable;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -258,6 +259,7 @@ class Invi_proyectosController extends Controller
     public function getEdicionDatos(Request $request, int $id)
     {
         $proyecto = Invi_proyectos::with(
+            'invi_convocatoria',
             'invi_detalle_programa',
             'invi_detalle_obj_pro_pei',
             'invi_detalle_obj_pol_proyect',
@@ -815,6 +817,23 @@ class Invi_proyectosController extends Controller
         ])->where('proyect_id', $id)
             ->where('estado', 1)
             ->get();
+        $responsablesInvData = Invi_responsable::with('informacionpersonald')
+        ->whereIn('idfacultad', $facultadesSeleccionadas)
+        ->where('estado_responsable', 1)
+        ->where('tipo_responsable', 'INVESTIGACIÓN') // Ajusta el texto si en tu BD es distinto (ej: 'Investigación' o ID)
+        ->get()
+        ->map(function ($resp) {
+            $persona = $resp->informacionpersonald;
+            $nombre = 'Responsable de Investigación No Asignado';
+            if ($persona) {
+                $raw = trim(($persona->NombInfPer ?? '') . ' ' . ($persona->ApellInfPer ?? '') . ' ' . ($persona->ApellMatInfPer ?? ''));
+                $nombre = mb_convert_case(mb_strtolower($raw, 'UTF-8'), MB_CASE_TITLE, 'UTF-8');
+            }
+            return [
+                'idfacultad' => $resp->idfacultad,
+                'nombre_completo' => $nombre,
+            ];
+        });
 
         return response()->json([
             'proyecto' => $proyecto,
@@ -904,6 +923,7 @@ class Invi_proyectosController extends Controller
             'zona_plan_data' => $zonaPlanData,
             'grupos_investigacion' => $grupos_investigacion,
             //'asignaturas_data' => $asignaturasData,
+            'responsables_investigacion_data' => $responsablesInvData,
         ]);
     }
 

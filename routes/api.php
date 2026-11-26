@@ -196,6 +196,8 @@ Route::prefix('inves')->group(function () {
         Route::delete('inhabilitar_convocatoria/{id}', [Invi_convocatoriaController::class, 'destroy']);
         //Definición de endpoint para subir un archivo
         Route::post('subir_archivo_convocatoria', [Invi_convocatoriaController::class, 'uploadArchivo']);
+        //Definición de endpoint para obtener los anexos de una convocatoria
+        Route::get('ver-archivo-convocatoria', [Invi_convocatoriaController::class, 'verArchivoConvocatoria']);
         //Definición de endpoint para listar convocatorias
         Route::get('listar_convocatorias', [Invi_convocatoriaController::class, 'listconvocatoria']);
 

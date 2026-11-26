@@ -19,6 +19,8 @@ class Invi_convocatoria extends Model
         'elaboracion',
         'revision',
         'aprobacion',
+        'fecha_aprobacion',
+        'tipo_sesion',
         'fecha_inicio',
         'fecha_fin',
         'num_resolucion',

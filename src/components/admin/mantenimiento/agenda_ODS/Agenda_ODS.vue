@@ -527,7 +527,7 @@
                         Abrir en nueva pestaña
                     </button>
                 </div>
-            </div>
+              </div>
 
               <!-- ZONA PARA SUBIR/REEMPLAZAR PDF -->
               <div class="mt-5 col-span-1 lg:col-span-2">
@@ -689,8 +689,7 @@ export default {
         cod_ods: '',
         detalle_ods: ''
       },
-      codNumero: '', // Solo el número (ej: 1)
-      botonCargando: null,
+      codNumero: '',
       cargandoIframePdf: false,
     };
   },
@@ -1073,7 +1072,9 @@ export default {
         nombre_ag_ods: "",
         anio_ag_ods: "",
         estado_ag_ods: 0,
-        link_ag_ods: ""
+        archivo_ag_ods: "",
+        ad_archivo_url: null,
+        pdfBlobUrl: null
       };
     },
     eliminar(id, nombre) {

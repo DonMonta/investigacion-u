@@ -73,11 +73,11 @@
             <td class="py-4 px-4 align-top">
               <div class="max-w-3xl flex flex-col gap-4">
 
-                <!-- Bloque Sobre Mí -->
+                <!-- Bloque Sobre la Dirección -->
                 <div v-if="post.sobre_mi">
                   <span
                     class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-bold bg-brand-50 text-brand-700 dark:bg-brand-500/10 dark:text-brand-400 border border-brand-100 dark:border-brand-500/20 mb-1.5">
-                    Sobre Mí
+                    Sobre la Dirección
                   </span>
                   <p class="text-sm text-gray-700 dark:text-gray-300 leading-relaxed text-justify">
                     {{ post.sobre_mi }}
@@ -181,9 +181,9 @@
           </div>
 
           <form class="flex flex-col gap-5 px-2" @submit.prevent>
-            <!-- Sobre Mí -->
+            <!-- Sobre la Dirección -->
             <div>
-              <label class="mb-1.5 block text-sm font-medium text-gray-700">Sobre Mí <span class="text-gray-400 font-normal">(Opcional)</span></label>
+              <label class="mb-1.5 block text-sm font-medium text-gray-700">Sobre la Dirección <span class="text-gray-400 font-normal">(Opcional)</span></label>
               <textarea v-model="formulario.sobre_mi" rows="3" maxlength="2000"
                 class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm outline-none focus:border-brand-500 transition-colors"
                 placeholder="Breve descripción del departamento..."></textarea>

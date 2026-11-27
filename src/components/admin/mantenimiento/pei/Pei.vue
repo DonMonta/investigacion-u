@@ -983,9 +983,7 @@ export default {
       isProfileAddressModal: false,
       isEditModalOpen: false,
       cargando: false,
-      botonCargando: null,
       cargandoIframePdf: false,
-      password: '',
       currentPage: 1,
       lastPage: 1,
       buscando: false, // Mantenido, pero no se usa en la lógica de paginación actual
@@ -1602,7 +1600,8 @@ export default {
         nombre_pei: "",
         anios_pei: "",
         estado_pei: 0,
-        ad_archivo_url: null
+        ad_archivo_url: null,
+        pdfBlobUrl:null
       };
       this.archivoSeleccionado = null;
       this.archivoPreviewName = '';

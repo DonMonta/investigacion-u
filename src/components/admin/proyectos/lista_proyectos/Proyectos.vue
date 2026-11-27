@@ -5792,7 +5792,7 @@
                         <div class="space-y-3 mt-6">
                             <div class="md:col-span-2">
                                 <label class="block text-xs font-bold mb-2 text-gray-700 dark:text-gray-300">
-                                    {{ editForm.pdfurlarchivo ? 'Subir un nuevo documento para reemplazar el actual (PDF)' : 'Documento Respaldo (PDF)' }}
+                                    {{ editForm.pdfBlobUrl ? 'Subir un nuevo documento para reemplazar el actual (PDF)' : 'Documento Respaldo (PDF)' }}
                                 </label>
                                 <div @click="$refs.filePDF.click()"
                                     class="relative flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-xl cursor-pointer transition-all"
@@ -10340,7 +10340,8 @@ export default {
                 const pageWidth = doc.internal.pageSize.getWidth();
                 const pageHeight = doc.internal.pageSize.getHeight();
 
-                const rutaImagenFondo = '/fondo2.png'; 
+                const rutaImagenFondoURL = require('@/assets/imagespdf/fondo2.png');
+                const rutaImagenFondo = await this.toDataURL(rutaImagenFondoURL); 
 
                 // SEPARAR EL DIBUJO: Solo el banner en hojas nuevas para evitar que se pise con los textos
                 const dibujarFondoBanner = () => {
@@ -10769,7 +10770,9 @@ export default {
                 const doc = new jsPDF('p', 'mm', 'a4');
                 const pageWidth = doc.internal.pageSize.getWidth();
                 const pageHeight = doc.internal.pageSize.getHeight();
-                const rutaImagenFondo = '/fondo2.png'; 
+                const rutaImagenFondoURL = require('@/assets/imagespdf/fondo2.png');
+                const rutaImagenFondo = await this.toDataURL(rutaImagenFondoURL); 
+
 
                 const dibujarFondoBanner = () => {
                     doc.addImage(rutaImagenFondo, 'PNG', 0, 0, pageWidth, pageHeight);
@@ -11251,13 +11254,13 @@ export default {
                     'Vicerrectorado de Investigación, Vinculación y Posgrado de la UTLVTE'
                 );
 
-                const textoBaseConvocatoria = `por medio de la presente, declaro conocer las bases y condiciones del concurso de "${tituloConvocatoria}", aprobada mediante ${numResolucion}, adoptada por el ${aprobacionConv}, en sesión ordinaria realizada el ${formatearFecha(conv.fecha_inicio)}, realizada por el ${elaboracionConv} en correspondencia con el Art. 87 del Reglamento de Becas y ayudas económicas para perfeccionamiento docente, financiamiento de proyectos de investigación y producción científica, y período sabático para el personal académico de la Universidad Técnica "Luis Vargas Torres" de Esmeraldas, aprobado mediante Resolución Nº UTLVTE-090-2023, adoptada por el Consejo Superior Universitario, en sesión ordinaria realizada el 17 de agosto de 2023.`;
+                const textoBaseConvocatoria = `por medio de la presente, declaro conocer las bases y condiciones del concurso de "${tituloConvocatoria}", aprobada mediante ${numResolucion}, adoptada por el ${aprobacionConv}, en sesión ${conv.tipo_sesion} realizada el ${formatearFecha(conv.fecha_aprobacion)}, realizada por el ${elaboracionConv} en correspondencia con el Art. 87 del Reglamento de Becas y ayudas económicas para perfeccionamiento docente, financiamiento de proyectos de investigación y producción científica, y período sabático para el personal académico de la Universidad Técnica "Luis Vargas Torres" de Esmeraldas, aprobado mediante Resolución Nº UTLVTE-090-2023, adoptada por el Consejo Superior Universitario, en sesión ordinaria realizada el 17 de agosto de 2023.`;
                 // --- INICIALIZAR jsPDF ---
                 const doc = new jsPDF('p', 'mm', 'a4');
                 const pageWidth = doc.internal.pageSize.getWidth();
                 const pageHeight = doc.internal.pageSize.getHeight();
-                const rutaImagenFondo = '/fondo2.png';
-
+                const rutaImagenFondoURL = require('@/assets/imagespdf/fondo2.png');
+                const rutaImagenFondo = await this.toDataURL(rutaImagenFondoURL);
                 const dibujarFondoBanner = () => {
                     doc.addImage(rutaImagenFondo, 'PNG', 0, 0, pageWidth, pageHeight);
                 };
@@ -11299,7 +11302,7 @@ export default {
                     });
 
                     // Firma centrada
-                    let finalY = doc.lastAutoTable.finalY + 35;
+                    let finalY = doc.lastAutoTable.finalY + 30;
                     doc.setFontSize(10);
                     doc.setFont("helvetica", "bold");
                     doc.text(sanitizarTexto(nombreFirma), pageWidth / 2, finalY, { align: "center" });
@@ -11420,10 +11423,13 @@ export default {
                         directorProy = resDir.data.data[0].nombre_con_titulo;
                     }
                 } catch (e) { console.warn("No se pudo obtener director", e); }
-
+                const ecuurl = require('@/assets/imagespdf/ecuador.png');
+                const imgsrl = require('@/assets/imagespdf/images.png');
+                const headerImg = await this.toDataURL(ecuurl);
+                const footerImg = await this.toDataURL(imgsrl);
                 // 3. Encabezados y Logos
-                doc.addImage('/ecuador.png', 'PNG', 15, 10, 22, 22); 
-                doc.addImage('/images.png', 'PNG', pageWidth - 37, 10, 22, 22);
+                doc.addImage(headerImg, 'PNG', 15, 10, 22, 22); 
+                doc.addImage(footerImg, 'PNG', pageWidth - 37, 10, 22, 22);
 
                 doc.setFont("helvetica", "bold");
                 doc.setFontSize(10);
@@ -11590,6 +11596,2012 @@ export default {
                 console.error('Error al generar el PDF del Anexo 3:', error);
             } finally {
                 this.isGeneratingPDFFinancia = false;
+            }
+        },
+        toDataURL(url) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.crossOrigin = 'Anonymous';
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0);
+                    const dataURL = canvas.toDataURL('image/jpeg');
+                    resolve(dataURL);
+                };
+                img.onerror = () => {
+                    reject(new Error('Error al cargar la imagen.'));
+                };
+                img.src = url;
+            });
+        },
+        async PDFProyect(id) {
+            this.botonCargando = 'pdf_completo_' + id;
+            try {
+                const idProyecto = id;
+                
+                if(!idProyecto) {
+                    return mostraralertas2("Error: No se ha seleccionado un proyecto válido.", "warning");
+                }
+
+                const response = await API.get(`${this.baseUrl}/getEdicionDatos/${idProyecto}`);
+                const data = response.data;
+                const proy = data.proyecto;
+
+                // 1. Inicializar jsPDF
+                const doc = new jsPDF('p', 'mm', 'a4');
+                const pageWidth = doc.internal.pageSize.getWidth();
+                const pageHeight = doc.internal.pageSize.getHeight();
+
+                // ==============================================================
+                // FASE 1: CREACIÓN DE LA PORTADA (PRIMERA HOJA)
+                // ==============================================================
+                const rutaPortadaURL = require('@/assets/imagespdf/fondoproy.png');// <-- Nombre de tu imagen de portada en la carpeta public
+                const rutaPortada = await this.toDataURL(rutaPortadaURL);
+                // Dibujar el fondo de la portada
+                doc.addImage(rutaPortada, 'PNG', 0, 0, pageWidth, pageHeight);
+
+                // -- Añadir el Título del Proyecto --
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(14);
+                doc.setTextColor(0, 0, 0); // Color oscuro (puedes cambiarlo a [0, 0, 0] para negro)
+                
+                const nombreProyecto = proy.proyect_nombre || 'NOMBRE DEL PROYECTO NO DEFINIDO';
+                
+                // Coordenada X desplazada un poco a la derecha (130 aprox) para esquivar la franja verde izquierda
+                const centroAreaBlancaX = 130; 
+                
+                doc.text(nombreProyecto, centroAreaBlancaX, 140, { 
+                    align: 'center', 
+                    maxWidth: 120 // Ancho máximo para que el texto haga salto de línea automático si es largo
+                });
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(11);
+                doc.setTextColor(0, 0, 0);
+
+                // Texto del Vicerrectorado (dividido en 2 líneas como en la imagen)
+                doc.text("Vicerrectorado Investigación, Vinculación", centroAreaBlancaX, 180, { align: 'center' });
+                doc.text("y Posgrado", centroAreaBlancaX, 187, { align: 'center' });
+
+                // Texto de la Dirección de Vinculación
+                doc.text("Dirección Investigación", centroAreaBlancaX, 202, { align: 'center' });
+                // -- Extraer y formatear la fecha (Solo Mes y Año) --
+                let mesAnio = '';
+                if (proy.proyect_fecha_pres) {
+                    const partes = proy.proyect_fecha_pres.split('-'); // Formato esperado: YYYY-MM-DD
+                    if (partes.length >= 2) {
+                        const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+                        const mesString = meses[parseInt(partes[1], 10) - 1];
+                        const anioString = partes[0];
+                        mesAnio = `${mesString} ${anioString}`;
+                    }
+                } else {
+                    mesAnio = 'Fecha no definida';
+                }
+
+                // -- Añadir la Fecha en la parte inferior --
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(12);
+                doc.setTextColor(0, 0, 0); // Texto negro
+                doc.text(mesAnio, centroAreaBlancaX, 260, { align: 'center' }); // Ajusta el Y=260 según necesidad
+
+
+                // ==============================================================
+                // FASE 2: HOJAS SIGUIENTES Y CONTENIDO (FONDO NORMAL)
+                // ==============================================================
+                const rutaImagenFondoURL = require('@/assets/imagespdf/fondo.png');
+                const rutaImagenFondo = await this.toDataURL(rutaImagenFondoURL);
+
+                const dibujarFondoBanner = () => {
+                    doc.addImage(rutaImagenFondo, 'PNG', 0, 0, pageWidth, pageHeight);
+                };
+
+                // Pasamos a la hoja 2
+                doc.addPage();
+                
+                // Dibujamos el fondo normal en la hoja 2
+                dibujarFondoBanner();
+
+                // Interceptamos doc.addPage para asegurar que las futuras hojas (3, 4, 5...) lleven el fondo normal
+                const originalAddPage = doc.addPage.bind(doc);
+                doc.addPage = function() {
+                    originalAddPage();
+                    dibujarFondoBanner();
+                };
+                const limpiarTextoRespectandoSaltos = (texto) => {
+                    if (!texto) return '';
+                    return texto
+                        .split('\n')
+                        .map(linea => linea.replace(/[^\S\r\n]+/g, ' ').trim())
+                        .join('\n');
+                };
+                // -------------------------------------------------------------
+                // CONTINÚA TU LÓGICA DE DATOS Y TABLAS (Hoja 2 en adelante)
+                // -------------------------------------------------------------
+                const facultadesTxt = data.facultades_data?.map(f => f.siglas || f.siglas || f.siglas).join('\n') || 'N/A';
+                const carrerasTxt = data.carreras_data?.map(c => c.NombCarr || c.NombCarr || c.NombCarr).join('\n') || 'N/A';
+                const dominiosTxt = data.dominios_data?.map(dom => dom.detalle_dom_huma).join('\n') || 'N/A';
+
+                const objetivosTxt = limpiarTextoRespectandoSaltos(
+                    data.objetivos_pei_data?.map(o => `${o.cod_obj}. ${(o.detalle_obj || '').trim()}`).join('\n')
+                ) || 'N/A';
+
+                const politicasTxt = data.pei_politicas_data?.map(p => p.nombre_pol+'\n '+ p.detalle_pol || 'Política').join('\n') || 'N/A';
+
+                const agendaTxt = limpiarTextoRespectandoSaltos(
+                    data.agenda_ods_data?.map(a => `${a.cod_ods}. ${(a.detalle_ods || 'Agenda').trim()}`).join('\n')
+                ) || 'N/A';
+
+                const objplandeTxt = limpiarTextoRespectandoSaltos(proy.obj_plan_desarrollo || '');
+                const convocatoriaTxt = data.convocatoria_data?.map(c => c.num_convocatoria).join('\n') || 'N/A';
+                const lineaInvestigacion = data.lineas_data?.map(l => l.nombre_lin).join('\n') || 'N/A';
+                const sublineaInvestigacion = data.sublineas_data?.map(sl => sl.nombre_sublin).join('\n') || 'N/A';
+                const areaespecifica = data.unesco_data.filter(item => item.tipo_area === 'Área de conocimiento').map(item =>item.sau_id+' '+ item.sau_descripcion).join('\n') || 'N/A';
+                const subareaespecifica = data.unesco_data.filter(item => item.tipo_area === 'Subárea de conocimiento').map(item =>item.sau_id+' '+ item.sau_descripcion).join('\n') || 'N/A';
+                const especareaespecifica = data.unesco_data.filter(item => item.tipo_area === 'Área específica de conocimiento').map(item =>item.sau_id+' '+ item.sau_descripcion).join('\n') || 'N/A';
+                const tipoproyectTxt = data.tipproyectos_data?.map(t => t.detalle_invi_proyect).join('\n') || 'N/A';
+
+                const coberturaSeleccionada = (proy.proyect_cobertura || '').toLowerCase();
+                const checkLocal = coberturaSeleccionada.includes('local') ? 'X' : '  ';
+                const checkRegional = coberturaSeleccionada.includes('regional') ? 'X' : '  ';
+                const checkNacional = coberturaSeleccionada.includes('nacional') ? 'X' : '  ';
+                const checkInternacional = coberturaSeleccionada.includes('internacional') ? 'X' : '  ';
+
+                // --- ESTILOS MAGISTRALES PARA SIMULAR UNA SOLA CELDA SIN LÍNEA DIVISORIA ---
+                const lblStyle = { 
+                    fontStyle: 'bold', 
+                    halign: 'left',
+                    cellPadding: { top: 3, left: 3, right: 3, bottom: 0 }, 
+                    lineWidth: { top: 0.3, right: 0.3, bottom: 0, left: 0.3 } 
+                };
+                const valStyle = { 
+                    fontStyle: 'normal', 
+                    halign: 'left',
+                    cellPadding: { top: 1, left: 3, right: 3, bottom: 3 }, 
+                    lineWidth: { top: 0, right: 0.3, bottom: 0.3, left: 0.3 } 
+                };
+
+                // 5. Dibujar Tabla 1: ÚNICAMENTE EL TÍTULO "1. DATOS GENERALES"
+                autoTable(doc, {
+                    startY: 30, // Inicia en la segunda hoja a esta altura
+                    margin: { left: 15, right: 15 },
+                    theme: 'grid',
+                    body: [
+                        [{ content: '1. DATOS GENERALES', styles: { halign: 'center', fontStyle: 'bold', fillColor: [220, 220, 220], textColor: [0, 0, 0], fontSize: 10 } }]
+                    ],
+                    styles: { lineColor: [0, 0, 0], lineWidth: 0.3 }
+                });
+
+                // 6. Definir la estructura de la TABLA 2
+                const tablaDatosGenerales = [
+                    [{ content: 'Nombre (Español):', colSpan: 3, styles: lblStyle }],
+                    [{ content: proy.proyect_nombre || '', colSpan: 3, styles: valStyle }],
+                    
+                    [{ content: 'Título del proyecto (Español):', colSpan: 3, styles: lblStyle }],
+                    [{ content: proy.proyect_titulo || '', colSpan: 3, styles: valStyle }],
+
+                    [{ content: 'Misión Institucional:', colSpan: 3, styles: lblStyle }],
+                    [{ content: 'Formación integral de profesionales críticos, propositivos y humanistas, mediante un proceso educativo actual, articulado entre la docencia, la investigación y la vinculación con la sociedad, para el desarrollo sostenible de la sociedad, basados en la construcción adecuada de la cultura universal y ancestral ecuatoriana, la ciencia y la tecnología.' || '', colSpan: 3, styles: valStyle }],
+                    
+                    [{ content: 'Visión Institucional:', colSpan: 3, styles: lblStyle }],
+                    [{ content: 'Ser un referente a nivel nacional e internacional de excelencia académica, científica, tecnológica y cultural, que incide positivamente en el desarrollo equitativo e integral de la sociedad.' || '', colSpan: 3, styles: valStyle }],
+                    
+                    [{ content: 'Objetivos del Plan Estratégico Institucional:', colSpan: 3, styles: lblStyle }],
+                    [{ content: objetivosTxt, colSpan: 3, styles: { ...valStyle, halign: 'justify' } }],
+                    
+                    [{ content: 'Políticas de investigación del Plan Estratégico institucional:', colSpan: 3, styles: lblStyle }],
+                    [{ content: politicasTxt, colSpan: 3, styles: valStyle }],
+                    
+                    [{ content: 'Agenda 2030 y los Objetivos de desarrollo sostenible una oportunidad para América Latina y el Caribe:', colSpan: 3, styles: lblStyle }],
+                    [{ content: agendaTxt, colSpan: 3, styles: { ...valStyle, halign: 'justify' } }],
+                    
+                    [{ content: 'Objetivos del Plan de Desarrollo para el Nuevo Ecuador 2024 • 2025:', colSpan: 3, styles: lblStyle }],
+                    [{ content: objplandeTxt, colSpan: 3, styles: { ...valStyle, halign: 'justify' } }],
+                    
+                    [
+                        { content: 'Nombre de Facultad/es:', styles: lblStyle },
+                        { content: 'Carrera/s:', styles: lblStyle },
+                        { content: 'Dominios académicos:', styles: lblStyle }
+                    ],
+                    [
+                        { content: facultadesTxt, styles: valStyle },
+                        { content: carrerasTxt, styles: valStyle },
+                        { content: dominiosTxt, styles: valStyle }
+                    ],
+                    
+                    [
+                        { content: 'No. Convocatoria:', styles: lblStyle },
+                        { content: 'Línea de Investigación:', styles: lblStyle },
+                        { content: 'Sublínea de Investigación:', styles: lblStyle }
+                    ],
+                    [
+                        { content: convocatoriaTxt, styles: valStyle },
+                        { content: lineaInvestigacion, styles: valStyle },
+                        { content: sublineaInvestigacion, styles: valStyle }
+                    ],
+                    
+                    [
+                        { content: 'Área Conocimiento UNESCO:', styles: lblStyle },
+                        { content: 'SubÁrea Conocimiento UNESCO:', styles: lblStyle },
+                        { content: 'SubÁrea Específica Conocimiento UNESCO:', styles: lblStyle }
+                    ],
+                    [
+                        { content: areaespecifica, styles: valStyle },
+                        { content: subareaespecifica, styles: valStyle },
+                        { content: especareaespecifica, styles: valStyle }
+                    ],
+                    
+                    [{ content: 'Tipo de proyecto de vinculación:', colSpan: 3, styles: lblStyle }],
+                    [{ content: tipoproyectTxt, colSpan: 3, styles: valStyle }]
+                ];
+
+                // Dibujar Tabla 2 
+                autoTable(doc, {
+                    startY: doc.lastAutoTable.finalY + 4, 
+                    margin: { top: 30, left: 15, right: 15, bottom: 20 }, 
+                    theme: 'grid',
+                    body: tablaDatosGenerales,
+                    styles: { fontSize: 8, lineColor: [0, 0, 0], textColor: [0, 0, 0], fillColor: false, cellPadding: 3 }
+                });
+
+                // 7. Definir estructura de la TABLA 3 
+                const tablaCobertura = [
+                    [{ content: 'COBERTURA Y LOCALIZACIÓN', colSpan: 4, styles: { fontStyle: 'bold', fillColor: [220, 220, 220], halign: 'left' } }],
+                    [
+                        { content: `Local                [ ${checkLocal} ]`, styles: { halign: 'center', fontStyle: 'normal' } },
+                        { content: `Regional          [ ${checkRegional} ]`, styles: { halign: 'center', fontStyle: 'normal' } },
+                        { content: `Nacional          [ ${checkNacional} ]`, styles: { halign: 'center', fontStyle: 'normal' } },
+                        { content: `Internacional   [ ${checkInternacional} ]`, styles: { halign: 'center', fontStyle: 'normal' } }
+                    ]
+                ];
+
+                // 8. Dibujar Tabla 3
+                autoTable(doc, {
+                    startY: doc.lastAutoTable.finalY, 
+                    margin: { top: 30, left: 15, right: 15, bottom: 20 },
+                    theme: 'grid',
+                    body: tablaCobertura,
+                    styles: { fontSize: 8, cellPadding: 3, lineColor: [0, 0, 0], lineWidth: 0.3, textColor: [0, 0, 0],fillColor: false }
+                });
+                let rawZona = data.zona_plan_data ? data.zona_plan_data.nombre_zona : '';
+                let zonaTxt = rawZona;
+                let regionTxt = '';
+
+                // Expresión regular para separar cuando encuentra " o Región" o simplemente "Región"
+                const regexRegion = /(?:\s+o\s+)?(regi[óo]n\s+.*)/i;
+                const matchRegion = rawZona.match(regexRegion);
+
+                if (matchRegion) {
+                    // Remueve la parte de la región para dejar solo el texto de la Zona
+                    zonaTxt = rawZona.replace(matchRegion[0], '').trim();
+                    // Guarda el resto a partir de la palabra "Región"
+                    regionTxt = matchRegion[1].trim(); 
+                }
+
+                // --- 2. OBTENER PROVINCIA SIN DUPLICADOS ---
+                let provincia = 'N/A';
+
+                if (Array.isArray(proy.invi_detalle_cobe)) {
+                    const provinciasMapeadas = proy.invi_detalle_cobe
+                        .map(cobe => cobe.provincias?.detalle || cobe.provincia?.detalle)
+                        .filter(Boolean);
+                    
+                    provincia = [...new Set(provinciasMapeadas)].join(', ') || 'N/A';
+
+                } else if (Array.isArray(proy.invi_detalle_cobe?.provincias)) {
+                    const provinciasMapeadas = proy.invi_detalle_cobe.provincias
+                        .map(p => p.detalle)
+                        .filter(Boolean);
+                        
+                    provincia = [...new Set(provinciasMapeadas)].join(', ') || 'N/A';
+
+                } else if (proy.invi_detalle_cobe?.provincias?.detalle) {
+                    provincia = proy.invi_detalle_cobe.provincias.detalle;
+                }
+
+                // --- 3. OBTENER CANTONES SIN DUPLICADOS ---
+                let cantones = 'N/A';
+
+                if (Array.isArray(proy.invi_detalle_cobe)) {
+                    const cantonesMapeadas = proy.invi_detalle_cobe
+                        .map(cobe => cobe.cantones?.detalle || cobe.canton?.detalle)
+                        .filter(Boolean);
+                    
+                    cantones = [...new Set(cantonesMapeadas)].join(', ') || 'N/A';
+
+                } else if (Array.isArray(proy.invi_detalle_cobe?.cantones)) {
+                    const cantonesMapeadas = proy.invi_detalle_cobe.cantones
+                        .map(p => p.detalle)
+                        .filter(Boolean);
+                        
+                    cantones = [...new Set(cantonesMapeadas)].join(', ') || 'N/A';
+
+                } else if (proy.invi_detalle_cobe?.cantones?.detalle) {
+                    cantones = proy.invi_detalle_cobe.cantones.detalle;
+                }
+                
+                // --- 4. LÓGICA DE PARROQUIAS (> 6 SE AGRUPAN) ---
+                let parroquiaTxt = 'N/A';
+
+                if (Array.isArray(proy.invi_detalle_cobe)) {
+                    const parroquiasMapeadas = proy.invi_detalle_cobe
+                        .map(c => {
+                            if (c.parroquias?.parroquia) {
+                                let tipo = c.parroquias.tipoparroquia ? ` - ${c.parroquias.tipoparroquia}` : '';
+                                return `${c.parroquias.parroquia}${tipo}`;
+                            }
+                            return null;
+                        })
+                        .filter(Boolean);
+                    
+                    // Eliminamos duplicados por si acaso
+                    const parroquiasUnicas = [...new Set(parroquiasMapeadas)];
+
+                    if (parroquiasUnicas.length > 6) {
+                        parroquiaTxt = `Urbanas y rurales de la Provincia de ${provincia}`;
+                    } else if (parroquiasUnicas.length > 0) {
+                        parroquiaTxt = parroquiasUnicas.join('\n');
+                    }
+                }
+
+
+                // -------------------------------------------------------------
+                // 10. ESTRUCTURA Y DIBUJO DE LA TABLA 4 (ZONAS Y OBJETIVOS)
+                // -------------------------------------------------------------
+                const tablaUbicacion = [
+                    // Fila 1: Cabeceras
+                    [
+                        { content: 'Zona de\nPlanificación', styles: lblStyle },
+                        { content: 'Región', styles: lblStyle },
+                        { content: 'Provincia', styles: lblStyle },
+                        { content: 'Cantón', styles: lblStyle },
+                        { content: 'Parroquia', styles: lblStyle }
+                    ],
+                    // Fila 2: Datos procesados
+                    [
+                        { content: zonaTxt, styles: valStyle },
+                        { content: regionTxt, styles: valStyle },
+                        { content: provincia, styles: valStyle },
+                        { content: cantones, styles: valStyle },
+                        { content: parroquiaTxt, styles: valStyle }
+                    ],
+                    // Fila 3: Celda combinada gris para Objetivos
+                    [
+                        { 
+                            content: 'OBJETIVOS DEL PROYECTO', 
+                            colSpan: 5, 
+                            styles: { 
+                                fontStyle: 'bold', 
+                                fillColor: [220, 220, 220], // Color gris referencial de la imagen
+                                halign: 'left' 
+                            } 
+                        }
+                    ]
+                ];
+
+                // Dibujar Tabla 4
+                autoTable(doc, {
+                    startY: doc.lastAutoTable.finalY + 10, // Inicia justo debajo de la Tabla de Cobertura sin espacio
+                    margin: { left: 15, right: 15 },
+                    theme: 'grid',
+                    body: tablaUbicacion,
+                    styles: { 
+                        fontSize: 8, 
+                        cellPadding: 3, 
+                        lineColor: [0, 0, 0], 
+                        lineWidth: 0.3, 
+                        textColor: [0, 0, 0],
+                        fillColor: false 
+                    }
+                });
+                const objetivosGenerales = proy.invi_obj_proyectos?.filter(item => item.tipo_obj_proy === 'general') || [];
+                const objetivosFin = proy.invi_obj_proyectos?.filter(item => item.tipo_obj_proy === 'fin') || [];
+                const objetivosEspecificos = proy.invi_obj_proyectos?.filter(item => item.tipo_obj_proy === 'especifico') || [];
+                // 2. Extraer Objetivo General y Fin
+                const objetivogeneral = objetivosGenerales.map(item => item.detalle_obj_proy).filter(Boolean).join('\n') || 'N/A';
+                const finproy = objetivosFin.map(item => item.detalle_obj_proy).filter(Boolean).join('\n') || 'N/A';
+                const objEspecificosTxt = objetivosEspecificos.map((i, idx) => `${idx + 1}. ${i.detalle_obj_proy}`).join('\n') || 'N/A';
+                // 3. Función auxiliar para extraer relaciones (Medios, Metas, Indicadores) y poner viñetas
+                const extraerConVinetas = (objetivos, relacion, campoTexto) => {
+                    let resultados = [];
+                    
+                    objetivos.forEach(obj => {
+                        const dataRelacion = obj[relacion];
+                        if (Array.isArray(dataRelacion)) {
+                            // Si viene como Array (Múltiples registros)
+                            dataRelacion.forEach(item => {
+                                if (item[campoTexto]) resultados.push(item[campoTexto]);
+                            });
+                        } else if (dataRelacion && dataRelacion[campoTexto]) {
+                            // Si viene como Objeto único
+                            resultados.push(dataRelacion[campoTexto]);
+                        }
+                    });
+
+                    if (resultados.length === 0) return 'N/A';
+                    if (resultados.length === 1) return resultados[0]; // Sin viñeta si es solo uno
+                    
+                    // Si hay más de 1, agregamos viñetas
+                    return resultados.map(r => `• ${r}`).join('\n');
+                };
+
+                // 4. Aplicar la función a las variables Objetivo General
+                const objgemediover = extraerConVinetas(objetivosGenerales, 'invi_medios_verificacion', 'detalle_medio_verifica');
+                const objgemeta = extraerConVinetas(objetivosGenerales, 'invi_metas', 'detalle_metas');
+                const objgindica = extraerConVinetas(objetivosGenerales, 'invi_indicadores', 'detalle_indicador');
+                const objgsupuestos = extraerConVinetas(objetivosGenerales, 'invi_supuestos', 'detalle_supuestos');
+
+                //Fin
+                const finmediover = extraerConVinetas(objetivosFin, 'invi_medios_verificacion', 'detalle_medio_verifica');
+                const finindica = extraerConVinetas(objetivosFin, 'invi_indicadores', 'detalle_indicador');
+                const finsupuestos = extraerConVinetas(objetivosFin, 'invi_supuestos', 'detalle_supuestos');
+                // 5. Estructurar la Tabla
+                const tablaObjetivos = [
+                    [{ content: 'Objetivo General:', colSpan: 3, styles: lblStyle }],
+                    [{ content: objetivogeneral, colSpan: 3, styles: { ...valStyle, halign: 'justify' } }],
+                    
+                    [{ content: 'Objetivos Específicos:', colSpan: 3, styles: lblStyle }],
+                    [{ content: objEspecificosTxt, colSpan: 3, styles: { ...valStyle, halign: 'justify' } }],
+                ];
+
+                // 6. Dibujar Tabla de Objetivos
+                autoTable(doc, {
+                    startY: doc.lastAutoTable.finalY, 
+                    margin: { top: 30, left: 15, right: 15, bottom: 20 }, 
+                    theme: 'grid',
+                    body: tablaObjetivos,
+                    styles: { fontSize: 8, lineColor: [0, 0, 0], textColor: [0, 0, 0], fillColor: false,cellPadding: 3 } 
+                });
+                const formatearLista = (relacion, campo, etiqueta = '') => {
+                    if (!relacion) return etiqueta ? `${etiqueta} N/A` : 'N/A';
+
+                    const items = Array.isArray(relacion) ? relacion : [relacion];
+                    const textos = items.map(item => item[campo] || item.detalle || '').filter(Boolean);
+
+                    if (textos.length === 0) return etiqueta ? `${etiqueta} N/A` : 'N/A';
+
+                    // Si es solo 1 elemento
+                    if (textos.length === 1) {
+                        return etiqueta ? `${etiqueta} ${textos[0]}` : textos[0];
+                    }
+
+                    // Si hay más de 1 elemento, se agregan viñetas a cada uno
+                    const listaConVinetas = textos.map(t => `•  ${t}`).join('\n');
+                    return etiqueta ? `${etiqueta}\n${listaConVinetas}` : listaConVinetas;
+                };
+
+                // -------------------------------------------------------------
+                // 2. FILTRAR OBJETIVOS ESPECÍFICOS Y CONSTRUIR FILAS DE LA TABLA
+                // -------------------------------------------------------------
+                
+
+                const bodyObjEspecificos = [
+                    // Cabecera de la tabla
+                    [
+                        { content: 'OBJETIVOS ESPECÍFICOS', styles: { fontStyle: 'bold', halign: 'center' } },
+                        { content: 'PRODUCTOS VERIFICABLES', styles: { fontStyle: 'bold', halign: 'center' } }
+                    ]
+                ];
+
+                // Recorrer y numerar dinámicamente cada objetivo específico
+                objetivosEspecificos.forEach((obj, index) => {
+                    const numero = index + 1;
+                    const objTexto = `${numero}.  ${obj.detalle_obj_proy || ''}`;
+                    
+                    // Si hay 1 meta/indicador muestra "Meta: Texto". Si hay varias, genera viñetas debajo de "Meta:"
+                    const metaTexto = formatearLista(obj.invi_metas, 'detalle_metas', 'Meta:');
+                    const indicadorTexto = formatearLista(obj.invi_indicadores, 'detalle_indicador', 'Indicador:');
+                    const productosTexto = formatearLista(obj.invi_prod_verificables, 'detalle_prod_verif');
+
+                    // Fila 1 del Objetivo (Texto del Objetivo + Productos Verificables combinados verticalmente)
+                    bodyObjEspecificos.push([
+                        { content: objTexto, styles: { halign: 'justify', fontStyle: 'bold' } },
+                        { content: productosTexto, rowSpan: 3, styles: { halign: 'justify', valign: 'top' } }
+                    ]);
+
+                    // Fila 2 del Objetivo (Meta / Metas)
+                    bodyObjEspecificos.push([
+                        { content: metaTexto, styles: { halign: 'justify' } }
+                    ]);
+
+                    // Fila 3 del Objetivo (Indicador / Indicadores)
+                    bodyObjEspecificos.push([
+                        { content: indicadorTexto, styles: { halign: 'justify' } }
+                    ]);
+                });
+
+                // -------------------------------------------------------------
+                // 3. DIBUJAR LA TABLA DE OBJETIVOS ESPECÍFICOS
+                // -------------------------------------------------------------
+                /*autoTable(doc, {
+                    startY: doc.lastAutoTable.finalY,
+                    margin: { top: 30, left: 15, right: 15, bottom: 20 },
+                    theme: 'grid',
+                    body: bodyObjEspecificos,
+                    styles: { 
+                        fontSize: 8, 
+                        lineColor: [0, 0, 0], 
+                        lineWidth: 0.3,
+                        textColor: [0, 0, 0], 
+                        fillColor: false,
+                        cellPadding: 3
+                    },
+                    columnStyles: {
+                        0: { cellWidth: 'auto' }, // Columna de Objetivos Específicos
+                        1: { cellWidth: 80 }     // Ancho fijo de la columna Productos Verificables
+                    }
+                });*/
+                const tablaAntecedentesyJustif = [
+                    /*[{ content: 'Antecedentes:', colSpan: 3, styles: { fontStyle: 'bold', fillColor: [220, 220, 220], halign: 'justify' } }],
+                    [{ content: proy.proyect_antecedentes || '', colSpan: 3, styles: {halign: 'justify'} }],*/
+                    [{ content: 'Justificación (incluir investigaciones realizadas en proyectos de investigación anteriores):', colSpan: 3, styles: { fontStyle: 'bold', fillColor: [220, 220, 220], halign: 'justify' } }],
+                    [{ content: proy.proyect_justificacion || '', colSpan: 3, styles: {halign: 'justify'} }]
+                ];
+
+                
+                autoTable(doc, {
+                    startY: doc.lastAutoTable.finalY, 
+                    margin: { top: 30, left: 15, right: 15, bottom: 20 },
+                    theme: 'grid',
+                    body: tablaAntecedentesyJustif,
+                    styles: { fontSize: 8, lineColor: [0, 0, 0], textColor: [0, 0, 0], fillColor: false, cellPadding: 3 } 
+                });
+                const tablainstituciones = [
+                    [{ content: 'INSTITUCIONES INVOLUCRADAS QUE BRINDAN FINANCIAMIENTO INTERNO Y EXTERNO', colSpan: 6, styles: { fontStyle: 'bold', fillColor: [220, 220, 220], halign: 'center' } }],
+                    [{ content: 'Datos de las Instituciones Ejecutoras', colSpan: 6, styles: { fontStyle: 'bold', halign: 'left' } }]
+                ]; 
+                proy.invi_detalle_inst_proy.sort((a, b) => {
+                    const rucPrincipal = "0860000830001";
+                    // Si 'a' tiene el RUC principal, lo movemos hacia arriba (-1)
+                    if (a.praempresas.ruc === rucPrincipal) return -1;
+                    // Si 'b' tiene el RUC principal, lo movemos hacia arriba (1)
+                    if (b.praempresas.ruc === rucPrincipal) return 1;
+                    // Para el resto, no cambiamos el orden (0)
+                    return 0;
+                });
+                proy.invi_detalle_inst_proy.forEach((item) => {
+                    // Accedemos al objeto praempresas donde están los datos
+                    const emp = item.praempresas;
+                    
+                    // Concatenar el título y nombre del representante si existen
+                    const representanteStr = (emp.titulo ? emp.titulo + ' ' : '') + (emp.representante || '');
+
+                    // Fila A: Nombre de la Institución (Ocupa las 6 columnas, centrado, cursiva/negrita)
+                    tablainstituciones.push([
+                        { 
+                            content: emp.empresacorta || emp.empresa || '', 
+                            colSpan: 6, 
+                            styles: { fontStyle: 'bolditalic', halign: 'center', fillColor: [245, 245, 245] } 
+                        }
+                    ]);
+
+                    // Fila B: Representante Legal y Cédula (2 cols - 2 cols - 1 col - 1 col)
+                    tablainstituciones.push([
+                        { content: 'Representante Legal', colSpan: 2 },
+                        { content: representanteStr, colSpan: 2 },
+                        { content: 'Cédula de Identidad', colSpan: 1 },
+                        { content: emp.ci_representante || '', colSpan: 1 }
+                    ]);
+
+                    // Fila C: Teléfonos, Fax y Correo (1 col c/u = 6 columnas en total)
+                    tablainstituciones.push([
+                        { content: 'Teléfonos', colSpan: 1 },
+                        { content: emp.telefono || '', colSpan: 1 },
+                        { content: 'Fax', colSpan: 1 },
+                        { content: '', colSpan: 1 }, // Lo dejamos vacío porque no viene en tu JSON
+                        { content: 'Correo Electrónico', colSpan: 1 },
+                        { content: emp.email || '', colSpan: 1, styles: { textColor: [0, 0, 255] } } // Texto azul simulando link
+                    ]);
+
+                    // Fila D: Dirección Institucional
+                    tablainstituciones.push([
+                        { content: 'Dirección Institucional', colSpan: 2 },
+                        { content: emp.direccion || '', colSpan: 4 }
+                    ]);
+
+                    // Fila E: Página Web
+                    tablainstituciones.push([
+                        { content: 'Página Web Institucional', colSpan: 2 },
+                        { content: emp.url || '', colSpan: 4, styles: { textColor: [0, 0, 255] } } // Texto azul
+                    ]);
+
+                    // Fila F: Órgano Ejecutor (Uso 'cargo' como placeholder, pero puedes cambiarlo por el campo que corresponda)
+                    tablainstituciones.push([
+                        { content: 'Órgano Ejecutor', colSpan: 2 },
+                        { content: 'Dirección de Vinculación  UTLVTE', colSpan: 4 } 
+                    ]);
+                });
+
+                // 3. Dibujar la tabla en el PDF
+                autoTable(doc, {
+                    startY: doc.lastAutoTable.finalY, 
+                    margin: { top: 30, left: 15, right: 15, bottom: 20 },
+                    theme: 'grid',
+                    body: tablainstituciones,
+                    styles: { 
+                        fontSize: 8, 
+                        lineColor: [0, 0, 0], 
+                        textColor: [0, 0, 0], 
+                        fillColor: false,
+                        valign: 'middle' // Para que el texto quede centrado verticalmente en cada celda
+                    },
+                    // Definimos los anchos de columna para asegurar que la cuadrícula se distribuya bien
+                    // Total de la página suele ser ~180 de ancho (210mm ancho total - 30mm de márgenes)
+                    columnStyles: {
+                        0: { cellWidth: 30 },
+                        1: { cellWidth: 30 },
+                        2: { cellWidth: 30 },
+                        3: { cellWidth: 30 },
+                        4: { cellWidth: 30 },
+                        5: { cellWidth: 30 } // Se ajustarán automáticamente de forma proporcional
+                    }
+                });
+                let totalPresupuesto = 0;
+
+                // 1. Obtenemos el arreglo principal (asegurándonos de que no sea undefined)
+                const detallesPresupuesto = proy?.invi_detalle_presu_proy || [];
+
+                // 2. Encabezados principales estáticos
+                const tablapresupuesto = [
+                    [{ content: 'PRESUPUESTO', colSpan: 6, styles: { fontStyle: 'bold', fillColor: [220, 220, 220], halign: 'left' } }],
+                    [{ content: 'PROYECTO VINCULACIÓN', colSpan: 6, styles: { fontStyle: 'bold', halign: 'left' } }]
+                ];
+
+                // ---------------------------------------------------------
+                // 3. SECCIÓN UTLVTE
+                // Filtramos SOLO los registros que SÍ tienen aportes de la UTLVT
+                // ---------------------------------------------------------
+                const aportesUtlvt = detallesPresupuesto.filter(item => item.invi_aportesutlvt !== null);
+
+                if (aportesUtlvt.length > 0) {
+                    tablapresupuesto.push([
+                        { content: 'APORTES UNIVERSIDAD TÉCNICA "LUIS VARGAS TORRES" DE ESMERALDAS', colSpan: 6, styles: { fontStyle: 'bold', halign: 'center' } }
+                    ]);
+                    tablapresupuesto.push([
+                        { content: 'Actividad', colSpan: 5, styles: { fontStyle: 'bold', halign: 'center' } },
+                        { content: 'Valor ($)', colSpan: 1, styles: { fontStyle: 'bold', halign: 'center' } }
+                    ]);
+
+                    aportesUtlvt.forEach(aporte => {
+                        // Accedemos correctamente a los datos internos
+                        const dataUTLVT = aporte.invi_aportesutlvt;
+                        const valor = parseFloat(dataUTLVT.valor) || 0;
+                        totalPresupuesto += valor;
+                        
+                        tablapresupuesto.push([
+                            { content: dataUTLVT.actividad || '', colSpan: 5, styles: { halign: 'left' } },
+                            { content: valor.toString(), colSpan: 1, styles: { halign: 'center' } } 
+                        ]);
+                    });
+                }
+
+                // ---------------------------------------------------------
+                // 4. SECCIÓN ENTIDADES COOPERANTES (Múltiples)
+                // Filtramos SOLO los registros que SÍ tienen aportes de instituciones
+                // ---------------------------------------------------------
+                const aportesInst = detallesPresupuesto.filter(item => item.invi_aportesinst !== null);
+
+                if (aportesInst.length > 0) {
+                    // Como puede haber varias instituciones diferentes, las AGRUPAMOS por su nombre (empresacorta)
+                    const institucionesAgrupadas = {};
+                    
+                    aportesInst.forEach(aporte => {
+                        const dataInst = aporte.invi_aportesinst;
+                        // Obtenemos el nombre de la empresa para usarlo como llave del grupo
+                        const nombreEmpresa = dataInst.praempresa?.empresacorta || dataInst.praempresa?.empresa || 'INSTITUCIÓN';
+                        
+                        // Si el grupo no existe, lo creamos
+                        if (!institucionesAgrupadas[nombreEmpresa]) {
+                            institucionesAgrupadas[nombreEmpresa] = [];
+                        }
+                        // Guardamos el aporte dentro del grupo de su respectiva institución
+                        institucionesAgrupadas[nombreEmpresa].push(dataInst);
+                    });
+
+                    // Ahora recorremos cada grupo (cada institución) para pintar su propia sección
+                    for (const [nombreInstitucion, items] of Object.entries(institucionesAgrupadas)) {
+                        
+                        // Título dinámico para la institución actual
+                        tablapresupuesto.push([
+                            { content: `APORTES ENTIDAD COOPERANTE - ${nombreInstitucion}`, colSpan: 6, styles: { fontStyle: 'bold', halign: 'center' } }
+                        ]);
+                        
+                        // Subtítulos de esta institución
+                        tablapresupuesto.push([
+                            { content: 'Concepto', colSpan: 5, styles: { fontStyle: 'bold', halign: 'center' } },
+                            { content: 'Valor ($)', colSpan: 1, styles: { fontStyle: 'bold', halign: 'center' } }
+                        ]);
+
+                        // Recorremos los ítems de esta institución
+                        items.forEach(data => {
+                            const valor = parseFloat(data.valor) || 0;
+                            totalPresupuesto += valor; 
+                            
+                            tablapresupuesto.push([
+                                { content: data.actividad || '', colSpan: 5, styles: { halign: 'left' } },
+                                { content: valor.toString(), colSpan: 1, styles: { halign: 'center' } }
+                            ]);
+                        });
+                    }
+                }
+
+                // ---------------------------------------------------------
+                // 5. FILA FINAL DEL TOTAL
+                // ---------------------------------------------------------
+                tablapresupuesto.push([
+                    { content: 'TOTAL, DEL PROYECTO ($):', colSpan: 5, styles: { fontStyle: 'bold', halign: 'center' } },
+                    { content: totalPresupuesto.toString(), colSpan: 1, styles: { fontStyle: 'bold', halign: 'center' } }
+                ]);
+
+                // ---------------------------------------------------------
+                // 6. DIBUJAR LA TABLA EN EL DOCUMENTO PDF
+                // ---------------------------------------------------------
+                /*autoTable(doc, {
+                    startY: doc.lastAutoTable.finalY, 
+                    margin: { top: 30, left: 15, right: 15, bottom: 20 },
+                    theme: 'grid',
+                    body: tablapresupuesto,
+                    styles: { 
+                        fontSize: 8, 
+                        lineColor: [0, 0, 0], 
+                        textColor: [0, 0, 0], 
+                        fillColor: false,
+                        valign: 'middle' 
+                    },
+                    // Le asignamos un ancho más pequeño fijo a la última columna para que se parezca más a tu imagen
+                    columnStyles: {
+                        5: { cellWidth: 35 } // Esto hace que la columna "Valor ($)" sea más estrecha y "Actividad" ocupe el resto.
+                    }
+                });*/
+                const detallesPresu = proy.invi_detalle_presu_proy || [];
+                const totalUtlvt = detallesPresu
+                    .filter(i => i.invi_aportesutlvt)
+                    .reduce((acc, i) => acc + (parseFloat(i.invi_aportesutlvt.valor) || 0), 0);
+                const totalInst = detallesPresu
+                    .filter(i => i.invi_aportesinst)
+                    .reduce((acc, i) => acc + (parseFloat(i.invi_aportesinst.valor) || 0), 0);
+                const totalRiesgos = totalUtlvt + totalInst; // Ajustar si manejas un campo específico para presupuesto de riesgos
+                const totalProyecto = totalUtlvt + totalInst;
+
+                const tablamonto = [
+                    [{ content: 'Monto', colSpan: 3, styles: { fontStyle: 'bold', fillColor: [220, 220, 220], halign: 'left' } }],
+                    [
+                        { content: `Presupuesto de Riesgos\n$ ${totalRiesgos.toFixed(2)}`, styles: { halign: 'center', fontStyle: 'bold' } },
+                        { content: `Presupuesto aporte UTELVT\n$ ${totalUtlvt.toFixed(2)}`, styles: { halign: 'center', fontStyle: 'bold' } },
+                        { content: `Presupuesto entidad auspiciantes/beneficiaria\n$ ${totalInst.toFixed(2)}`, styles: { halign: 'center', fontStyle: 'bold' } },
+                        { content: `Presupuesto Total\n$ ${totalProyecto.toFixed(2)}`, styles: { halign: 'center', fontStyle: 'bold' } }
+                    ]
+                ];
+                autoTable(doc, {
+                    startY: doc.lastAutoTable.finalY, 
+                    margin: { top: 30, left: 15, right: 15, bottom: 20 },
+                    theme: 'grid',
+                    body: tablamonto,
+                    styles: { 
+                        fontSize: 8, 
+                        lineColor: [0, 0, 0], 
+                        textColor: [0, 0, 0], 
+                        fillColor: false,
+                        valign: 'middle',
+                        // font: 'times' // Descomenta esto si tu documento general usa Times New Roman
+                    },
+                    // Forzamos proporciones iguales (1/3 del ancho total cada una)
+                    columnStyles: {
+                        0: { cellWidth: '33%' },
+                        1: { cellWidth: '33%' },
+                        2: { cellWidth: '33%' }
+                    }
+                });
+                // 1. Usar corchetes o paréntesis para las casillas, evitamos problemas de fuentes
+                const estadoBD = proy.proyect_estado;
+                const checkNuevo = (estadoBD === 'Nuevo' || estadoBD === 1) ? '[ X ]' : '[   ]';
+                const checkEjecucion = (estadoBD === 'En Ejecución' || estadoBD === 2) ? '[ X ]' : '[   ]';
+                const checkContinuacion = (estadoBD === 'Continuación' || estadoBD === 3) ? '[ X ]' : '[   ]';
+
+                // 2. Construimos el texto del estado con un salto de línea inicial para imitar el diseño
+                const estadoTexto = `Estado:\nNuevo: ${checkNuevo}    En Ejecución: ${checkEjecucion}    Continuación: ${checkContinuacion}`;
+
+                // 3. Definimos los estilos base si los tienes guardados en variables, o los aplicamos directamente.
+                // Si tienes una fuente específica cargada, debes asegurarte de que `valStyle` la incluya (ej. font: 'times')
+
+                const tablaplazoejecu = [
+                    // Fila 1: Título
+                    [
+                        { content: 'PLAZO DE EJECUCIÓN', colSpan: 3, styles: { fontStyle: 'bold', fillColor: [220, 220, 220], halign: 'left' } }
+                    ],
+                    // Fila 2: Fechas agrupadas (Título + Valor en la misma celda)
+                    [
+                        { 
+                            content: `Fecha de presentación\n(${proy.proyect_fecha_pres || ''})`, 
+                            // Usa tus variables de estilo si prefieres, pero asegúrate de que tengan `halign: 'left'`
+                            styles: { fontStyle: 'bold', halign: 'left' } 
+                        },
+                        { 
+                            content: `Fecha de inicio\n(${proy.fechainicio || ''})\nTras aprobación del CSU.`, 
+                            styles: { fontStyle: 'bold', halign: 'left' } 
+                        },
+                        { 
+                            content: `Fecha de finalización\n(${proy.fechafin || ''})`, 
+                            styles: { fontStyle: 'bold', halign: 'left' } 
+                        }
+                    ],
+                    // Fila 3: Duración y Estado
+                    [
+                        // Columna 1 (Índice 0): Duración
+                        { 
+                            content: `Duración en meses:\n${proy.proyect_duracion_mes || ''}`, 
+                            colSpan: 1, 
+                            styles: { halign: 'center', fontStyle: 'bold' } 
+                        },
+                        // Columnas 2 y 3 fusionadas (Índices 1 y 2): Estado
+                        { 
+                            content: estadoTexto, 
+                            colSpan: 2, 
+                            styles: { halign: 'left', fontStyle: 'normal' } // fontStyle normal para que no sea negrita todo
+                        }
+                    ]
+                ];
+
+                // 4. Renderizado
+                autoTable(doc, {
+                    startY: doc.lastAutoTable.finalY, 
+                    margin: { top: 30, left: 15, right: 15, bottom: 20 },
+                    theme: 'grid',
+                    body: tablaplazoejecu,
+                    styles: { 
+                        fontSize: 8, 
+                        lineColor: [0, 0, 0], 
+                        textColor: [0, 0, 0], 
+                        fillColor: false,
+                        valign: 'middle',
+                        // font: 'times' // Descomenta esto si tu documento general usa Times New Roman
+                    },
+                    // Forzamos proporciones iguales (1/3 del ancho total cada una)
+                    columnStyles: {
+                        0: { cellWidth: '33%' },
+                        1: { cellWidth: '33%' },
+                        2: { cellWidth: '33%' }
+                    }
+                });
+                const capitalizarNombres = (str) => {
+                    if (!str) return '';
+                    return str.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+                };
+
+                // 2. Función auxiliar para obtener la prioridad según el texto del rol/función
+                const getPrioridadFuncion = (nombreFuncion = '') => {
+                    const f = nombreFuncion.toLowerCase();
+                    
+                    // Evaluamos 'subdirector' antes de 'director' para evitar coincidencias erróneas
+                    if (f.includes('subdirector')) return 2;
+                    if (f.includes('director')) return 1;
+                    if (f.includes('investigador')) return 3;
+                    if (f.includes('ayudante')) return 4;
+                    if (f.includes('técnico') || f.includes('tecnico')) return 5;
+                    if (f.includes('estudiante')) return 6;
+                    
+                    return 7; // Cualquier otro rol no contemplado
+                };
+
+                // 3. Obtener e integrar la lista ordenada por función
+                const integrantesRaw = data.integrantes_titulosactivos || data.integrantes_activos || [];
+
+                const integrantes = [...integrantesRaw].sort((a, b) => {
+                    const funcA = a.funciones ? a.funciones.nombre_funcion : '';
+                    const funcB = b.funciones ? b.funciones.nombre_funcion : '';
+                    return getPrioridadFuncion(funcA) - getPrioridadFuncion(funcB);
+                });
+
+                // 4. Mapear los datos para las filas de AutoTable
+                const filasPersonal = integrantes.map(integrante => {
+                    const info = integrante.informacion_personal_d || integrante.informacionpersonal || {};
+                    
+                    // Función (rol en el proyecto)
+                    const funcion = integrante.funciones ? integrante.funciones.nombre_funcion : '';
+                    
+                    // Cédula
+                    const cedula = info.cedula_pasaporte || info.CIInfPer || '';
+                    
+                    // Nombre formateado enviado desde el backend (PHP)
+                    let nombreCompleto = integrante.nombre_completo_titulo;
+                    if (!nombreCompleto) {
+                        const nombresStr = `${info.NombInfPer || ''} ${info.ApellInfPer || ''} ${info.ApellMatInfPer || ''}`.trim();
+                        nombreCompleto = capitalizarNombres(nombresStr);
+                    }
+                    
+                    // Carrera y Facultad
+                    const idcarr = integrante.idCarr;
+                    let carrera = '';
+                    let facultad = '';
+                    
+                    if (idcarr && integrante.carreras) {
+                        carrera = integrante.carrera_formateada|| '';
+                        if (integrante.carreras.facultades && integrante.carreras.facultades.length > 0) {
+                            facultad = integrante.carreras.facultades[0].siglas || '';
+                        }
+                    }
+                    
+                    const fincarrera = (facultad && carrera) ? `${facultad} - ${carrera}` : (carrera || facultad || ''); 
+
+                    // Correo
+                    const correo = info.mailInst || info.mailPer || '';
+
+                    return [
+                        { content: funcion, styles: { halign: 'center' } },
+                        { content: cedula, styles: { halign: 'center' } },
+                        { content: nombreCompleto, styles: { halign: 'center' } },
+                        { content: fincarrera, styles: { halign: 'center' } },
+                        { content: correo, styles: { halign: 'center', textColor: [0, 85, 164] } }, 
+                        { content: '', styles: { halign: 'center' } } 
+                    ];
+                });
+
+                // 5. Estructura general de la tabla "PERSONAL RESPONSABLE"
+                const tablaPersonal = [
+                    [
+                        { 
+                            content: 'PERSONAL RESPONSABLE DEL PROYECTO', 
+                            colSpan: 6, 
+                            styles: { fontStyle: 'bold', fillColor: [230, 230, 230], halign: 'left', cellPadding: { top: 3, left: 2, right: 2, bottom: 0 }, lineWidth: { top: 0.1, left: 0.1, right: 0.1, bottom: 0 } } 
+                        }
+                    ],
+                    [
+                        { 
+                            content: `Ingresa a Módulo de Currículum Vitae\n* En caso de que no se tenga definido el nombre de la persona que ejercerá la función propuesta para la investigación, se deberá dejar en blanco desde la columna No. 2.\nPara el caso de Investigadores externos a la universidad se debe incluir el Currículo Vitae completo.`, 
+                            colSpan: 6, 
+                            styles: { fontStyle: 'italic', fillColor: [230, 230, 230], halign: 'justify', fontSize: 7, cellPadding: { top: 1, left: 2, right: 2, bottom: 3 }, lineWidth: { top: 0, left: 0.1, right: 0.1, bottom: 0.1 } } 
+                        }
+                    ],
+                    [
+                        { content: '', colSpan: 6, styles: { cellPadding: 2, fillColor: [255, 255, 255] } }
+                    ],
+                    [
+                        { content: 'FUNCIÓN', styles: { fontStyle: 'bold', halign: 'center', fillColor: [255, 255, 255] } },
+                        { content: 'CÉDULA DE IDENTIDAD', styles: { fontStyle: 'bold', halign: 'center', fillColor: [255, 255, 255] } },
+                        { content: 'NOMBRE COMPLETO', styles: { fontStyle: 'bold', halign: 'center', fillColor: [255, 255, 255] } },
+                        // EL TRUCO ESTÁ AQUÍ: Añadimos espacios antes y después de las barras "/"
+                        { content: 'CARRERA / DIRECCIONES / INSTITUCIÓN A LA QUE PERTENECE', styles: { fontStyle: 'bold', halign: 'center', fillColor: [255, 255, 255] } },
+                        { content: 'CORREO ELECTRÓNICO', styles: { fontStyle: 'bold', halign: 'center', fillColor: [255, 255, 255] } },
+                        { content: 'FIRMAS', styles: { fontStyle: 'bold', halign: 'center', fillColor: [255, 255, 255] } }
+                    ],
+                    ...filasPersonal
+                ];
+
+                // 6. Renderizado final de la tabla con anchos optimizados
+                autoTable(doc, {
+                    startY: doc.lastAutoTable.finalY + 10, 
+                    margin: { top: 30, left: 15, right: 15, bottom: 20 },
+                    theme: 'grid',
+                    body: tablaPersonal,
+                    styles: { 
+                        fontSize: 7.5, 
+                        lineColor: [0, 0, 0], 
+                        textColor: [0, 0, 0],
+                        fillColor: false, 
+                        valign: 'middle',
+                        // Aseguramos que el texto largo se rompa hacia abajo y no empuje las celdas
+                        overflow: 'linebreak' 
+                    },
+                    // Suma exacta de 100% con anchos más realistas para que nada se trabe
+                    columnStyles: {
+                        0: { cellWidth: '10%' }, // Función
+                        1: { cellWidth: '10%' }, // Cédula 
+                        2: { cellWidth: '14%' }, // Nombre completo
+                        3: { cellWidth: '13%' }, // Carrera / Facultad (Un 13% es el mínimo seguro)
+                        4: { cellWidth: '18%' }, // Correo (Necesita este espacio para que los correos largos no rompan la tabla)
+                        5: { cellWidth: '35%' }  // Firmas (Espacio amplio y garantizado)
+                    }
+                });
+                const tablaplan1 = [
+                    // Fila 1: Título
+                    [
+                        { content: 'CONSIDERACIONES DE GÉNERO Y CONOCIMIENTO ANCESTRAL', colSpan: 3, styles: { fontStyle: 'bold', fillColor: [220, 220, 220], halign: 'left' } }
+                    ],
+                    // Fila 2: Fechas agrupadas (Título + Valor en la misma celda)
+                    [
+                        { content: 'Se seleccionará una muestra representativa igual en género y edad, sin prejuicio de la preferencia sexual, de quienes se consideren adictos a cierto nivel y área de forma que las investigaciones puedan beneficiar a todos los géneros. Se procurará invitar a personas de comunidades que sufran de adicción. DEBE INCLUIR LOS PARTICIPANTES DE ACUERDO AL CONCEPTO', colSpan: 3, styles: { halign: 'justify' } }
+                    ],
+                    [
+                        { content: 'CONSECUENCIAS NO INTENCIONALES', colSpan: 3, styles: { fontStyle: 'bold', fillColor: [220, 220, 220], halign: 'left' } }
+                    ],
+                    [
+                        { content: 'Al ser investigación basada en interacciones externas de los sujetos se respetan los principios de bioética, cada participante se reconoce por sí mismo como adicto a algo, firmará un consentimiento informado y se asegura que el trato de la información será anónimo utilizando artífices numéricos para identificar a los participantes y evitar prejuicios. Se respetará e incluirá a cualquier persona que quiera colaborar independiente de su preferencia sexual, credo, religión, o la falta de esta última, etnia, etc para incluir una muestra multicultural representativa. DEBE INCLUIR LOS PARTICIPANTES DE ACUERDO AL CONCEPTO', 
+                        colSpan: 3, styles: { halign: 'justify' } }
+                    ],
+                    [
+                        { content: '2. DIAGNÓSTICO Y PROBLEMA', colSpan: 3, styles: { fontStyle: 'bold', fillColor: [220, 220, 220], halign: 'left' } }
+                    ],
+                ];
+
+                // 4. Renderizado
+                autoTable(doc, {
+                    startY: doc.lastAutoTable.finalY, 
+                    margin: { top: 30, left: 15, right: 15, bottom: 20 },
+                    theme: 'grid',
+                    body: tablaplan1,
+                    styles: { 
+                        fontSize: 8, 
+                        lineColor: [0, 0, 0], 
+                        textColor: [0, 0, 0], 
+                        fillColor: false,
+                        valign: 'middle',
+                        cellPadding: 3
+                        // font: 'times' // Descomenta esto si tu documento general usa Times New Roman
+                    },
+                });
+                const tabladiagprom = [
+                    [{ content: '2.1 Descripción de la situación actual del tema a investigar', colSpan: 3, styles: lblStyle }],
+                    [{ content: proy.proyect_desc_situ_act, colSpan: 3, styles: { ...valStyle, halign: 'justify' } }],
+                    
+                    [{ content: '2.2 Identificación, descripción y diagnóstico del problema:', colSpan: 3, styles: lblStyle }],
+                    [{ content: proy.proyect_diag_probl, colSpan: 3, styles: { ...valStyle, halign: 'justify' } }],
+                    [
+                        { content: `2.3 Tabla de Búsqueda: En Bases de Datos/Documentos/Patentes/otros\n(Solicita la comparación  entre el tema a investigar y los resultados de las búsquedas)`, colSpan: 3, styles: { fontStyle: 'bold', halign: 'left' } }
+                    ],
+                ];
+                autoTable(doc, {
+                    startY: doc.lastAutoTable.finalY + 4, 
+                    margin: { top: 30, left: 15, right: 15, bottom: 20 },
+                    theme: 'grid',
+                    body: tabladiagprom,
+                    styles: { 
+                        fontSize: 8, 
+                        lineColor: [0, 0, 0], 
+                        textColor: [0, 0, 0], 
+                        fillColor: false,
+                        valign: 'middle',
+                        cellPadding: 3
+                        // font: 'times' // Descomenta esto si tu documento general usa Times New Roman
+                    },
+                });
+                const filasBasePat = (proy.invi_det_base_pat || []).map(item => [
+                    item.invi_base_pat?.nombre_base || item.base_datos || '',
+                    item.invi_base_pat?.denominacion || '',
+                    item.invi_base_pat?.num_patente || '',
+                    item.invi_base_pat?.otros || ''
+                ]);
+                if (filasBasePat.length === 0) filasBasePat.push(['', '', '', '']);
+
+                /*const asiognaturasTxt = data.asignaturas_data?.map(f => '* '+ f.NombAsig).join('\n') || 'N/A';
+                const tablaarticula = [
+                    // Fila 2: Fechas agrupadas (Título + Valor en la misma celda)
+                    [
+                        { content: 'Contribución a la sociedad', styles: { halign: 'left' } },
+                        { content: 'Asignatura(s) que aportan al proyecto', styles: { fontStyle: 'bold', halign: 'left' } }
+                    ],
+                    [
+                        { content: proy.proyect_contribucion_soci, styles: { halign: 'justify' } },
+                        { content: asiognaturasTxt, styles: { halign: 'left' } }
+                    ]
+                ];*/
+                const tablapat = [
+                    [
+                        { content: 'Base de Datos', styles: { fontStyle: 'bold', halign: 'center' } },
+                        { content: 'Denominación', styles: { fontStyle: 'bold', halign: 'center' } },
+                        { content: 'No. De patente', styles: { fontStyle: 'bold', halign: 'center' } },
+                        { content: 'Otros', styles: { fontStyle: 'bold', halign: 'center' } }
+                    ],
+                    ...filasBasePat,
+                    [{ content: '2.4 Resultados de Investigaciones similares:', colSpan: 4, styles: lblStyle }],
+                    [{ content: proy.proyec_result_invest || '', colSpan: 4, styles: { ...valStyle, halign: 'justify' } }],
+                    [{ content: `* Adjuntar: Página Legal:\n ${proy.proyec_pagina_legal || ''}`, colSpan: 4, styles: { fontStyle: 'italic' } }],
+                    [{ content: 'Identificación y caracterización de la población objetivo (beneficiarios y participantes):', colSpan: 4, styles: lblStyle }],
+                    [{ content: proy.proyec_ident_poblaobj || '', colSpan: 4, styles: { ...valStyle, halign: 'justify' } }]
+                ];
+
+                // 4. Renderizado
+                autoTable(doc, {
+                    startY: doc.lastAutoTable.finalY, 
+                    margin: { top: 30, left: 15, right: 15, bottom: 20 },
+                    theme: 'grid',
+                    body: tablapat,
+                    styles: { 
+                        fontSize: 8, 
+                        lineColor: [0, 0, 0], 
+                        textColor: [0, 0, 0], 
+                        fillColor: false,
+                        valign: 'middle',
+                        cellPadding: 3
+                        // font: 'times' // Descomenta esto si tu documento general usa Times New Roman
+                    },
+                    columnStyles: {
+                        0: { cellWidth: 'auto' }, // 
+                        1: { cellWidth: 80 }     // 
+                    }
+                });
+                const tablaidentific = [
+                    [{ content: 'Identificación y caracterización de la población objetiva beneficiarios (as)', colSpan: 3, styles: lblStyle }],
+                    [{ content: `${proy.proyec_ident_poblaobj} \n(Obtención de datos de página oficial del INEC censo 2022)`, colSpan: 3, styles: { ...valStyle, halign: 'justify' } }]
+                ];
+                
+                autoTable(doc, {
+                    startY: doc.lastAutoTable.finalY, 
+                    margin: { top: 30, left: 15, right: 15, bottom: 20 },
+                    theme: 'grid',
+                    body: tablaidentific,
+                    styles: { 
+                        fontSize: 8, 
+                        lineColor: [0, 0, 0], 
+                        textColor: [0, 0, 0], 
+                        fillColor: false,
+                        valign: 'middle',
+                        cellPadding: 3
+                        // font: 'times' // Descomenta esto si tu documento general usa Times New Roman
+                    },
+                });
+                const tablapersonas = [
+                    // Fila 2: Fechas agrupadas (Título + Valor en la misma celda)
+                    [
+                        { content: 'Número Directos Hombres:', styles: lblStyle },
+                        { content: 'Número Directos Mujeres:', styles: lblStyle },
+                        { content: 'Total, Número Directos:', styles: lblStyle },
+                        { content: 'Total, Número Indirectos:', styles: lblStyle },
+                        { content: 'Personas con diversidad funcional (capacidades especiales):', styles: lblStyle },
+                    ],
+                    [
+                        { content: proy.proyect_num_direct_hombres, styles: valStyle },
+                        { content: proy.proyect_num_direct_mujeres, styles: valStyle },
+                        { content: proy.proyect_total_num_direct, styles: valStyle },
+                        { content: proy.proyect_total_num_indirect, styles: valStyle },
+                        { content: proy.proyect_num_personas_div_fun, styles: valStyle }
+                    ]
+                ];
+
+                // 4. Renderizado
+                autoTable(doc, {
+                    startY: doc.lastAutoTable.finalY, 
+                    margin: { top: 30, left: 15, right: 15, bottom: 20 },
+                    theme: 'grid',
+                    body: tablapersonas,
+                    styles: { 
+                        fontSize: 8, 
+                        lineColor: [0, 0, 0], 
+                        textColor: [0, 0, 0], 
+                        fillColor: false,
+                        valign: 'middle',
+                        cellPadding: 3
+                        // font: 'times' // Descomenta esto si tu documento general usa Times New Roman
+                    },
+                    columnStyles: {
+                        0: { cellWidth: 'auto' }, // 
+                        1: { cellWidth: 'auto' },
+                        2: { cellWidth: 'auto' },
+                        3: { cellWidth: 'auto' },
+                        4: { cellWidth: 'auto' }
+                    }
+                });
+                const tablatextpaln = [
+                    [{ content: 'Identificación y caracterización de la población objetiva participante', colSpan: 3, styles: { fontStyle: 'bold', halign: 'left' } }],
+                    
+                ];
+                
+                autoTable(doc, {
+                    startY: doc.lastAutoTable.finalY, 
+                    margin: { top: 30, left: 15, right: 15, bottom: 20 },
+                    theme: 'grid',
+                    body: tablatextpaln,
+                    styles: { 
+                        fontSize: 8, 
+                        lineColor: [0, 0, 0], 
+                        textColor: [0, 0, 0], 
+                        fillColor: false,
+                        valign: 'middle',
+                        // font: 'times' // Descomenta esto si tu documento general usa Times New Roman
+                    },
+                });
+                const tablanumdoc = [
+                    // Fila 2: Fechas agrupadas (Título + Valor en la misma celda)
+                    [
+                        { content: 'Número de docentes participantes:', styles: lblStyle },
+                        { content: 'Docentes participantes hombres:', styles: lblStyle },
+                        { content: 'Docentes participantes mujeres:', styles: lblStyle },
+                    ],
+                    [
+                        { content: proy.proyect_num_doce_part, styles: valStyle },
+                        { content: proy.proyect_num_doce_h, styles: valStyle },
+                        { content: proy.proyect_num_doce_m, styles: valStyle },
+                    ]
+                ];
+
+                // 4. Renderizado
+                autoTable(doc, {
+                    startY: doc.lastAutoTable.finalY, 
+                    margin: { top: 30, left: 15, right: 15, bottom: 20 },
+                    theme: 'grid',
+                    body: tablanumdoc,
+                    styles: { 
+                        fontSize: 8, 
+                        lineColor: [0, 0, 0], 
+                        textColor: [0, 0, 0], 
+                        fillColor: false,
+                        valign: 'middle',
+                        // font: 'times' // Descomenta esto si tu documento general usa Times New Roman
+                    },
+                    columnStyles: {
+                        0: { cellWidth: 'auto' }, // 
+                        1: { cellWidth: 'auto' },
+                        2: { cellWidth: 'auto' },
+                    }
+                });
+                const tablanumest = [
+                    // Fila 2: Fechas agrupadas (Título + Valor en la misma celda)
+                    [
+                        { content: 'Número de estudiantes participantes:', styles: lblStyle },
+                        { content: 'Estudiantes participantes hombres:', styles: lblStyle },
+                        { content: 'Estudiantes participantes mujeres:', styles: lblStyle },
+                    ],
+                    [
+                        { content: proy.proyect_num_est_part, styles: valStyle },
+                        { content: proy.proyect_num_est_h, styles: valStyle },
+                        { content: proy.proyect_num_est_m, styles: valStyle },
+                    ]
+                ];
+
+                // 4. Renderizado
+                autoTable(doc, {
+                    startY: doc.lastAutoTable.finalY, 
+                    margin: { top: 30, left: 15, right: 15, bottom: 20 },
+                    theme: 'grid',
+                    body: tablanumest,
+                    styles: { 
+                        fontSize: 8, 
+                        lineColor: [0, 0, 0], 
+                        textColor: [0, 0, 0], 
+                        fillColor: false,
+                        valign: 'middle',
+                        // font: 'times' // Descomenta esto si tu documento general usa Times New Roman
+                    },
+                    columnStyles: {
+                        0: { cellWidth: 'auto' }, // 
+                        1: { cellWidth: 'auto' },
+                        2: { cellWidth: 'auto' },
+                    }
+                });
+                const tablafactore = [
+                    [{ content: 'Factores críticos de éxito:', colSpan: 3, styles: lblStyle }],
+                    [{ content: `${proy.proyect_fact_exito}`, colSpan: 3, styles: { ...valStyle, halign: 'justify' } }]
+                ];
+                
+                autoTable(doc, {
+                    startY: doc.lastAutoTable.finalY, 
+                    margin: { top: 30, left: 15, right: 15, bottom: 20 },
+                    theme: 'grid',
+                    body: tablafactore,
+                    styles: { 
+                        fontSize: 8, 
+                        lineColor: [0, 0, 0], 
+                        textColor: [0, 0, 0], 
+                        fillColor: false,
+                        valign: 'middle',
+                        cellPadding: 3
+                        // font: 'times' // Descomenta esto si tu documento general usa Times New Roman
+                    },
+                });
+                const tablarestric = [
+                    [{ content: 'Restricciones/Supuestos:', colSpan: 3, styles: lblStyle }],
+                    [{ content: `${proy.proyect_rest_supu}`, colSpan: 3, styles: { ...valStyle, halign: 'justify' } }]
+                ];
+                
+                autoTable(doc, {
+                    startY: doc.lastAutoTable.finalY, 
+                    margin: { top: 30, left: 15, right: 15, bottom: 20 },
+                    theme: 'grid',
+                    body: tablarestric,
+                    styles: { 
+                        fontSize: 8, 
+                        lineColor: [0, 0, 0], 
+                        textColor: [0, 0, 0], 
+                        fillColor: false,
+                        valign: 'middle',
+                        cellPadding: 3
+                        // font: 'times' // Descomenta esto si tu documento general usa Times New Roman
+                    },
+                });
+                const tablatextpaln2 = [
+                    [{ content: '3. MARCO LÓGICO', colSpan: 3, styles: { fontStyle: 'bold', halign: 'left' } }],
+                    [{ content: 'Las actividades que se registren en el cronograma del anexo 2 deben corresponder a las mismas actividades detalladas en la matriz de marco lógico.', colSpan: 3, styles: { halign: 'left' } }],
+                    
+                ];
+                
+                autoTable(doc, {
+                    startY: doc.lastAutoTable.finalY, 
+                    margin: { top: 30, left: 15, right: 15, bottom: 20 },
+                    theme: 'grid',
+                    body: tablatextpaln2,
+                    styles: { 
+                        fontSize: 8, 
+                        lineColor: [0, 0, 0], 
+                        textColor: [0, 0, 0], 
+                        fillColor: false,
+                        valign: 'middle',
+                        // font: 'times' // Descomenta esto si tu documento general usa Times New Roman
+                    },
+                    columnStyles: {
+                        0: { cellWidth: 'auto' }, // 
+                        1: { cellWidth: 'auto' },
+                    }
+                });
+                const tablamarcologicT = [
+                    // Fila 2: Fechas agrupadas (Título + Valor en la misma celda)
+                    [
+                        { content: 'Descripción', styles: { fontStyle: 'bold', halign: 'center' } },
+                        { content: 'Indicadores verificables objetivamente', styles: { fontStyle: 'bold', halign: 'center' } },
+                        { content: 'Medio de verificación', styles: { fontStyle: 'bold', halign: 'center' } },
+                        { content: 'Supuestos', styles: { fontStyle: 'bold', halign: 'center' } },
+                    ],
+                    [
+                        { content: `Fines (efectos): ${finproy}`, styles: { ...valStyle, halign: 'justify' } },
+                        { content: finindica, styles: { ...valStyle, halign: 'justify' } },
+                        { content: finmediover, styles: { ...valStyle, halign: 'justify' } },
+                        { content: finsupuestos, styles: { ...valStyle, halign: 'justify' } },
+                    ],
+                    [
+                        { content: `Propósito ( u objetivo general): ${objetivogeneral}`, styles: { ...valStyle, halign: 'justify' } },
+                        { content: objgindica, styles: { ...valStyle, halign: 'justify' } },
+                        { content: objgemediover, styles: { ...valStyle, halign: 'justify' } },
+                        { content: objgsupuestos, styles: { ...valStyle, halign: 'justify' } },
+                    ],
+                    
+                ];
+                tablamarcologicT.push([
+                    { 
+                        content: 'Componentes (objetivos específicos):', 
+                        colSpan: 4, 
+                        styles: { fontStyle: 'bold', halign: 'left' } 
+                    }
+                ]);
+
+                // 5. Recorrer y añadir una fila por cada Objetivo Específico dinámicamente
+                if (objetivosEspecificos.length > 0) {
+                    objetivosEspecificos.forEach((obj, index) => {
+                        const numero = index + 1;
+                        // Agregamos el prefijo "ObjE X:"
+                        const descripcionObj = `ObjE ${numero}: ${obj.detalle_obj_proy || 'N/A'}`;
+                        
+                        // Extraemos las relaciones 
+                        const indicadoresTexto = formatearLista(obj.invi_indicadores, 'detalle_indicador', '');
+                        const mediosVerificacionTexto = formatearLista(obj.invi_medios_verificacion, 'detalle_medio_verifica', ''); 
+                        const supuestosTexto = formatearLista(obj.invi_supuestos, 'detalle_supuestos', ''); 
+
+                        tablamarcologicT.push([
+                            { content: descripcionObj, styles: { ...valStyle, halign: 'justify' } },
+                            { content: indicadoresTexto, styles: { ...valStyle, halign: 'justify' } },
+                            { content: mediosVerificacionTexto, styles: { ...valStyle, halign: 'justify' } },
+                            { content: supuestosTexto, styles: { ...valStyle, halign: 'justify' } }
+                        ]);
+                    });
+                } else {
+                    // Fila por defecto si no existen objetivos específicos registrados
+                    tablamarcologicT.push([
+                        { content: 'N/A', styles: valStyle },
+                        { content: 'N/A', styles: valStyle },
+                        { content: 'N/A', styles: valStyle },
+                        { content: 'N/A', styles: valStyle }
+                    ]);
+                }
+                tablamarcologicT.push([
+                    { 
+                        content: 'Actividades:', 
+                        colSpan: 4, 
+                        styles: { fontStyle: 'bold', halign: 'left' } 
+                    }
+                ]);
+                let todasLasActividades = [];
+                
+                if (objetivosEspecificos.length > 0) {
+                    objetivosEspecificos.forEach((obj, index) => {
+                        const numObj = index + 1; // ObjE 1, ObjE 2...
+                        const actividadesObj = obj.invi_actividades || [];
+                        
+                        actividadesObj.forEach((act, actIndex) => {
+                            todasLasActividades.push({
+                                ...act,
+                                numObj: numObj,
+                                // Generamos la numeración 1.1, 1.2, 2.1, etc.
+                                numeracion: `${numObj}.${actIndex + 1}` 
+                            });
+                        });
+                    });
+                }
+
+                // ---------------------------------------------------------------------------
+                // 2. Agrupar por año y luego por Objetivo Específico
+                // ---------------------------------------------------------------------------
+                const actividadesPorAnio = {};
+                
+                todasLasActividades.forEach(act => {
+                    const anio = act.detalle_anio || 'Año no especificado';
+                    
+                    if (!actividadesPorAnio[anio]) {
+                        actividadesPorAnio[anio] = {};
+                    }
+                    
+                    // Dentro del año, agrupamos por el número de objetivo (1, 2, 3...)
+                    if (!actividadesPorAnio[anio][act.numObj]) {
+                        actividadesPorAnio[anio][act.numObj] = [];
+                    }
+                    
+                    actividadesPorAnio[anio][act.numObj].push(act);
+                });
+
+                // ---------------------------------------------------------------------------
+                // 3. Construir las filas dinámicamente en tablamarcologicT
+                // ---------------------------------------------------------------------------
+                const anios = Object.keys(actividadesPorAnio);
+                
+                if (anios.length > 0) {
+                    anios.forEach(anio => {
+                        // A. Fila agrupadora del Año (Ej: "Primer Año")
+                        tablamarcologicT.push([
+                            { 
+                                content: anio, 
+                                colSpan: 4, 
+                                styles: { fontStyle: 'bold', halign: 'left', fillColor: [240, 240, 240] } 
+                            }
+                        ]);
+
+                        const gruposObj = actividadesPorAnio[anio];
+                        // Ordenamos las llaves para que ObjE1 salga antes que ObjE2
+                        const numsObj = Object.keys(gruposObj).sort((a, b) => parseInt(a) - parseInt(b));
+
+                        numsObj.forEach(numObj => {
+                            // B. Fila agrupadora del Objetivo (Ej: "*Actividades ObjE1:")
+                            tablamarcologicT.push([
+                                { 
+                                    content: `*Actividades ObjE${numObj}:`, 
+                                    colSpan: 4, 
+                                    styles: { fontStyle: 'italic', halign: 'left' } 
+                                }
+                            ]);
+
+                            // C. Filas individuales de las actividades
+                            gruposObj[numObj].forEach(act => {
+                                // Agregamos un par de espacios al inicio para crear sangría (indentación)
+                                const descripcionAct = `  ${act.numeracion} ${act.nom_actividad || 'N/A'}`;
+                                
+                                // Extraemos las listas usando los nombres exactos de tu JSON
+                                const indTexto = formatearLista(act.invi_actindicadores, 'detalle_indicador', '');
+                                const medTexto = formatearLista(act.invi_actmedios_verificacion, 'detalle_medio_verifica', '');
+                                const supTexto = formatearLista(act.invi_actsupuestos, 'detalle_supuestos', '');
+
+                                tablamarcologicT.push([
+                                    { content: descripcionAct, styles: { ...valStyle, halign: 'justify' } },
+                                    { content: indTexto, styles: { ...valStyle, halign: 'justify' } },
+                                    { content: medTexto, styles: { ...valStyle, halign: 'justify' } },
+                                    { content: supTexto, styles: { ...valStyle, halign: 'justify' } }
+                                ]);
+                            });
+                        });
+                    });
+                } else {
+                    // Si no existen actividades registradas
+                    tablamarcologicT.push([
+                        { content: 'N/A', styles: valStyle },
+                        { content: 'N/A', styles: valStyle },
+                        { content: 'N/A', styles: valStyle },
+                        { content: 'N/A', styles: valStyle }
+                    ]);
+                }
+                // 4. Renderizado
+                autoTable(doc, {
+                    startY: doc.lastAutoTable.finalY + 6, 
+                    margin: { top: 30, left: 15, right: 15, bottom: 20 },
+                    theme: 'grid',
+                    body: tablamarcologicT,
+                    styles: { 
+                        fontSize: 8, 
+                        lineColor: [0, 0, 0], 
+                        textColor: [0, 0, 0], 
+                        fillColor: false,
+                        valign: 'middle',
+                        cellPadding: 3
+                        // font: 'times' // Descomenta esto si tu documento general usa Times New Roman
+                    },
+                    columnStyles: {
+                        0: { cellWidth: 40 }, // 
+                        1: { cellWidth: 40 },
+                        2: { cellWidth: 'auto' },
+                        3: { cellWidth: 40 },
+                    }
+                });
+                const tablabien1 = [
+                    [{ content: 'Detalles de bienes y servicios proporcionados por proyecto', colSpan: 3, styles: { fontStyle: 'bold', halign: 'center' } }],
+                    
+                ];
+                
+                autoTable(doc, {
+                    startY: doc.lastAutoTable.finalY, 
+                    margin: { top: 30, left: 15, right: 15, bottom: 20 },
+                    theme: 'grid',
+                    body: tablabien1,
+                    styles: { 
+                        fontSize: 8, 
+                        lineColor: [0, 0, 0], 
+                        textColor: [0, 0, 0], 
+                        fillColor: false,
+                        valign: 'middle',
+                        // font: 'times' // Descomenta esto si tu documento general usa Times New Roman
+                    },
+                });
+                
+
+                // 4. Armamos la tabla
+                const tablabiende = [
+                    [
+                        { content: 'Bienes', styles: { fontStyle: 'bold', halign: 'left' } },
+                        { content: proy.proyect_bienes || '', styles: { ...valStyle, halign: 'justify' } }, // Asegúrate de tener valStyle definido
+                    ],
+                    [
+                        { content: 'Servicios', styles: { fontStyle: 'bold', halign: 'left' } },
+                        { content: proy.proyect_servicios || '', styles: { ...valStyle, halign: 'justify' } },
+                    ],
+                    [
+                        { content: 'Bienes y servicios', styles: { fontStyle: 'bold', halign: 'left' } },
+                        { content: proy.proyect_bienes_servicios || '', styles: { ...valStyle, halign: 'justify' } },
+                    ],
+                ];
+
+                // 5. Renderizado
+                autoTable(doc, {
+                    startY: doc.lastAutoTable.finalY, // Le agregué un +6 para que respire con la tabla anterior
+                    margin: { top: 30, left: 15, right: 15, bottom: 20 },
+                    theme: 'grid',
+                    body: tablabiende,
+                    styles: { 
+                        fontSize: 8, 
+                        lineColor: [0, 0, 0], 
+                        textColor: [0, 0, 0], 
+                        fillColor: false,
+                        valign: 'middle',
+                        cellPadding: 3
+                    },
+                    columnStyles: {
+                        0: { cellWidth: 40 }, // Ajusté la columna 0 a un ancho fijo para que la tabla se vea más uniforme
+                        1: { cellWidth: 'auto' }, // La columna de texto toma el resto del espacio
+                    }
+                });
+                const tablabiendeta = [
+                    [{ content: 'Detalle de adquisiciones del proyecto', colSpan: 3, styles: { fontStyle: 'bold', halign: 'center' } }],
+                    
+                ];
+                
+                autoTable(doc, {
+                    startY: doc.lastAutoTable.finalY, 
+                    margin: { top: 30, left: 15, right: 15, bottom: 20 },
+                    theme: 'grid',
+                    body: tablabiendeta,
+                    styles: { 
+                        fontSize: 8, 
+                        lineColor: [0, 0, 0], 
+                        textColor: [0, 0, 0], 
+                        fillColor: false,
+                        valign: 'middle',
+                        // font: 'times' // Descomenta esto si tu documento general usa Times New Roman
+                    },
+                });
+                const detallesAdqui = Array.isArray(proy.invi_detalle_adqui) 
+                    ? proy.invi_detalle_adqui 
+                    : (proy.invi_detalle_adqui ? [proy.invi_detalle_adqui] : []);
+
+                // 2. Extraemos todos los objetos "invi_adquisicion" descartando los nulos
+                const adquisiciones = detallesAdqui.map(item => item.invi_adquisicion).filter(Boolean);
+
+                // 3. Filtramos por tipo
+                const bienes = adquisiciones.filter(item => item.tipo_adqui === 'bien');
+                const servicios = adquisiciones.filter(item => item.tipo_adqui === 'servicio');
+                const bienesServicios = adquisiciones.filter(item => item.tipo_adqui === 'bienes y servicios');
+
+                // 4. Construimos la cabecera de la tabla
+                const tablabiendecont = [
+                    [
+                        { content: 'Descripción', styles: { fontStyle: 'bold', halign: 'center' } },
+                        { content: '%\nNacional', styles: { fontStyle: 'bold', halign: 'center' } }, 
+                        { content: '%\nImportado', styles: { fontStyle: 'bold', halign: 'center' } }, 
+                        { content: 'Detalle insumo nacional', styles: { fontStyle: 'bold', halign: 'center' } }, 
+                        { content: 'Detalle insumo importado', styles: { fontStyle: 'bold', halign: 'center' } }, 
+                    ]
+                ];
+
+                // 5. Función auxiliar para dar formato a los números (Ej: 100.00 -> 100%)
+                const formatNum = (num) => {
+                    if (num === null || num === undefined || num === '') return '0%';
+                    return Number(num) + '%'; 
+                };
+
+                // 6. Función para añadir cada ítem como una fila independiente
+                const agregarFilasPorCategoria = (tituloCategoria, listaItems) => {
+                    if (!listaItems || listaItems.length === 0) {
+                        // Opcional: Mostrar la categoría vacía con N/A si no hay registros de ese tipo
+                        tablabiendecont.push([
+                            { content: tituloCategoria, styles: { fontStyle: 'bold', halign: 'center' } },
+                            { content: 'N/A', styles: { halign: 'center' } },
+                            { content: 'N/A', styles: { halign: 'center' } },
+                            { content: 'N/A', styles: { halign: 'center' } },
+                            { content: 'N/A', styles: { halign: 'center' } }
+                        ]);
+                        return;
+                    }
+
+                    listaItems.forEach((item, index) => {
+                        // Si es el primer ítem, agregamos el título de la categoría con un salto de línea
+                        const descripcionTexto = index === 0 
+                            ? `${tituloCategoria}\n${item.detalle || 'N/A'}`
+                            : (item.detalle || 'N/A');
+
+                        tablabiendecont.push([
+                            { content: descripcionTexto, styles: { halign: 'center' } },
+                            { content: formatNum(item.porcent_nacio), styles: { halign: 'center' } },
+                            { content: formatNum(item.porcent_importado), styles: { halign: 'center' } },
+                            { content: item.detalle_iinsu_nac || 'N/A', styles: { halign: 'center' } },
+                            { content: item.detalle_insu_import || 'N/A', styles: { halign: 'center' } }
+                        ]);
+                    });
+                };
+
+                // 7. Agregamos las filas en el orden deseado
+                agregarFilasPorCategoria('Bienes', bienes);
+                agregarFilasPorCategoria('Servicios', servicios);
+                agregarFilasPorCategoria('Bienes y Servicios', bienesServicios);
+
+                // 8. Renderizado de AutoTable
+                autoTable(doc, {
+                    startY: doc.lastAutoTable.finalY, 
+                    margin: { top: 30, left: 15, right: 15, bottom: 20 },
+                    theme: 'grid',
+                    body: tablabiendecont,
+                    styles: { 
+                        fontSize: 8, 
+                        lineColor: [0, 0, 0], 
+                        textColor: [0, 0, 0], 
+                        fillColor: false,
+                        valign: 'middle',
+                    },
+                    columnStyles: {
+                        0: { cellWidth: 40 }, // Descripción
+                        1: { cellWidth: 20 }, // % Nacional
+                        2: { cellWidth: 20 }, // % Importado
+                        3: { cellWidth: 'auto' }, // Detalle Insumo Nacional
+                        4: { cellWidth: 'auto' }, // Detalle Insumo Importado
+                    }
+                });
+                const categorizapro = proy.proyect_categorizacion;
+                const checkNece = (categorizapro === 'Necesario') ? `X ` : '';
+                const checkIndispensable = (categorizapro === 'Indispensable') ? `X ` : '';
+                const checkDeseable = (categorizapro === 'Deseable') ? `X ` : '';
+                const checkAdmisible = (categorizapro === 'Admisible') ? `X ` : '';
+                const tablacateg = [
+                    [
+                        { 
+                            content: 'Categorización del Proyecto', 
+                            colSpan: 4, 
+                            styles: { fontStyle: 'bold', halign: 'center' } 
+                        }
+                    ],
+                    [
+                        { content: 'Necesario', styles: lblStyle },
+                        { content: 'Indispensable', styles: lblStyle }, 
+                        { content: 'Deseable', styles: lblStyle }, 
+                        { content: 'Admisible', styles: lblStyle }, 
+                    ],
+                    [
+                        { content: checkNece, styles: valStyle },
+                        { content: checkIndispensable, styles: valStyle }, 
+                        { content: checkDeseable, styles: valStyle }, 
+                        { content: checkAdmisible, styles: valStyle }, 
+                    ]
+                ];
+                autoTable(doc, {
+                    startY: doc.lastAutoTable.finalY, 
+                    margin: { top: 30, left: 15, right: 15, bottom: 20 },
+                    theme: 'grid',
+                    body: tablacateg,
+                    styles: { 
+                        fontSize: 8, 
+                        lineColor: [0, 0, 0], 
+                        textColor: [0, 0, 0], 
+                        fillColor: false,
+                        valign: 'middle',
+                    },
+                    columnStyles: {
+                        0: { cellWidth: 'auto' }, // Descripción
+                        1: { cellWidth: 'auto' }, // % Nacional
+                        2: { cellWidth: 'auto' }, // % Importado
+                        3: { cellWidth: 'auto' }, // Detalle Insumo Nacional
+                    }
+                });
+                const tablametodología = [
+                    [{ content: '4. METODOLOGÍA PARA LA VINCULACIÓN (Diseño del Estudio: Detallar diseño experimental, tipo de análisis estadístico, otros) ', colSpan: 6, styles: { fontStyle: 'bold', halign: 'left' } }],
+                    [{ content: proy.proyect_metodologia || '', colSpan: 6, styles: { ...valStyle, halign: 'justify' } }],
+                ];
+
+                
+                autoTable(doc, {
+                    startY: doc.lastAutoTable.finalY + 6, 
+                    margin: { top: 30, left: 15, right: 15, bottom: 20 },
+                    theme: 'grid',
+                    body: tablametodología,
+                    styles: { fontSize: 8, lineColor: [0, 0, 0], textColor: [0, 0, 0], fillColor: false,cellPadding: 3 } 
+                });
+
+                const tablafinantitu = [
+                    [{ content: '5. FINANCIAMIENTO', colSpan: 6, styles: { fontStyle: 'bold', fillColor: [220, 220, 220], halign: 'left' } }],
+                    [{ content: '(Ingresar información en Anexo 3)', colSpan: 6, styles: valStyle }],
+                    
+                ];
+
+                
+                autoTable(doc, {
+                    startY: doc.lastAutoTable.finalY + 6, 
+                    margin: { top: 30, left: 15, right: 15, bottom: 20 },
+                    theme: 'grid',
+                    body: tablafinantitu,
+                    styles: { fontSize: 8, lineColor: [0, 0, 0], textColor: [0, 0, 0], fillColor: false } 
+                });
+                const tablaviabilitiut = [
+                    [{ content: '6. VIABILIDAD Y PLAN DE SOSTENIBILIDAD', colSpan: 6, styles: { fontStyle: 'bold', fillColor: [220, 220, 220], halign: 'left' } }],
+                   
+                    
+                ];
+
+                
+                autoTable(doc, {
+                    startY: doc.lastAutoTable.finalY + 6, 
+                    margin: { top: 30, left: 15, right: 15, bottom: 20 },
+                    theme: 'grid',
+                    body: tablaviabilitiut,
+                    styles: { fontSize: 8, lineColor: [0, 0, 0], textColor: [0, 0, 0], fillColor: false } 
+                });
+                const detaimpacto = Array.isArray(proy.invi_det_impactos_esperados)
+                    ? proy.invi_det_impactos_esperados
+                    : (proy.invi_det_impactos_esperados ? [proy.invi_det_impactos_esperados] : []);
+
+                const getDescripcionImpacto = (nombreImpacto) => {
+                    const items = detaimpacto.filter(
+                        item => item.invi_impactos && item.invi_impactos.nombre_impacto === nombreImpacto
+                    );
+
+                    if (items.length === 0) return '';
+                    if (items.length === 1) return items[0].descripcion_general || '';
+
+                    return items
+                        .map(item => `• ${item.descripcion_general || ''}`)
+                        .join('\n');
+                };
+
+                
+
+                // 2. Aplicamos la limpieza inteligente
+                const viabilidadLimpia = limpiarTextoRespectandoSaltos(proy.proyect_viabilidad_tec);
+                const equipamientoLimpio = limpiarTextoRespectandoSaltos(proy.proyect_equip_tec);
+                const noEjecutaLimpio = limpiarTextoRespectandoSaltos(proy.proyect_no_ejecuta);
+
+                const tablaviabiliconten = [
+                    [{ content: 'Viabilidad Técnica:', colSpan: 2, styles: lblStyle }],
+                    // Aplicamos la variable limpia y el justify
+                    [{ content: viabilidadLimpia, colSpan: 2, styles: { ...valStyle, halign: 'justify' } }],
+                    
+                    [{ content: 'Equipamiento Tecnológico Disponible', colSpan: 2, styles: lblStyle }],
+                    [{ content: equipamientoLimpio, colSpan: 2, styles: { ...valStyle, halign: 'justify' } }],
+                    
+                    [
+                        { content: '¿Qué perdería la provincia si el proyecto no se ejecuta en este periodo?', styles: { fontStyle: 'bold', halign: 'left' } },
+                        { content: noEjecutaLimpio, styles: valStyle } // Si quieres justificar este también, añádele { halign: 'justify' }
+                    ],
+                    [{ content: 'IMPACTOS ESPERADOS:', colSpan: 2, styles: { fontStyle: 'bold', halign: 'left' } }],
+                    [
+                        { content: 'Tipo', styles: { fontStyle: 'bold', halign: 'center' } },
+                        { content: 'Descripción', styles: { fontStyle: 'bold', halign: 'center' } },
+                    ],
+                    [
+                        { content: 'Impacto económico', styles: { fontStyle: 'bold', halign: 'center' } },
+                        { content: getDescripcionImpacto('Impacto económico') || '', styles: { ...valStyle, halign: 'justify' } }
+                    ],
+                    [
+                        { content: 'Impacto social', styles: { fontStyle: 'bold', halign: 'center' } },
+                        { content: getDescripcionImpacto('Impacto social') || '', styles: { ...valStyle, halign: 'justify' } }
+                    ],
+                    [
+                        { content: 'Impacto político', styles: { fontStyle: 'bold', halign: 'center' } },
+                        { content: getDescripcionImpacto('Impacto político') || '', styles: { ...valStyle, halign: 'justify' } }
+                    ],
+                    [
+                        { content: 'Impacto científico', styles: { fontStyle: 'bold', halign: 'center' } },
+                        { content: getDescripcionImpacto('Impacto científico') || '', styles: { ...valStyle, halign: 'justify' } }
+                    ],
+                    [
+                        { content: 'Impacto ambiental', styles: { fontStyle: 'bold', halign: 'center' } },
+                        { content: getDescripcionImpacto('Impacto ambiental') || '', styles: { ...valStyle, halign: 'justify' } }
+                    ],
+                    [
+                        { content: 'Otros impactos', styles: { fontStyle: 'bold', halign: 'center' } },
+                        { content: getDescripcionImpacto('Otros impactos') || '', styles: { ...valStyle, halign: 'justify' } }
+                    ],
+                    [{ content: 'Sostenibilidad social: equidad, género, participación ciudadana:', colSpan: 2, styles: lblStyle }],
+                    [{ content: proy.proyect_sostenibilidad_soc || '', colSpan: 2, styles: { ...valStyle, halign: 'justify' } }],
+                    [{ content: 'Transferencia Tecnológica', colSpan: 2, styles: lblStyle }],
+                    [{ content: proy.proyect_transf_tecn || '', colSpan: 2, styles: { ...valStyle, halign: 'justify' } }],
+                    [{ content: 'Artículos Científicos: ', colSpan: 2, styles: lblStyle }],
+                    [{ content: proy.proyect_art_cientificos || '', colSpan: 2, styles: { ...valStyle, halign: 'justify' } }],
+                    [{ content: 'Prototipos:', colSpan: 2, styles: lblStyle }],
+                    [{ content: proy.proyect_prototipos || '', colSpan: 2, styles: { ...valStyle, halign: 'justify' } }],
+                    [{ content: 'Registro de Propiedad Intelectual:', colSpan: 2, styles: lblStyle }],
+                    [{ content: proy.proyect_reg_propin || '', colSpan: 2, styles: { ...valStyle, halign: 'justify' } }],
+                    [{ content: 'Empresas Spin OffS', colSpan: 2, styles: lblStyle }],
+                    [{ content: proy.proyect_empr_spin || '', colSpan: 2, styles: { ...valStyle, halign: 'justify' } }],
+                ];
+
+                autoTable(doc, {
+                    startY: doc.lastAutoTable.finalY + 6, 
+                    margin: { top: 30, left: 15, right: 15, bottom: 20 },
+                    theme: 'grid',
+                    body: tablaviabiliconten,
+                    styles: { 
+                        fontSize: 8, 
+                        lineColor: [0, 0, 0], 
+                        textColor: [0, 0, 0], 
+                        fillColor: false,
+                        cellPadding: 3
+                    },
+                    columnStyles: {
+                        0: { cellWidth: 80 }, 
+                        1: { cellWidth: 'auto' }, 
+                    } 
+                });
+                const tablaestrategia = [
+                    [{ content: '7. ESTRATEGIA DE EJECUCIÓN', colSpan: 6, styles: { fontStyle: 'bold', fillColor: [220, 220, 220], halign: 'left' } }],
+                    [{ content: 'Elaborar el cronograma de ejecución en el Anexo 2, considerando como periodo de ejecución', colSpan: 6, styles: valStyle }],
+                    
+                ];
+
+                
+                autoTable(doc, {
+                    startY: doc.lastAutoTable.finalY + 6, 
+                    margin: { top: 30, left: 15, right: 15, bottom: 20 },
+                    theme: 'grid',
+                    body: tablaestrategia,
+                    styles: { fontSize: 8, lineColor: [0, 0, 0], textColor: [0, 0, 0], fillColor: false, cellPadding: 3 } 
+                });
+                const textomonito = `Mensualmente y semestralmente se deberá remitir a la dirección de Vinculación con la Sociedad el reporte de avances del proyecto, según las actividades establecidas en el cronograma.\n` +
+                    `Al finalizar el proyecto debe presentar el informe final que contendrá las fichas de estudiantes y docentes, la encuesta a los beneficiarios y los resultados del proyecto (productos o entregables).\n` +
+                    `La evaluación del proyecto y sus impactos, entraran dentro del informe semestral es decir al final del ciclo académico.\n` +
+                    `• Anexo 8\n` +
+                    `• Anexo 9\n` +
+                    `• Anexo 10\n`;
+                const tablamonito = [
+                    [{ content: '8. MONITOREO Y EVALUACIÓN', styles: { fontStyle: 'bold', fillColor: [220, 220, 220], halign: 'left', lineWidth: 0.1, lineColor: [0, 0, 0] } }],
+                    [{ content: `${textomonito}`, styles: { halign: 'left', fillColor: false, textColor: [0, 0, 0] }  }],
+                    
+                ];
+
+                
+                autoTable(doc, {
+                    startY: doc.lastAutoTable.finalY + 6, 
+                    margin: { top: 30, left: 15, right: 15, bottom: 20 },
+                    theme: 'plain', // El tema 'plain' elimina la cuadrícula general
+                    body: tablamonito,
+                    styles: { 
+                        fontSize: 8, 
+                        cellPadding: 3 // Un poco de espacio para que el texto respire respecto a los márgenes
+                    } 
+                });
+                const detalleDifusion = Array.isArray(proy.invi_detalle_difusion)
+                    ? proy.invi_detalle_difusion
+                    : (proy.invi_detalle_difusion ? [proy.invi_detalle_difusion] : []);
+
+                // 2. Extraemos las actividades y las unimos con un salto de línea
+                const actividadesText = detalleDifusion
+                    .map(item => item.invi_difusion && item.invi_difusion.nombre_actividad ? item.invi_difusion.nombre_actividad : '')
+                    .join('\n');
+
+                // 3. Extraemos los costos, parseando a entero (para quitar el .00 y que coincida con tu imagen) y los unimos
+                const costosText = detalleDifusion
+                    .map(item => item.costo ? parseInt(item.costo).toString() : '')
+                    .join('\n');
+
+                // 4. Construimos la tabla dinámica
+                const tabladifusi = [
+                    // Fila 1: Título con fondo celeste
+                    [{ content: '9. DIFUSIÓN', colSpan: 2, styles: { fontStyle: 'bold', fillColor: [210, 230, 245], halign: 'left' } }],
+                    
+                    // Fila 2: Subtítulo con fondo gris
+                    [{ content: 'Tipo de Evento', colSpan: 2, styles: { fontStyle: 'bold', fillColor: [220, 220, 220], halign: 'left' } }],
+                    
+                    // Fila 3: Cabeceras de las columnas (centradas)
+                    [
+                        { content: 'Actividad', styles: { fontStyle: 'bold', halign: 'center' } },
+                        { content: 'Costo', styles: { fontStyle: 'bold', halign: 'center' } },
+                    ],
+                    
+                    // Fila 4: Los datos agrupados en una sola fila pero separados por saltos de línea
+                    [
+                        { content: actividadesText, styles: { halign: 'left', valign: 'top' } },
+                        { content: costosText, styles: { halign: 'center', valign: 'top' } } // El costo va centrado
+                    ]
+                ];
+
+                autoTable(doc, {
+                    startY: doc.lastAutoTable.finalY + 6, 
+                    margin: { top: 30, left: 15, right: 15, bottom: 20 },
+                    theme: 'grid',
+                    body: tabladifusi,
+                    styles: { 
+                        fontSize: 8, 
+                        lineColor: [0, 0, 0], 
+                        textColor: [0, 0, 0], 
+                        fillColor: false 
+                    },
+                    columnStyles: {
+                        0: { cellWidth: 'auto' }, // Toma el ancho disponible
+                        1: { cellWidth: 50 }      // Limita la columna de costo para que la actividad tenga más espacio
+                    }
+                });
+                const textbio = proy.invi_bibliografias?.map(bib => `- ${bib.autor} (${bib.anio}). ${bib.titulo}. ${bib.editorial_fuente}.`).join('\n') || 'N/A';
+                const tablabiblio = [
+                    [{ content: '10. BIBLIOGRAFÍA Y OTRA PRODUCCIÓN CIENTÍFICA CITADA', styles: { fontStyle: 'bold', fillColor: [220, 220, 220], halign: 'left', lineWidth: 0.1, lineColor: [0, 0, 0] } }],
+                    [{ content: `${textbio}`, styles: { halign: 'left', fillColor: false, textColor: [0, 0, 0] } }],
+                    
+                ];
+
+                
+                autoTable(doc, {
+                    startY: doc.lastAutoTable.finalY + 6, 
+                    margin: { top: 30, left: 15, right: 15, bottom: 20 },
+                    theme: 'plain',
+                    body: tablabiblio,
+                    styles: { 
+                        fontSize: 8, 
+                        cellPadding: 3 // Un poco de espacio para que el texto respire respecto a los márgenes
+                    } 
+                });
+                const textoAnexo = `En los formatos que se encuentran en la hoja electrónica que se acompaña se debe ingresar la información relacionada con:\n\n` +
+                    `1.Carta aval del proyecto de Vinculación con la Sociedad responsable de Vinculación de la facultad\n(debidamente firmado y sellado)\n` +
+                    `2. Cronograma del proyecto de Vinculación con la Sociedad (debidamente firmado)\n` +
+                    `3. Programación Anual de inversiones (debidamente firmado)\n` +
+                    `4. Hoja de vida\n` +
+                    `5. Compromiso de participación docentes UTLVTE (debidamente firmado)\n` +
+                    `6. Compromiso de participación estudiantes UTLVTE (debidamente firmado)\n` +
+                    `7. Monitoreo y evaluación\n` +
+                    `8. Monitoreo y evaluación\n` +
+                    `9. Monitoreo y evaluación\n` +
+                    `10. Impacto del proyecto\n` +
+                    `11. Formatos para productos de eventos de capacitación. (Aplica solo a proyectos que justifican el desarrollo de capacitaciones como parte de sus objetivos)`;
+
+                const tablaanexo = [
+                    // Fila 1: Encabezado. Le forzamos borde negro (lineWidth y lineColor)
+                    [{ 
+                        content: '11. ANEXO', 
+                        styles: { fontStyle: 'bold', fillColor: [220, 220, 220], halign: 'left', lineWidth: 0.1, lineColor: [0, 0, 0] } 
+                    }],
+                    
+                    // Fila 2: Contenido. Al no ponerle lineWidth, tomará el borde 0 del tema 'plain'
+                    [{ 
+                        content: textoAnexo, 
+                        styles: { halign: 'left', fillColor: false, textColor: [0, 0, 0] } 
+                    }]
+                ];
+                
+                autoTable(doc, {
+                    startY: doc.lastAutoTable.finalY + 6, 
+                    margin: { top: 30, left: 15, right: 15, bottom: 20 },
+                    theme: 'plain', // El tema 'plain' elimina la cuadrícula general
+                    body: tablaanexo,
+                    styles: { 
+                        fontSize: 8, 
+                        cellPadding: 3 // Un poco de espacio para que el texto respire respecto a los márgenes
+                    } 
+                });
+                const nombreArchivo = `Proyecto-${proy.proyect_cod}.pdf`;
+                doc.save(nombreArchivo);
+                
+
+            } catch (error) {
+                console.error(`Error al generar el PDF del Anexo:`, error);
+                mostraralertas2("Ocurrió un error al generar el PDF.", "error");
+            } finally {
+                // Apagamos el spinner pase lo que pase (éxito o error)
+                this.botonCargando = null;
             }
         },
 

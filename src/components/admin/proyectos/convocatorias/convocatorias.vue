@@ -131,6 +131,14 @@
                       {{ post.num_resolucion || 'N/A' }}
                     </span>
                   </div>
+                  <div v-if="post.fecha_aprobacion || post.tipo_sesion" class="flex items-center gap-1.5 sm:col-span-2">
+                    <span class="font-medium text-gray-400">Aprobación:</span>
+                    <span class="text-gray-700 dark:text-gray-300 font-medium">
+                      {{ post.tipo_sesion ? `Sesión ${post.tipo_sesion}` : '' }}
+                      {{ post.tipo_sesion && post.fecha_aprobacion ? ' - ' : '' }}
+                      {{ post.fecha_aprobacion || '' }}
+                    </span>
+                  </div>
 
                 </div>
               </div>
@@ -176,15 +184,24 @@
 
             <td class="py-4 px-4 align-top whitespace-nowrap">
               <div v-if="post.archivo">
-                <a :href="getPdfUrl(post.num_convocatoria,post.archivo)"
-                  target="_blank"
-                  class="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold text-rose-600 bg-rose-50 rounded-lg hover:bg-rose-100 transition-all border border-rose-100 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <button type="button"
+                  @click="verPdfConvocatoria(post.num_convocatoria, post.archivo, 'pdf_' + post.id_convocatoria)"
+                  :disabled="botonCargando === 'pdf_' + post.id_convocatoria"
+                  class="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold text-rose-600 bg-rose-50 rounded-lg hover:bg-rose-100 transition-all border border-rose-100 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20 disabled:opacity-50">
+                  
+                  <!-- Spinner -->
+                  <svg v-if="botonCargando === 'pdf_' + post.id_convocatoria" class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+
+                  <!-- Ícono PDF -->
+                  <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                     <polyline points="14 2 14 8 20 8" />
                   </svg>
-                  <span>Ver PDF</span>
-                </a>
+                  <span>{{ botonCargando === 'pdf_' + post.id_convocatoria ? 'Cargando...' : 'Ver PDF' }}</span>
+                </button>
               </div>
               <span v-else class="text-xs text-gray-400 italic">Sin documento</span>
             </td>
@@ -294,6 +311,37 @@
                 <label class="mb-1.5 block text-sm font-medium text-gray-700">Fecha Fin</label>
                 <input v-model="formulario.fecha_fin" type="date"
                   class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm outline-none focus:border-brand-500" />
+              </div>
+              <div>
+                <label class="mb-1.5 block text-sm font-medium text-gray-700">Fecha de Aprobación</label>
+                <input v-model="formulario.fecha_aprobacion" type="date"
+                  class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm outline-none focus:border-brand-500" />
+              </div>
+
+              <div>
+                <label class="mb-1.5 block text-sm font-medium text-gray-700">Tipo de Sesión</label>
+                
+                <!-- Modo Select -->
+                <div v-if="!sesionManual">
+                  <select v-model="formulario.tipo_sesion" @change="verificarTipoSesion"
+                    class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm outline-none focus:border-brand-500 dark:bg-gray-950 dark:border-gray-700">
+                    <option value="" disabled>-- Seleccione tipo de sesión --</option>
+                    <option value="Ordinaria">Ordinaria</option>
+                    <option value="Extraordinaria">Extraordinaria</option>
+                    <option value="OTRO">Otro (Especificar)</option>
+                  </select>
+                </div>
+
+                <!-- Modo Manual -->
+                <div v-else class="flex items-center gap-2">
+                  <input v-model="formulario.tipo_sesion" type="text"
+                    placeholder="Ej: Sesión Especial / Ampliada"
+                    class="w-full rounded-lg border border-brand-400 bg-brand-50/20 px-4 py-2.5 text-sm outline-none focus:border-brand-500" />
+                  <button type="button" @click="volverASelectSesion"
+                    class="text-xs font-semibold text-brand-600 hover:underline whitespace-nowrap">
+                    Volver
+                  </button>
+                </div>
               </div>
               <div>
                 <label class="mb-1.5 block text-sm font-medium text-gray-700">Número de Resolución</label>
@@ -474,17 +522,27 @@
                 </div>
               </div>
             </div>
+            <div v-if="isEditMode && formulario.archivo && !archivoSeleccionado" class="mt-3">
+              <label class="block text-xs font-semibold mb-2 text-gray-700 dark:text-gray-400">
+                Documento PDF Actual:
+              </label>
 
-            <div v-if="formulario.ad_archivo_url && !archivoSeleccionado" class="mt-4 col-span-1 lg:col-span-2">
-              <label class="block text-xs font-bold mb-2 text-gray-700 dark:text-gray-300">Documento
-                Actual:</label>
-              <div
-                class="w-full h-[400px] border border-gray-300 dark:border-gray-700 rounded-xl overflow-hidden bg-gray-50">
-                <iframe :src="formulario.ad_archivo_url" class="w-full h-full border-0"></iframe>
+              <div v-if="cargandoIframePdf"
+                class="w-full h-[350px] border border-gray-300 dark:border-gray-700 rounded-xl bg-gray-100 flex items-center justify-center animate-pulse">
+                <span class="text-sm text-gray-500">Cargando documento seguro...</span>
               </div>
+
+              <div v-else-if="formulario.pdfBlobUrl"
+                class="w-full h-[350px] border border-gray-300 dark:border-gray-700 rounded-xl overflow-hidden bg-gray-50">
+                <iframe :src="formulario.pdfBlobUrl" class="w-full h-full border-0"></iframe>
+              </div>
+
               <div class="mt-2 text-right">
-                <a :href="formulario.ad_archivo_url" target="_blank"
-                  class="text-sm text-brand-600 hover:underline">Abrir en nueva pestaña</a>
+                <button type="button" v-if="formulario.pdfBlobUrl"
+                  @click="abrirBlobEnNuevaPestana(formulario.pdfBlobUrl)"
+                  class="text-sm text-brand-600 hover:underline bg-transparent border-0 cursor-pointer">
+                  Abrir en nueva pestaña
+                </button>
               </div>
             </div>
             <div class="mt-2">
@@ -578,8 +636,13 @@ export default {
         archivo: null,
         habilitar_edicion: 0, // Por defecto no habilitado
         tipo_convocatoria: "INVESTIGACIÓN",
-        ad_archivo_url: null
+        ad_archivo_url: null,
+        fecha_aprobacion: null,
+        tipo_sesion: null,
+        pdfBlobUrl: null, // Para almacenar la URL del blob del PDF
       },
+      sesionManual: false,
+      cargandoIframePdf: false,
       filteredarray: [],
       searchQuery: "",
       isModalOpen: false,
@@ -629,6 +692,17 @@ export default {
 
   },
   methods: {
+    verificarTipoSesion() {
+      if (this.formulario.tipo_sesion === 'OTRO') {
+        this.sesionManual = true;
+        this.formulario.tipo_sesion = '';
+      }
+    },
+
+    volverASelectSesion() {
+      this.sesionManual = false;
+      this.formulario.tipo_sesion = '';
+    },
     async fetchDepartamentos() {
       // Evitar llamadas repetitivas si ya están cargados
       if (this.departamentosApi.length > 0) return; 
@@ -636,7 +710,6 @@ export default {
       try {
         this.cargandoDepartamentos = true;
         const res = await API.get(`${this.baseUrl}/listar_departamentos?all=true`);
-        console.log(res);
         // Asegurarse de acceder a la data correcta según tu API response
         this.departamentosApi = res.data.data; 
       } catch (error) {
@@ -721,9 +794,15 @@ export default {
           estado: user.estado,
           archivo: user.archivo,
           habilitar_edicion: user.habilitar_edicion,
-          ad_archivo_url: user.ad_archivo_url
+          ad_archivo_url: user.ad_archivo_url,
+          fecha_aprobacion: user.fecha_aprobacion,
+          tipo_sesion: user.tipo_sesion,
+          pdfBlobUrl: null
 
         };
+        if (user.tipo_sesion && !['Ordinaria', 'Extraordinaria'].includes(user.tipo_sesion)) {
+          this.sesionManual = true;
+        }
         this.estadoBool = user.estado === 1;
         this.edicionBool = user.habilitar_edicion === 1;
         // Función helper para procesar cómo viene el dato (Cédula 10 dígitos o Texto normal)
@@ -746,11 +825,59 @@ export default {
 
         this.isModalOpen = true;
         this.fetchDepartamentos();
+        this.cargarPdfIframe();
       } catch (e) {
         console.error("Error al abrir modal de edición:", e);
       } finally {
         this.botonCargando = null;
       }
+    },
+    async verPdfConvocatoria(num_convocatoria, filename, idBoton) {
+      if (!num_convocatoria || !filename) return;
+      this.botonCargando = idBoton;
+      try {
+        const response = await API.get(`${this.baseUrl}/ver-archivo-convocatoria`, {
+          params: { num_convocatoria, archivo: filename },
+          responseType: 'blob'
+        });
+
+        const fileBlob = new Blob([response.data], { type: 'application/pdf' });
+        const blobUrl = window.URL.createObjectURL(fileBlob);
+
+        window.open(blobUrl, '_blank');
+        setTimeout(() => window.URL.revokeObjectURL(blobUrl), 60000);
+      } catch (error) {
+        console.error("Error al obtener el PDF:", error);
+        mostraralertas2("El documento no está disponible o no tiene permisos.", "error");
+      } finally {
+        this.botonCargando = null;
+      }
+    },
+
+    async cargarPdfIframe() {
+      if (!this.formulario?.num_convocatoria || !this.formulario?.archivo) return;
+
+      this.cargandoIframePdf = true;
+      try {
+        const response = await API.get(`${this.baseUrl}/ver-archivo-convocatoria`, {
+          params: {
+            num_convocatoria: this.formulario.num_convocatoria,
+            archivo: this.formulario.archivo
+          },
+          responseType: 'blob'
+        });
+
+        const fileBlob = new Blob([response.data], { type: 'application/pdf' });
+        this.formulario.pdfBlobUrl = window.URL.createObjectURL(fileBlob);
+      } catch (error) {
+        console.error("Error cargando PDF en iframe:", error);
+      } finally {
+        this.cargandoIframePdf = false;
+      }
+    },
+
+    abrirBlobEnNuevaPestana(blobUrl) {
+      if (blobUrl) window.open(blobUrl, '_blank');
     },
     handleFileChange(event) {
       //Obtener el archivo seleccionado por el usuario
@@ -843,9 +970,6 @@ export default {
         // Mapeamos los datos iniciales agregando propiedades reactivas para el docente
         this.filteredarray = data.map(item => ({
           ...item,
-          ad_archivo_url: item.archivo
-            ? `${rootURL}/Documentos/INVESTIGACIÓN/Convocatorias/${item.num_convocatoria}/${item.archivo}`
-            : null,
           docente: null,
           cargandoDocente: false,
           errorDocente: ''
@@ -922,7 +1046,10 @@ export default {
       try {
         this.botonCargando = 'guardando';
         if (this.archivoSeleccionado) {
-          const uploadResp = await this.uploadArchivo(this.formulario.num_convocatoria);
+          const uploadResp = await this.uploadArchivo(
+            this.formulario.num_convocatoria,
+            this.isEditMode ? this.formulario.archivo : null
+          );
           if (uploadResp && uploadResp.filename) params.archivo = uploadResp.filename;
         }
 
@@ -947,7 +1074,20 @@ export default {
     },
 
     limpiarFormulario() {
-      this.formulario = { id_convocatoria: null, num_convocatoria: "", titulo_convocatoria: "", fecha_inicio: "", fecha_fin: "", num_resolucion: "", estado: 1, habilitar_edicion: 0, tipo_convocatoria: "INVESTIGACIÓN" };
+      this.formulario = { 
+        id_convocatoria: null, 
+        num_convocatoria: "", 
+        titulo_convocatoria: "", 
+        fecha_inicio: "", 
+        fecha_fin: "", 
+        num_resolucion: "", 
+        estado: 1, 
+        habilitar_edicion: 0, 
+        tipo_convocatoria: "INVESTIGACIÓN",
+        ad_archivo_url: null,
+        fecha_aprobacion: null,
+        tipo_sesion: null
+      };
       this.estadoBool = true;
       this.edicionBool = false;
       this.archivoSeleccionado = null;
@@ -957,6 +1097,9 @@ export default {
       Object.keys(this.camposResponsables).forEach(key => {
         this.camposResponsables[key] = { ...this.camposResponsables[key], tipo: 'persona', cedula: '', texto: '', docente: null, error: '' };
       });
+      if (this.formulario.pdfBlobUrl) {
+        window.URL.revokeObjectURL(this.formulario.pdfBlobUrl);
+      }
     },
     eliminar(id, nombre) {
       try {
